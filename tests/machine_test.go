@@ -31,10 +31,10 @@ func TestErrorStack(t *testing.T) {
 	require.True(t, errors.As(err, &rerr))
 
 	expectedStack := []bag3l.Frame{
-		{Filename: "main.n", Line: 4, Func: "h"},
-		{Filename: "main.n", Line: 7, Func: "g"},
-		{Filename: "main.n", Line: 10, Func: "f"},
-		{Filename: "main.n", Line: 12, Func: "main"},
+		{Filename: "main.b3", Line: 4, Func: "h"},
+		{Filename: "main.b3", Line: 7, Func: "g"},
+		{Filename: "main.b3", Line: 10, Func: "f"},
+		{Filename: "main.b3", Line: 12, Func: "main"},
 		{Filename: "", Line: 0, Func: "$main"},
 	}
 

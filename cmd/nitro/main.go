@@ -26,8 +26,8 @@ func printSysUsage(flags *Flags) {
 	}
 
 	bold.Fprintln(os.Stderr, "USAGE")
-	p("  nitro program.n <prog-flags>")
-	p("  nitro -c <command>")
+	p("  bag3l program.b3 <prog-flags>")
+	p("  bag3l -c <command>")
 	p("")
 
 	bold.Fprintln(os.Stderr, "FLAGS")

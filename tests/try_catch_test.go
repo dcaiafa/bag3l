@@ -83,11 +83,11 @@ f2
 g1
 f4
 boom
- main.n:4  g
+ main.b3:4  g
  <builtin>  tests.harnessCall
- main.n:13  f
- main.n:25  x
- main.n:31  main
+ main.b3:13  f
+ main.b3:25  x
+ main.b3:31  main
  <builtin>  $main
 `)
 

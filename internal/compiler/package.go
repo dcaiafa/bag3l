@@ -49,7 +49,7 @@ func (c *packageCompiler) parse() error {
 				continue
 			}
 			ext := filepath.Ext(unitFI.Name)
-			if unitFI.IsDir || (ext != ".n" && ext != ".bg") {
+			if unitFI.IsDir || (ext != ".b3") {
 				continue
 			}
 			unitPath := filepath.Join(c.PackagePath, unitFI.Name)

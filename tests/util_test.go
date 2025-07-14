@@ -30,10 +30,10 @@ func compile(prog string) (*vm.Program, error) {
 	compiler.RegisterBuiltins("harness", harnessPackage)
 
 	fs := fs.NewMem()
-	fs.Put("main.n", []byte(prog))
+	fs.Put("main.b3", []byte(prog))
 	compiler.SetFS(fs)
 
-	program, err := compiler.Compile("main.n")
+	program, err := compiler.Compile("main.b3")
 	if err != nil {
 		return nil, err
 	}
