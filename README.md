@@ -1,5 +1,3 @@
-# Nitro
-Nitro is a computer language.
+# Bag3l
+Bag3l is a programing language.
 
-## Notes
-Using antlr version 4.9.2
