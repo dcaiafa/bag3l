@@ -26,11 +26,11 @@ func TestErrorStack(t *testing.T) {
 	_, err := run(prog, nil)
 	require.Error(t, err)
 
-	var rerr *nitro.RuntimeError
+	var rerr *bag3l.RuntimeError
 
 	require.True(t, errors.As(err, &rerr))
 
-	expectedStack := []nitro.Frame{
+	expectedStack := []bag3l.Frame{
 		{Filename: "main.n", Line: 4, Func: "h"},
 		{Filename: "main.n", Line: 7, Func: "g"},
 		{Filename: "main.n", Line: 10, Func: "f"},

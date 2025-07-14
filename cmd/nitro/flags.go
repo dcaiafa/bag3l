@@ -119,7 +119,7 @@ func (f *Flags) AddFlag(flag *Flag) *Flag {
 	return flag
 }
 
-func (f *Flags) AddFlagsFromMetadata(md *nitro.Metadata) error {
+func (f *Flags) AddFlagsFromMetadata(md *bag3l.Metadata) error {
 	posIndex := 0
 	for _, param := range md.Params {
 		flag := &Flag{
@@ -158,27 +158,27 @@ func (f *Flags) AddFlagsFromMetadata(md *nitro.Metadata) error {
 	return nil
 }
 
-func (f *Flags) GetNitroValues() map[string]nitro.Value {
-	values := make(map[string]nitro.Value, len(f.flags))
+func (f *Flags) GetNitroValues() map[string]bag3l.Value {
+	values := make(map[string]bag3l.Value, len(f.flags))
 	processFlag := func(flag *Flag) {
 		if !flag.Set {
 			return
 		}
 		switch v := flag.Value.(type) {
 		case *bool:
-			values[flag.Name] = nitro.NewBool(*v)
+			values[flag.Name] = bag3l.NewBool(*v)
 		case *string:
-			values[flag.Name] = nitro.NewString(*v)
+			values[flag.Name] = bag3l.NewString(*v)
 		case *[]string:
-			a := nitro.NewArray()
+			a := bag3l.NewArray()
 			for _, s := range *v {
-				a.Add(nitro.NewString(s))
+				a.Add(bag3l.NewString(s))
 			}
 			values[flag.Name] = a
 		case *int64:
-			values[flag.Name] = nitro.NewInt(*v)
+			values[flag.Name] = bag3l.NewInt(*v)
 		case *float64:
-			values[flag.Name] = nitro.NewFloat(*v)
+			values[flag.Name] = bag3l.NewFloat(*v)
 		default:
 			panic("unreachable")
 		}

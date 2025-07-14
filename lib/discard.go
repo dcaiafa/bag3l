@@ -8,7 +8,7 @@ import (
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
-func discard(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
+func discard(vm *bag3l.VM, args []bag3l.Value, nret int) ([]bag3l.Value, error) {
 	if len(args) < 1 {
 		return nil, errNotEnoughArgs
 	} else if len(args) > 1 {
@@ -21,7 +21,7 @@ func discard(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) 
 			return nil, err
 		}
 		core.CloseReader(reader)
-	} else if iter, err := nitro.MakeIterator(vm, args[0]); err == nil {
+	} else if iter, err := bag3l.MakeIterator(vm, args[0]); err == nil {
 		for {
 			v, err := vm.IterNext(iter, 1)
 			if err != nil {

@@ -3,7 +3,7 @@ package lib
 import (
 	"fmt"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 

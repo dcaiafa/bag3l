@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 

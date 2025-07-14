@@ -3,7 +3,7 @@ package lib
 import (
 	"os"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 func osHome(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

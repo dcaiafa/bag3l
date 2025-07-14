@@ -10,16 +10,16 @@ import (
 var errToHexUsage = errors.New(
 	`invalid usage. Expected to_hex(string)`)
 
-func toHex(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func toHex(vm *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
 	if len(args) != 1 {
 		return nil, errToHexUsage
 	}
 
-	input, ok := args[0].(nitro.String)
+	input, ok := args[0].(bag3l.String)
 	if !ok {
 		return nil, errSha1Usage
 	}
 
 	res := hex.EncodeToString([]byte(input.String()))
-	return []nitro.Value{nitro.NewString(res)}, nil
+	return []bag3l.Value{bag3l.NewString(res)}, nil
 }

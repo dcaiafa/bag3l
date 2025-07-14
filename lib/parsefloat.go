@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 var errParseFloatUsage = errors.New(

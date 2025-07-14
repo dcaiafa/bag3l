@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 var typeValue = reflect.Indirect(reflect.ValueOf(new(nitro.Value))).Type()

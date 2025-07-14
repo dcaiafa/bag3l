@@ -1,6 +1,6 @@
 package lib
 
-import "github.com/dcaiafa/bag3l"
+import nitro "github.com/dcaiafa/bag3l"
 
 func toBool(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {

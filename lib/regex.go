@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 var errRegexUsage = errors.New(

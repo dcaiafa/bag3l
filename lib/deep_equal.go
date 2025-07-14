@@ -6,25 +6,25 @@ import (
 	"github.com/dcaiafa/bag3l"
 )
 
-func deepEqual(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
+func deepEqual(vm *bag3l.VM, args []bag3l.Value, nret int) ([]bag3l.Value, error) {
 	if len(args) < 2 {
 		return nil, errNotEnoughArgs
 	}
 
 	ctx := &deepEqualContext{
-		visiting: make(map[nitro.Value]bool),
+		visiting: make(map[bag3l.Value]bool),
 	}
 
 	equal := ctx.Equal(args[0], args[1])
 
-	return []nitro.Value{nitro.NewBool(equal)}, nil
+	return []bag3l.Value{bag3l.NewBool(equal)}, nil
 }
 
 type deepEqualContext struct {
-	visiting map[nitro.Value]bool
+	visiting map[bag3l.Value]bool
 }
 
-func (e *deepEqualContext) Equal(a, b nitro.Value) bool {
+func (e *deepEqualContext) Equal(a, b bag3l.Value) bool {
 	if a == b {
 		return true
 	}
@@ -34,19 +34,19 @@ func (e *deepEqualContext) Equal(a, b nitro.Value) bool {
 	}
 
 	switch a := a.(type) {
-	case *nitro.Array:
-		return e.arrayEqual(a, b.(*nitro.Array))
+	case *bag3l.Array:
+		return e.arrayEqual(a, b.(*bag3l.Array))
 
-	case *nitro.Object:
-		return e.mapEqual(a, b.(*nitro.Object))
+	case *bag3l.Object:
+		return e.mapEqual(a, b.(*bag3l.Object))
 
 	default:
-		res, err := nitro.EvalOp(nitro.OpEq, a, b)
-		return err == nil && res == nitro.True
+		res, err := bag3l.EvalOp(bag3l.OpEq, a, b)
+		return err == nil && res == bag3l.True
 	}
 }
 
-func (e *deepEqualContext) arrayEqual(a, b *nitro.Array) bool {
+func (e *deepEqualContext) arrayEqual(a, b *bag3l.Array) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
@@ -63,7 +63,7 @@ func (e *deepEqualContext) arrayEqual(a, b *nitro.Array) bool {
 	return true
 }
 
-func (e *deepEqualContext) mapEqual(a, b *nitro.Object) bool {
+func (e *deepEqualContext) mapEqual(a, b *bag3l.Object) bool {
 	if a.Len() != b.Len() {
 		return false
 	}
@@ -77,7 +77,7 @@ func (e *deepEqualContext) mapEqual(a, b *nitro.Object) bool {
 	defer delete(e.visiting, a)
 
 	isEqual := true
-	a.ForEach(func(k, va nitro.Value) bool {
+	a.ForEach(func(k, va bag3l.Value) bool {
 		vb, ok := b.Get(k)
 		if !ok {
 			isEqual = false

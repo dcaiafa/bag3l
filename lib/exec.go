@@ -9,7 +9,7 @@ import (
 	osexec "os/exec"
 	"sync"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/ioqueue"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"

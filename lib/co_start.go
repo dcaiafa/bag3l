@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 func start(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

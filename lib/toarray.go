@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 func toArray(m *nitro.VM, args []nitro.Value, _ int) ([]nitro.Value, error) {

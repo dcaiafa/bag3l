@@ -77,9 +77,9 @@ func rel0(vm *vm.VM, basePath, targPath string) (string, error) {
 
 func split_list0(_ *vm.VM, path string) (*vm.Array, error) {
 	list := filepath.SplitList(path)
-	res := make([]nitro.Value, len(list))
+	res := make([]bag3l.Value, len(list))
 	for i, elem := range list {
-		res[i] = nitro.NewString(elem)
+		res[i] = bag3l.NewString(elem)
 	}
 	return vm.NewArrayWithSlice(res), nil
 }
@@ -165,19 +165,19 @@ func (i *lsDoubleStarIter) run(ctx context.Context) {
 	})
 }
 
-func (i *lsDoubleStarIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *lsDoubleStarIter) Next(m *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
 	entry, ok := <-i.outChan
 	if !ok {
 		i.cancel()
 		return nil, nil
 	}
 
-	return []nitro.Value{
-		nitro.NewString(filepath.FromSlash(filepath.Join(i.base, entry.path))),
-		nitro.NewBool(entry.dirEntry.IsDir())}, nil
+	return []bag3l.Value{
+		bag3l.NewString(filepath.FromSlash(filepath.Join(i.base, entry.path))),
+		bag3l.NewBool(entry.dirEntry.IsDir())}, nil
 }
 
-func (i *lsDoubleStarIter) Close(vm *nitro.VM) error {
+func (i *lsDoubleStarIter) Close(vm *bag3l.VM) error {
 	i.cancel()
 	return nil
 }
@@ -187,14 +187,14 @@ type lsSimpleIter struct {
 	entries []fs.DirEntry
 }
 
-func (i *lsSimpleIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *lsSimpleIter) Next(m *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
 	if len(i.entries) == 0 {
 		return nil, nil
 	}
 
-	res := []nitro.Value{
-		nitro.NewString(filepath.Join(i.root, i.entries[0].Name())),
-		nitro.NewBool(i.entries[0].IsDir())}
+	res := []bag3l.Value{
+		bag3l.NewString(filepath.Join(i.root, i.entries[0].Name())),
+		bag3l.NewBool(i.entries[0].IsDir())}
 
 	i.entries = i.entries[1:]
 	return res, nil
@@ -215,11 +215,11 @@ func ls0(vm *vm.VM, path string) (vm.Iterator, error) {
 			entries: entries,
 		}
 
-		return nitro.NewIterator(iter.Next, nil, 2), nil
+		return bag3l.NewIterator(iter.Next, nil, 2), nil
 	}
 
 	iter := newLSDoubleStarIter(base, pattern)
-	return nitro.NewIterator(iter.Next, iter.Close, 2), nil
+	return bag3l.NewIterator(iter.Next, iter.Close, 2), nil
 }
 
 func remove0(vm *vm.VM, path string) (bool, error) {

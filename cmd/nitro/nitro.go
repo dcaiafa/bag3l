@@ -108,7 +108,7 @@ func main() {
 
 	var progName string
 	var scriptPath string
-	var compiled *nitro.Program
+	var compiled *bag3l.Program
 
 	if *flagC.Value.(*string) != "" {
 		scriptPath = "<inline>"
@@ -155,7 +155,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	vm := nitro.NewVM(compiled)
+	vm := bag3l.NewVM(compiled)
 
 	signalCh := make(chan os.Signal)
 	stopCh := make(chan struct{})
@@ -184,11 +184,11 @@ func main() {
 		}
 	}
 
-	var programArgs []nitro.Value
+	var programArgs []bag3l.Value
 	if len(args) != 0 {
-		programArgs = make([]nitro.Value, len(args))
+		programArgs = make([]bag3l.Value, len(args))
 		for i, arg := range args {
-			programArgs[i] = nitro.NewString(arg)
+			programArgs[i] = bag3l.NewString(arg)
 		}
 	}
 

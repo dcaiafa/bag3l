@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 func closep(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

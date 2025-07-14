@@ -12,7 +12,7 @@ import (
 var errSleepUsage = errors.New(
 	`invalid usage. Expected sleep(duration|int)`)
 
-func sleep(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func sleep(m *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
 	if len(args) != 1 {
 		return nil, errSleepUsage
 	}
@@ -21,7 +21,7 @@ func sleep(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	if durArg, ok := args[0].(btime.Duration); ok {
 		dur = durArg.Duration()
-	} else if intArg, ok := args[0].(nitro.Int); ok {
+	} else if intArg, ok := args[0].(bag3l.Int); ok {
 		dur = time.Duration(intArg.Int64()) * time.Second
 	} else {
 		return nil, errSleepUsage

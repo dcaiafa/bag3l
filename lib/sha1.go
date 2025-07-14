@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/dcaiafa/bag3l"
+	nitro "github.com/dcaiafa/bag3l"
 )
 
 var errSha1Usage = errors.New(
