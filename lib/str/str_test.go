@@ -3,7 +3,7 @@ package str_test
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/btesting"
+	"github.com/dcaiafa/bag3l/internal/btesting"
 )
 
 func TestStrFind(t *testing.T) {

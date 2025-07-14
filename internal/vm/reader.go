@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dcaiafa/nitro/internal/bytequeue"
+	"github.com/dcaiafa/bag3l/internal/bytequeue"
 )
 
 type Readable interface {

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dcaiafa/nitro"
-	libio "github.com/dcaiafa/nitro/lib/io"
+	"github.com/dcaiafa/bag3l"
+	libio "github.com/dcaiafa/bag3l/lib/io"
 	"github.com/stretchr/testify/require"
 )
 

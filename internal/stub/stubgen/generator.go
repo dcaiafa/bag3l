@@ -5,8 +5,8 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/stub/ast"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/stub/ast"
 )
 
 type Generator struct {

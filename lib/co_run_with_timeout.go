@@ -3,7 +3,7 @@ package lib
 import (
 	"context"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func runWithTimeout(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

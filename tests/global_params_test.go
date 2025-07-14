@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func TestGlobalParams(t *testing.T) {

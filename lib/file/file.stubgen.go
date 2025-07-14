@@ -1,8 +1,8 @@
 package file
 
-import _p0 "github.com/dcaiafa/nitro/internal/export"
-import _p1 "github.com/dcaiafa/nitro/internal/stub"
-import _p2 "github.com/dcaiafa/nitro/internal/vm"
+import _p0 "github.com/dcaiafa/bag3l/internal/export"
+import _p1 "github.com/dcaiafa/bag3l/internal/stub"
+import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
 type OpenOptions struct {
 	Read   bool

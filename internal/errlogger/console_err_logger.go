@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type ConsoleErrLogger struct{}

@@ -3,7 +3,7 @@ package lib
 import (
 	"strings"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func join(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

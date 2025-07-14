@@ -3,7 +3,7 @@ package lib
 import (
 	"errors"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 var errReduceUsage = errors.New(

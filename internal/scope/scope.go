@@ -1,8 +1,8 @@
 package scope
 
 import (
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/symbol"
 )
 
 type Type int

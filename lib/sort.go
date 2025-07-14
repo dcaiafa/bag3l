@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	gosort "sort"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 type sortExpr struct {

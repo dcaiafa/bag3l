@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/lib/core"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/lib/core"
 )
 
 var errParseIntUsage = errors.New(

@@ -3,8 +3,8 @@ package ast
 import (
 	"path"
 
-	"github.com/dcaiafa/nitro/internal/scope"
-	"github.com/dcaiafa/nitro/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/scope"
+	"github.com/dcaiafa/bag3l/internal/symbol"
 )
 
 type Import struct {

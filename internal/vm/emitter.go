@@ -1,7 +1,7 @@
 package vm
 
 import (
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type Label struct {

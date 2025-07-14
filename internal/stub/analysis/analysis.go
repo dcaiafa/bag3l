@@ -9,13 +9,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dcaiafa/nitro/internal/nfadfa"
-	"github.com/dcaiafa/nitro/internal/util/set"
+	"github.com/dcaiafa/bag3l/internal/nfadfa"
+	"github.com/dcaiafa/bag3l/internal/util/set"
 )
 
-const vmPackage = "github.com/dcaiafa/nitro/internal/vm"
-const stubPackage = "github.com/dcaiafa/nitro/internal/stub"
-const exportPackage = "github.com/dcaiafa/nitro/internal/export"
+const vmPackage = "github.com/dcaiafa/bag3l/internal/vm"
+const stubPackage = "github.com/dcaiafa/bag3l/internal/stub"
+const exportPackage = "github.com/dcaiafa/bag3l/internal/export"
 
 var valueGoType = GoType{Package: vmPackage, Name: "Value"}
 var readerGoType = GoType{Package: vmPackage, Name: "Reader"}
@@ -495,7 +495,7 @@ func (a *Analysis) toConvenienceType(v string, typ Type) string {
 }
 
 func (a *Analysis) fromConvenienceType(v string, typ Type) string {
-	alias := a.importMap["github.com/dcaiafa/nitro/internal/vm"]
+	alias := a.importMap["github.com/dcaiafa/bag3l/internal/vm"]
 	switch typ.Name {
 	case "Str":
 		return fmt.Sprintf("%s.NewString(%v)", alias, v)

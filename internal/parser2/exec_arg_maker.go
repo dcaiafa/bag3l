@@ -3,7 +3,7 @@ package parser2
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro/internal/ast"
+	"github.com/dcaiafa/bag3l/internal/ast"
 )
 
 type execArgMaker struct {

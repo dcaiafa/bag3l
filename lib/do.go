@@ -1,6 +1,6 @@
 package lib
 
-import "github.com/dcaiafa/nitro"
+import "github.com/dcaiafa/bag3l"
 
 func dop(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
 	if len(args) > 2 {

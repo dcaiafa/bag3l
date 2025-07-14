@@ -3,7 +3,7 @@ package errlogger
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type ErrLogger interface {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dcaiafa/nitro/internal/stub/parser"
+	"github.com/dcaiafa/bag3l/internal/stub/parser"
 )
 
 func main() {

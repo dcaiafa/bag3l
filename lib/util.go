@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/vm"
-	"github.com/dcaiafa/nitro/lib/file"
-	"github.com/dcaiafa/nitro/lib/time"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
+	"github.com/dcaiafa/bag3l/lib/file"
+	"github.com/dcaiafa/bag3l/lib/time"
 )
 
 var (

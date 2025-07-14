@@ -3,8 +3,8 @@ package maps
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 //go:generate stubgen maps.stubgen

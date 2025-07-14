@@ -3,7 +3,7 @@ package lib
 import (
 	"reflect"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func deepEqual(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {

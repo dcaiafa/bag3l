@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dcaiafa/nitro/internal/fs"
+	"github.com/dcaiafa/bag3l/internal/fs"
 	"gopkg.in/yaml.v3"
 )
 

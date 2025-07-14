@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/symbol"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type SimpleRef struct {

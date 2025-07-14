@@ -3,7 +3,7 @@ package lib
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func range_(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {

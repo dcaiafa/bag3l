@@ -1,7 +1,7 @@
 package vm
 
 import (
-	"github.com/dcaiafa/nitro/internal/meta"
+	"github.com/dcaiafa/bag3l/internal/meta"
 )
 
 type PackageSymbolType uint8

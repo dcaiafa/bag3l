@@ -1,15 +1,15 @@
 package lib
 
 import (
-	"github.com/dcaiafa/nitro/internal/export"
-	"github.com/dcaiafa/nitro/lib/crypto"
-	"github.com/dcaiafa/nitro/lib/encoding/json"
-	"github.com/dcaiafa/nitro/lib/file"
-	"github.com/dcaiafa/nitro/lib/io"
-	"github.com/dcaiafa/nitro/lib/maps"
-	"github.com/dcaiafa/nitro/lib/path/filepath"
-	"github.com/dcaiafa/nitro/lib/str"
-	libtime "github.com/dcaiafa/nitro/lib/time"
+	"github.com/dcaiafa/bag3l/internal/export"
+	"github.com/dcaiafa/bag3l/lib/crypto"
+	"github.com/dcaiafa/bag3l/lib/encoding/json"
+	"github.com/dcaiafa/bag3l/lib/file"
+	"github.com/dcaiafa/bag3l/lib/io"
+	"github.com/dcaiafa/bag3l/lib/maps"
+	"github.com/dcaiafa/bag3l/lib/path/filepath"
+	"github.com/dcaiafa/bag3l/lib/str"
+	libtime "github.com/dcaiafa/bag3l/lib/time"
 )
 
 var GlobalPackage = export.Exports{

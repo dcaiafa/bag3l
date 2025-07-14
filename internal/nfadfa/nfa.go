@@ -5,7 +5,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/dcaiafa/nitro/internal/stack"
+	"github.com/dcaiafa/bag3l/internal/stack"
 )
 
 type epsilon struct {

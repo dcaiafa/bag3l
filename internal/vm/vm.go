@@ -8,7 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/dcaiafa/nitro/internal/fiber"
+	"github.com/dcaiafa/bag3l/internal/fiber"
 )
 
 const stackSize = 1000

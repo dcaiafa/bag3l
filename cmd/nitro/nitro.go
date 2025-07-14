@@ -12,10 +12,10 @@ import (
 	"time"
 	_ "time/tzdata"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/compiler"
-	"github.com/dcaiafa/nitro/internal/fs"
-	"github.com/dcaiafa/nitro/lib"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/compiler"
+	"github.com/dcaiafa/bag3l/internal/fs"
+	"github.com/dcaiafa/bag3l/lib"
 	"github.com/fatih/color"
 )
 

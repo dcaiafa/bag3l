@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/lib/core"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/lib/core"
 )
 
 type Buffer struct {

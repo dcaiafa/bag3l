@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/compiler"
-	"github.com/dcaiafa/nitro/internal/export"
-	"github.com/dcaiafa/nitro/internal/fs"
-	"github.com/dcaiafa/nitro/internal/vm"
-	"github.com/dcaiafa/nitro/lib"
-	libio "github.com/dcaiafa/nitro/lib/io"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/compiler"
+	"github.com/dcaiafa/bag3l/internal/export"
+	"github.com/dcaiafa/bag3l/internal/fs"
+	"github.com/dcaiafa/bag3l/internal/vm"
+	"github.com/dcaiafa/bag3l/lib"
+	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 
 func harnessCall(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

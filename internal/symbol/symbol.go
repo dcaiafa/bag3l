@@ -1,7 +1,7 @@
 package symbol
 
 import (
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type Symbol interface {

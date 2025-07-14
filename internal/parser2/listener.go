@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/dcaiafa/nitro/internal/ast"
-	"github.com/dcaiafa/nitro/internal/parser2/parser"
-	"github.com/dcaiafa/nitro/internal/token"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/ast"
+	"github.com/dcaiafa/bag3l/internal/parser2/parser"
+	"github.com/dcaiafa/bag3l/internal/token"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type listener struct {
@@ -952,7 +952,7 @@ func (l *listener) ExitExec_expr(ctx *parser.Exec_exprContext) {
 			l.errListener.LogError(
 				ctx.GetStart().GetLine(),
 				ctx.GetStart().GetColumn(),
-				err.Error())
+				"%s", err.Error())
 		}
 	}
 	err := argm.AddArg(nil)
@@ -960,7 +960,7 @@ func (l *listener) ExitExec_expr(ctx *parser.Exec_exprContext) {
 		l.errListener.LogError(
 			ctx.GetStart().GetLine(),
 			ctx.GetStart().GetColumn(),
-			err.Error())
+			"%s", err.Error())
 	}
 
 	l.put(ctx, &ast.FuncCallExpr{

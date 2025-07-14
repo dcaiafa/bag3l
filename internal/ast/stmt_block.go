@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/scope"
+	"github.com/dcaiafa/bag3l/internal/scope"
 )
 
 type StmtBlock struct {

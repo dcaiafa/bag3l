@@ -3,7 +3,7 @@ package parser2
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +18,7 @@ const prog = `
 }
 
 import "foo/bar"
-import yo "github.com/dcaiafa/nitro/yay"
+import yo "github.com/dcaiafa/bag3l/yay"
 
 lines() | split("\t")
 

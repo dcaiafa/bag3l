@@ -1,6 +1,6 @@
-module github.com/dcaiafa/nitro
+module github.com/dcaiafa/bag3l
 
-go 1.19
+go 1.24
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7

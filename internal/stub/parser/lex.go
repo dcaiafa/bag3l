@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dcaiafa/nitro/internal/stub/ast"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/stub/ast"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 var keywords = map[string]int{

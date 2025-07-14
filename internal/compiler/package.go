@@ -4,13 +4,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dcaiafa/nitro/internal/ast"
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/fs"
-	"github.com/dcaiafa/nitro/internal/parser2"
-	"github.com/dcaiafa/nitro/internal/scope"
-	"github.com/dcaiafa/nitro/internal/symbol"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/ast"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/fs"
+	"github.com/dcaiafa/bag3l/internal/parser2"
+	"github.com/dcaiafa/bag3l/internal/scope"
+	"github.com/dcaiafa/bag3l/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type packageGetter interface {

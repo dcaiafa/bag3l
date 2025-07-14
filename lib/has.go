@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func has(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {

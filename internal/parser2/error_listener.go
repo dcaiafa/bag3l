@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type errorListener struct {

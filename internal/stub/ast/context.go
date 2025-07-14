@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/stub/analysis"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/stub/analysis"
 )
 
 type Pass int

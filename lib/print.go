@@ -7,10 +7,10 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/vm"
-	"github.com/dcaiafa/nitro/lib/core"
-	libio "github.com/dcaiafa/nitro/lib/io"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
+	"github.com/dcaiafa/bag3l/lib/core"
+	libio "github.com/dcaiafa/bag3l/lib/io"
 	fatihcolor "github.com/fatih/color"
 )
 

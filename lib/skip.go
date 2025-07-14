@@ -3,7 +3,7 @@ package lib
 import (
 	"io"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func skip(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

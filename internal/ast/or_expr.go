@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/dcaiafa/nitro/internal/vm"
+import "github.com/dcaiafa/bag3l/internal/vm"
 
 type OrExpr struct {
 	PosImpl

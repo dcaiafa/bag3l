@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/stub/analysis"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/stub/analysis"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type StructDecl struct {

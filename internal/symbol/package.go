@@ -1,7 +1,7 @@
 package symbol
 
 import (
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 // TODO: rename file: package.go => import.go

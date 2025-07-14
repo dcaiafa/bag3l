@@ -1,10 +1,10 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/meta"
-	"github.com/dcaiafa/nitro/internal/scope"
-	"github.com/dcaiafa/nitro/internal/symbol"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/meta"
+	"github.com/dcaiafa/bag3l/internal/scope"
+	"github.com/dcaiafa/bag3l/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 type Package struct {

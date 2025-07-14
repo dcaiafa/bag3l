@@ -1,8 +1,8 @@
 package io
 
-import _p0 "github.com/dcaiafa/nitro/internal/export"
-import _p1 "github.com/dcaiafa/nitro/internal/stub"
-import _p2 "github.com/dcaiafa/nitro/internal/vm"
+import _p0 "github.com/dcaiafa/bag3l/internal/export"
+import _p1 "github.com/dcaiafa/bag3l/internal/stub"
+import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
 func _err(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error

@@ -4,8 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/lib/core"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/lib/core"
 )
 
 func read(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

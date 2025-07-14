@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 var errEnvUsage = errors.New(`invalid usage. Expected env(string?)`)

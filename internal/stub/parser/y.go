@@ -8,8 +8,8 @@ import __yyfmt__ "fmt"
 //line parser.y:2
 
 import (
-	"github.com/dcaiafa/nitro/internal/stub/ast"
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/stub/ast"
+	"github.com/dcaiafa/bag3l/internal/token"
 )
 
 func cast[T ast.AST](v ast.AST) T {

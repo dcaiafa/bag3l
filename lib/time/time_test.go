@@ -3,8 +3,8 @@ package time_test
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/btesting"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/btesting"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func TestTimeDuration(t *testing.T) {

@@ -3,8 +3,8 @@ package lib
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro"
-	libio "github.com/dcaiafa/nitro/lib/io"
+	"github.com/dcaiafa/bag3l"
+	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 
 func probe(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {

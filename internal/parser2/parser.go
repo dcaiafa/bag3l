@@ -4,9 +4,9 @@ import (
 	"sync"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/dcaiafa/nitro/internal/ast"
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/parser2/parser"
+	"github.com/dcaiafa/bag3l/internal/ast"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/parser2/parser"
 )
 
 var parserPool = sync.Pool{

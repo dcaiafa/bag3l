@@ -1,6 +1,6 @@
 package lib
 
-import "github.com/dcaiafa/nitro"
+import "github.com/dcaiafa/bag3l"
 
 func listAppend(m *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
 	l, err := getListArg(args, 0)

@@ -3,7 +3,7 @@ package parser
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/token"
+	"github.com/dcaiafa/bag3l/internal/token"
 	"github.com/stretchr/testify/require"
 )
 

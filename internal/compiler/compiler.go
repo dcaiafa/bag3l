@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/export"
-	"github.com/dcaiafa/nitro/internal/fs"
-	"github.com/dcaiafa/nitro/internal/mod"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/export"
+	"github.com/dcaiafa/bag3l/internal/fs"
+	"github.com/dcaiafa/bag3l/internal/mod"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 var ErrCircularDependency = errors.New("circular dependency")

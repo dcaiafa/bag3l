@@ -3,8 +3,8 @@ package lib
 import (
 	"fmt"
 
-	"github.com/dcaiafa/nitro"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func get(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {

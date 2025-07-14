@@ -2,7 +2,7 @@ package parser2
 
 import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/dcaiafa/nitro/internal/parser2/parser"
+	"github.com/dcaiafa/bag3l/internal/parser2/parser"
 )
 
 type augmentedLexer struct {

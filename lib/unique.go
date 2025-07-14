@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func unique(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {

@@ -3,11 +3,11 @@ package nitro
 import (
 	"regexp"
 
-	"github.com/dcaiafa/nitro/internal/compiler"
-	"github.com/dcaiafa/nitro/internal/errlogger"
-	"github.com/dcaiafa/nitro/internal/meta"
-	"github.com/dcaiafa/nitro/internal/token"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/compiler"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/meta"
+	"github.com/dcaiafa/bag3l/internal/token"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type (

@@ -1,9 +1,9 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/scope"
-	"github.com/dcaiafa/nitro/internal/token"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/scope"
+	"github.com/dcaiafa/bag3l/internal/token"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type Type int

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dcaiafa/nitro/internal/stack"
+	"github.com/dcaiafa/bag3l/internal/stack"
 )
 
 type DFAState struct {

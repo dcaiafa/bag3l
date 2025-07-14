@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/dcaiafa/nitro/internal/stub/ast"
+import "github.com/dcaiafa/bag3l/internal/stub/ast"
 
 //go:generate goyacc parser.y
 

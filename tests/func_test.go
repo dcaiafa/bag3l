@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 )
 
 func TestFn(t *testing.T) {

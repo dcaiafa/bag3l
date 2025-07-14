@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dcaiafa/nitro"
+	"github.com/dcaiafa/bag3l"
 	"github.com/stretchr/testify/require"
 )
 

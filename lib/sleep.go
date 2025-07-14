@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/dcaiafa/nitro"
-	btime "github.com/dcaiafa/nitro/lib/time"
+	"github.com/dcaiafa/bag3l"
+	btime "github.com/dcaiafa/bag3l/lib/time"
 )
 
 var errSleepUsage = errors.New(

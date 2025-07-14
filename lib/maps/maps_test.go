@@ -3,7 +3,7 @@ package maps_test
 import (
 	"testing"
 
-	"github.com/dcaiafa/nitro/internal/btesting"
+	"github.com/dcaiafa/bag3l/internal/btesting"
 )
 
 func TestMaps(t *testing.T) {

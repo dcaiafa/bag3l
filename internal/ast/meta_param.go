@@ -1,9 +1,9 @@
 package ast
 
 import (
-	"github.com/dcaiafa/nitro/internal/meta"
-	"github.com/dcaiafa/nitro/internal/symbol"
-	"github.com/dcaiafa/nitro/internal/vm"
+	"github.com/dcaiafa/bag3l/internal/meta"
+	"github.com/dcaiafa/bag3l/internal/symbol"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type MetaParam struct {

@@ -11,7 +11,7 @@ func TestParser(t *testing.T) {
 	parse(t, `
 package "foo/bar"
 
-type Time "github.com/dcaiafa/nitro/lib/time".Time
+type Time "github.com/dcaiafa/bag3l/lib/time".Time
 
 const LAYOUT Str = "01/02 03:04:05PM '06 -0700"
 

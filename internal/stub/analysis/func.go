@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dcaiafa/nitro/internal/nfadfa"
+	"github.com/dcaiafa/bag3l/internal/nfadfa"
 )
 
 type Func struct {
