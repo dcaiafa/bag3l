@@ -7,7 +7,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/ast"
 	"github.com/dcaiafa/bag3l/internal/errlogger"
 	"github.com/dcaiafa/bag3l/internal/fs"
-	"github.com/dcaiafa/bag3l/internal/parser2"
+	"github.com/dcaiafa/bag3l/internal/parser"
 	"github.com/dcaiafa/bag3l/internal/scope"
 	"github.com/dcaiafa/bag3l/internal/symbol"
 	"github.com/dcaiafa/bag3l/internal/vm"
@@ -63,11 +63,20 @@ func (c *packageCompiler) parse() error {
 		if err != nil {
 			return err
 		}
-		unit, err := parser2.ParseUnit(
-			unitPath, string(unitData), false, c.ErrLogger)
+
+		/*
+			unit, err := parser2.ParseUnit(
+				unitPath, string(unitData), false, c.ErrLogger)
+			if err != nil {
+				return err
+			}
+		*/
+
+		unit, err := parser.ParseUnit(unitPath, unitData, c.ErrLogger)
 		if err != nil {
 			return err
 		}
+
 		c.packageAST.Units = append(c.packageAST.Units, unit)
 	}
 

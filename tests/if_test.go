@@ -108,4 +108,14 @@ after`)
 `, `
 even
 odd`)
+
+	RunSubErr(t, "invalid_else", `
+		if 1 > 2  {
+			print("foo")
+		} else {
+			print("bar")
+		} else 1 < 2 {
+    	print("wut?")
+		}
+`, nil)
 }
