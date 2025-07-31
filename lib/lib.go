@@ -66,7 +66,7 @@ var GlobalPackage = export.Exports{
 	{N: "sprintf", T: export.Func, F: sprintf},
 	{N: "sum", T: export.Func, F: sum},
 	{N: "take", T: export.Func, F: take},
-	{N: "to_array", T: export.Func, F: toArray},
+	{N: "to_list", T: export.Func, F: toList},
 	{N: "to_base64", T: export.Func, F: toBase64},
 	{N: "to_bool", T: export.Func, F: toBool},
 	{N: "to_crlf", T: export.Func, F: toCRLF},
