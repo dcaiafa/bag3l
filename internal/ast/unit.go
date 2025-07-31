@@ -8,7 +8,7 @@ type Unit struct {
 	scope *scope.SimpleScope
 
 	Meta    ASTs
-	Imports ASTs
+	Imports []*Import
 	Block   ASTs
 }
 
@@ -37,7 +37,7 @@ func (u *Unit) RunPass(ctx *Context, pass Pass) {
 	}
 
 	ctx.RunPassChild(u, u.Meta, pass)
-	ctx.RunPassChild(u, u.Imports, pass)
+	RunPassChildren(ctx, u, u.Imports, pass)
 	ctx.RunPassChild(u, u.Block, pass)
 }
 

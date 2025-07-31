@@ -9,7 +9,7 @@ import (
 type Func struct {
 	PosImpl
 
-	Params    ASTs
+	Params    []*FuncParam
 	Block     *StmtBlock
 	IsClosure bool
 	DebugName string
@@ -42,7 +42,7 @@ func (f *Func) RunPass(ctx *Context, pass Pass) {
 	}
 
 	ctx.Push(f)
-	f.Params.RunPass(ctx, pass)
+	RunPassSlice(ctx, f.Params, pass)
 	f.Block.RunPass(ctx, pass)
 	ctx.Pop()
 

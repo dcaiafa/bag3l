@@ -9,11 +9,11 @@ import (
 type execArgMaker struct {
 	partial ast.Expr
 	expand  bool
-	args    ast.ASTs
+	args    []*ast.ArrayElement
 }
 
 func (t *execArgMaker) Reserve(n int) {
-	t.args = make(ast.ASTs, 0, n)
+	t.args = make([]*ast.ArrayElement, 0, n)
 }
 
 func (t *execArgMaker) AddArg(arg ast.Expr) error {

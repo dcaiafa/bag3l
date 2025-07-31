@@ -74,6 +74,18 @@ func (c *Context) RunPassChild(parent AST, child AST, pass Pass) {
 	c.Pop()
 }
 
+func RunPassChildren[T AST](c *Context, parent AST, children []T, pass Pass) {
+	c.Push(parent)
+	RunPassSlice(c, children, pass)
+	c.Pop()
+}
+
+func RunPassSlice[T AST](c *Context, asts []T, pass Pass) {
+	for _, ast := range asts {
+		ast.RunPass(c, pass)
+	}
+}
+
 func (c *Context) Parent() AST {
 	return c.stack[len(c.stack)-1]
 }

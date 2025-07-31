@@ -927,7 +927,7 @@ func (p *parser) _act(prod int32) any {
 	case 3:
 		return p.on_unit(
 			_cast[[]_i0.AST](p._stack.Peek(2).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
+			_cast[[]*_i0.Import](p._stack.Peek(1).Sym),
 			_cast[*_i0.StmtBlock](p._stack.Peek(0).Sym),
 		)
 	case 4:
@@ -1166,7 +1166,7 @@ func (p *parser) _act(prod int32) any {
 			_cast[Token](p._stack.Peek(3).Sym),
 			_cast[*_i0.StmtBlock](p._stack.Peek(2).Sym),
 			_cast[Token](p._stack.Peek(1).Sym),
-			_cast[[]*_i0.IfBlock](p._stack.Peek(0).Sym),
+			_cast[[]*_i0.IfSection](p._stack.Peek(0).Sym),
 		)
 	case 53:
 		return p.on_if_else__if(
@@ -1189,7 +1189,7 @@ func (p *parser) _act(prod int32) any {
 			_cast[Token](p._stack.Peek(7).Sym),
 			_cast[Token](p._stack.Peek(6).Sym),
 			_cast[Token](p._stack.Peek(5).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(4).Sym),
+			_cast[[]*_i0.FuncParam](p._stack.Peek(4).Sym),
 			_cast[Token](p._stack.Peek(3).Sym),
 			_cast[Token](p._stack.Peek(2).Sym),
 			_cast[*_i0.StmtBlock](p._stack.Peek(1).Sym),
@@ -1477,7 +1477,7 @@ func (p *parser) _act(prod int32) any {
 		return p.on_lambda_expr(
 			_cast[Token](p._stack.Peek(6).Sym),
 			_cast[Token](p._stack.Peek(5).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(4).Sym),
+			_cast[[]*_i0.FuncParam](p._stack.Peek(4).Sym),
 			_cast[Token](p._stack.Peek(3).Sym),
 			_cast[Token](p._stack.Peek(2).Sym),
 			_cast[*_i0.StmtBlock](p._stack.Peek(1).Sym),
@@ -1486,7 +1486,7 @@ func (p *parser) _act(prod int32) any {
 	case 110:
 		return p.on_short_lambda_expr(
 			_cast[Token](p._stack.Peek(3).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(2).Sym),
+			_cast[[]*_i0.FuncParam](p._stack.Peek(2).Sym),
 			_cast[Token](p._stack.Peek(1).Sym),
 			_cast[_i0.Expr](p._stack.Peek(0).Sym),
 		)
@@ -1526,12 +1526,12 @@ func (p *parser) _act(prod int32) any {
 	case 118:
 		return p.on_object_literal(
 			_cast[Token](p._stack.Peek(2).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
+			_cast[[]*_i0.ObjectField](p._stack.Peek(1).Sym),
 			_cast[Token](p._stack.Peek(0).Sym),
 		)
 	case 119:
 		return p.on_object_fields(
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
+			_cast[[]*_i0.ObjectField](p._stack.Peek(1).Sym),
 			_cast[Token](p._stack.Peek(0).Sym),
 		)
 	case 120:
@@ -1551,12 +1551,12 @@ func (p *parser) _act(prod int32) any {
 	case 122:
 		return p.on_array_literal(
 			_cast[Token](p._stack.Peek(2).Sym),
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
+			_cast[[]*_i0.ArrayElement](p._stack.Peek(1).Sym),
 			_cast[Token](p._stack.Peek(0).Sym),
 		)
 	case 123:
 		return p.on_array_elems(
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
+			_cast[[]*_i0.ArrayElement](p._stack.Peek(1).Sym),
 			_cast[Token](p._stack.Peek(0).Sym),
 		)
 	case 124:
@@ -1677,20 +1677,20 @@ func (p *parser) _act(prod int32) any {
 			_cast[_i0.AST](p._stack.Peek(0).Sym),
 		}
 	case 153: // ZeroOrMore
-		return _cast[[]_i0.AST](p._stack.Peek(0).Sym)
+		return _cast[[]*_i0.Import](p._stack.Peek(0).Sym)
 	case 154: // ZeroOrMore
 		{
-			var zero []_i0.AST
+			var zero []*_i0.Import
 			return zero
 		}
 	case 155: // OneOrMore
 		return append(
-			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+			_cast[[]*_i0.Import](p._stack.Peek(1).Sym),
+			_cast[*_i0.Import](p._stack.Peek(0).Sym),
 		)
 	case 156: // OneOrMore
-		return []_i0.AST{
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+		return []*_i0.Import{
+			_cast[*_i0.Import](p._stack.Peek(0).Sym),
 		}
 	case 157: // ZeroOrOne
 		return _cast[[]_i0.AST](p._stack.Peek(0).Sym)
@@ -1792,26 +1792,26 @@ func (p *parser) _act(prod int32) any {
 			return zero
 		}
 	case 183: // ZeroOrMore
-		return _cast[[]*_i0.IfBlock](p._stack.Peek(0).Sym)
+		return _cast[[]*_i0.IfSection](p._stack.Peek(0).Sym)
 	case 184: // ZeroOrMore
 		{
-			var zero []*_i0.IfBlock
+			var zero []*_i0.IfSection
 			return zero
 		}
 	case 185: // OneOrMore
 		return append(
-			_cast[[]*_i0.IfBlock](p._stack.Peek(1).Sym),
-			_cast[*_i0.IfBlock](p._stack.Peek(0).Sym),
+			_cast[[]*_i0.IfSection](p._stack.Peek(1).Sym),
+			_cast[*_i0.IfSection](p._stack.Peek(0).Sym),
 		)
 	case 186: // OneOrMore
-		return []*_i0.IfBlock{
-			_cast[*_i0.IfBlock](p._stack.Peek(0).Sym),
+		return []*_i0.IfSection{
+			_cast[*_i0.IfSection](p._stack.Peek(0).Sym),
 		}
 	case 187: // ZeroOrOne
-		return _cast[[]_i0.AST](p._stack.Peek(0).Sym)
+		return _cast[[]*_i0.FuncParam](p._stack.Peek(0).Sym)
 	case 188: // ZeroOrOne
 		{
-			var zero []_i0.AST
+			var zero []*_i0.FuncParam
 			return zero
 		}
 	case 189: // ZeroOrOne
@@ -1859,36 +1859,36 @@ func (p *parser) _act(prod int32) any {
 			_cast[_i0.Expr](p._stack.Peek(0).Sym),
 		}
 	case 201: // ZeroOrOne
-		return _cast[[]_i0.AST](p._stack.Peek(0).Sym)
+		return _cast[[]*_i0.ObjectField](p._stack.Peek(0).Sym)
 	case 202: // ZeroOrOne
 		{
-			var zero []_i0.AST
+			var zero []*_i0.ObjectField
 			return zero
 		}
 	case 203: // List
 		return append(
-			_cast[[]_i0.AST](p._stack.Peek(2).Sym),
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+			_cast[[]*_i0.ObjectField](p._stack.Peek(2).Sym),
+			_cast[*_i0.ObjectField](p._stack.Peek(0).Sym),
 		)
 	case 204: // List
-		return []_i0.AST{
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+		return []*_i0.ObjectField{
+			_cast[*_i0.ObjectField](p._stack.Peek(0).Sym),
 		}
 	case 205: // ZeroOrOne
-		return _cast[[]_i0.AST](p._stack.Peek(0).Sym)
+		return _cast[[]*_i0.ArrayElement](p._stack.Peek(0).Sym)
 	case 206: // ZeroOrOne
 		{
-			var zero []_i0.AST
+			var zero []*_i0.ArrayElement
 			return zero
 		}
 	case 207: // List
 		return append(
-			_cast[[]_i0.AST](p._stack.Peek(2).Sym),
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+			_cast[[]*_i0.ArrayElement](p._stack.Peek(2).Sym),
+			_cast[*_i0.ArrayElement](p._stack.Peek(0).Sym),
 		)
 	case 208: // List
-		return []_i0.AST{
-			_cast[_i0.AST](p._stack.Peek(0).Sym),
+		return []*_i0.ArrayElement{
+			_cast[*_i0.ArrayElement](p._stack.Peek(0).Sym),
 		}
 	default:
 		panic("unreachable")

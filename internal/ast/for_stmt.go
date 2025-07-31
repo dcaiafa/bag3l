@@ -9,9 +9,9 @@ import (
 
 type ForStmt struct {
 	PosImpl
-	ForVars  ASTs
+	ForVars  []*ForVar
 	IterExpr Expr
-	Block    AST
+	Block    *StmtBlock
 
 	scope scope.Scope
 	iter  symbol.Symbol
@@ -39,7 +39,7 @@ func (s *ForStmt) RunPass(ctx *Context, pass Pass) {
 		s.iter = l
 	}
 
-	ctx.RunPassChild(s, s.ForVars, pass)
+	RunPassChildren(ctx, s, s.ForVars, pass)
 
 	if pass == Emit {
 		emitVariableInit(ctx, s.Pos(), s.iter)
@@ -60,7 +60,7 @@ func (s *ForStmt) RunPass(ctx *Context, pass Pass) {
 		e.ResolveLabel(s.begin)
 
 		for _, v := range s.ForVars {
-			emitSymbolRefPush(s.Pos(), e, v.(*ForVar).sym)
+			emitSymbolRefPush(s.Pos(), e, v.sym)
 		}
 		emitSymbolPush(s.Pos(), e, s.iter)
 		e.EmitJump(s.Pos(), vm.OpNext, s.end, uint16(len(s.ForVars)))
