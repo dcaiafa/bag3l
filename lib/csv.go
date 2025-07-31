@@ -123,7 +123,7 @@ func writeCSV(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) 
 			break
 		}
 
-		recordValues, ok := vals[0].(*vm.Array)
+		recordValues, ok := vals[0].(*vm.List)
 		if !ok {
 			return nil, fmt.Errorf(
 				"iterator must return lists, but returned %v",

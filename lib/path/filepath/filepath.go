@@ -75,13 +75,13 @@ func rel0(vm *vm.VM, basePath, targPath string) (string, error) {
 	return res, nil
 }
 
-func split_list0(_ *vm.VM, path string) (*vm.Array, error) {
+func split_list0(_ *vm.VM, path string) (*vm.List, error) {
 	list := filepath.SplitList(path)
 	res := make([]bag3l.Value, len(list))
 	for i, elem := range list {
 		res[i] = bag3l.NewString(elem)
 	}
-	return vm.NewArrayWithSlice(res), nil
+	return vm.NewListWithSlice(res), nil
 }
 
 func to_slash0(vm *vm.VM, path string) (string, error) {

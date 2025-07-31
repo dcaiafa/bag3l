@@ -86,7 +86,7 @@ func getListArg(args []vm.Value, ndx int) (*nitro.Array, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
-	v, ok := args[ndx].(*vm.Array)
+	v, ok := args[ndx].(*vm.List)
 	if !ok {
 		return nil, errExpectedArg(ndx, args[ndx], "list")
 	}

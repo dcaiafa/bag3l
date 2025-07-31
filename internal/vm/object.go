@@ -209,7 +209,7 @@ func (of *objectFormatter) format(v Value) {
 			return true
 		})
 		of.str("}")
-	case *Array:
+	case *List:
 		of.str("[")
 		first := true
 		for i := 0; i < v.Len(); i++ {

@@ -13,7 +13,7 @@ import (
 type (
 	VM = vm.VM
 
-	Array        = vm.Array
+	Array        = vm.List
 	Bool         = vm.Bool
 	Callable     = vm.Callable
 	CloseFn      = vm.CloseFn
@@ -103,8 +103,8 @@ func NewInt(v int64) Int                 { return vm.NewInt(v) }
 func NewFloat(v float64) Float           { return vm.NewFloat(v) }
 func NewBool(v bool) Bool                { return vm.NewBool(v) }
 func NewValueRef(ref *Value) ValueRef    { return vm.NewValueRef(ref) }
-func NewArray() *Array                   { return vm.NewArray() }
-func NewArrayFromSlice(s []Value) *Array { return vm.NewArrayWithSlice(s) }
+func NewArray() *Array                   { return vm.NewList() }
+func NewArrayFromSlice(s []Value) *Array { return vm.NewListWithSlice(s) }
 func NewObject() *Object                 { return vm.NewObject() }
 func NewRegex(r *regexp.Regexp) *Regex   { return vm.NewRegex(r) }
 func CoerceToBool(v Value) bool          { return vm.CoerceToBool(v) }
