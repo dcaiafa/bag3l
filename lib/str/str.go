@@ -32,7 +32,7 @@ func match0(m *vm.VM, s string, regex *vm.Regex) (vm.Value, error) {
 		return nil, nil
 	}
 
-	res := vm.NewArrayWithSlice(make([]vm.Value, 0, len(matches)))
+	res := vm.NewListWithSlice(make([]vm.Value, 0, len(matches)))
 	for _, match := range matches {
 		res.Add(vm.NewString(match))
 	}
@@ -46,9 +46,9 @@ func match_all0(m *vm.VM, s string, regex *vm.Regex) (vm.Value, error) {
 		return nil, nil
 	}
 
-	res := vm.NewArrayWithSlice(make([]vm.Value, 0, len(matches)))
+	res := vm.NewListWithSlice(make([]vm.Value, 0, len(matches)))
 	for _, match := range matches {
-		subs := vm.NewArrayWithSlice(make([]vm.Value, 0, len(match)))
+		subs := vm.NewListWithSlice(make([]vm.Value, 0, len(match)))
 		for _, submatch := range match {
 			subs.Add(vm.NewString(submatch))
 		}
@@ -96,7 +96,7 @@ func replace2(m *vm.VM, s string, old *vm.Regex, rep vm.Callable) (string, error
 
 func split0(m *vm.VM, s string, sep string, n int64) (vm.Value, error) {
 	parts := strings.SplitN(s, sep, int(n))
-	partList := vm.NewArrayWithSlice(make([]vm.Value, 0, len(parts)))
+	partList := vm.NewListWithSlice(make([]vm.Value, 0, len(parts)))
 	for _, part := range parts {
 		partList.Add(vm.NewString(part))
 	}
@@ -105,7 +105,7 @@ func split0(m *vm.VM, s string, sep string, n int64) (vm.Value, error) {
 
 func split1(m *vm.VM, s string, sep *vm.Regex, n int64) (vm.Value, error) {
 	parts := sep.Split(s, int(n))
-	partList := vm.NewArrayWithSlice(make([]vm.Value, 0, len(parts)))
+	partList := vm.NewListWithSlice(make([]vm.Value, 0, len(parts)))
 	for _, part := range parts {
 		partList.Add(vm.NewString(part))
 	}
@@ -146,7 +146,7 @@ func fields0(m *vm.VM, s string) (vm.Value, error) {
 	for i, field := range fields {
 		fieldList[i] = vm.NewString(field)
 	}
-	return vm.NewArrayWithSlice(fieldList), nil
+	return vm.NewListWithSlice(fieldList), nil
 }
 
 func repeat0(m *vm.VM, s string, n int64) (string, error) {

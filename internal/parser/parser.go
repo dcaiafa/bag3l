@@ -96,7 +96,7 @@ func (p *parser) on_meta_value(_ Token, value ast.Expr) ast.Expr {
 	return value
 }
 
-func (p *parser) on_meta_attribs(_ Token, attribs ast.ASTs, _ Token) []ast.AST {
+func (p *parser) on_meta_attribs(_ Token, attribs []ast.AST, _ Token) []ast.AST {
 	return attribs
 }
 
@@ -136,7 +136,7 @@ func (p *parser) on_meta_literal(lit Token) vm.Value {
 func (p *parser) on_import_stmt(_ Token, alias Token, pkg Token, _ Token) *ast.Import {
 	return &ast.Import{
 		Alias:   string(alias.Str),
-		Package: string(pkg.Str),
+		Package: p.tokenToNitro(pkg).Str,
 	}
 }
 

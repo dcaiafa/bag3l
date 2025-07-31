@@ -972,7 +972,7 @@ func (p *parser) _act(prod int32) any {
 	case 11:
 		return p.on_meta_attribs(
 			_cast[Token](p._stack.Peek(2).Sym),
-			_cast[_i0.ASTs](p._stack.Peek(1).Sym),
+			_cast[[]_i0.AST](p._stack.Peek(1).Sym),
 			_cast[Token](p._stack.Peek(0).Sym),
 		)
 	case 12:

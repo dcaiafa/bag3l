@@ -5,38 +5,38 @@ import (
 	"math"
 )
 
-type Array struct {
-	array []Value
+type List struct {
+	list []Value
 }
 
-func NewArray() *Array {
-	return &Array{}
+func NewList() *List {
+	return &List{}
 }
 
-func NewArrayWithSlice(s []Value) *Array {
-	return &Array{array: s}
+func NewListWithSlice(s []Value) *List {
+	return &List{list: s}
 }
 
-func (a *Array) Type() string   { return "list" }
-func (a *Array) Traits() Traits { return TraitNone }
+func (a *List) Type() string   { return "list" }
+func (a *List) Traits() Traits { return TraitNone }
 
-func (a *Array) Add(v Value) {
-	a.array = append(a.array, v)
+func (a *List) Add(v Value) {
+	a.list = append(a.list, v)
 }
 
-func (a *Array) Get(index int) Value {
-	if index >= len(a.array) {
+func (a *List) Get(index int) Value {
+	if index >= len(a.list) {
 		return nil
 	}
-	return a.array[index]
+	return a.list[index]
 }
 
-func (a *Array) Put(index int, v Value) {
-	a.array[index] = v
+func (a *List) Put(index int, v Value) {
+	a.list[index] = v
 }
 
-func (a *Array) Find(v Value) int {
-	for i, entry := range a.array {
+func (a *List) Find(v Value) int {
+	for i, entry := range a.list {
 		if entry == v {
 			return i
 		}
@@ -44,17 +44,17 @@ func (a *Array) Find(v Value) int {
 	return -1
 }
 
-func (a *Array) Index(key Value) (Value, error) {
+func (a *List) Index(key Value) (Value, error) {
 	switch key := key.(type) {
 	case Int:
 		idx := int(key.Int64())
 		if idx < 0 {
-			idx = len(a.array) + idx
+			idx = len(a.list) + idx
 		}
-		if idx < 0 || idx >= len(a.array) {
+		if idx < 0 || idx >= len(a.list) {
 			return nil, nil
 		}
-		return a.array[idx], nil
+		return a.list[idx], nil
 
 	default:
 		return nil, fmt.Errorf(
@@ -63,7 +63,7 @@ func (a *Array) Index(key Value) (Value, error) {
 	}
 }
 
-func (a *Array) IndexRef(key Value) (ValueRef, error) {
+func (a *List) IndexRef(key Value) (ValueRef, error) {
 	index, ok := key.(Int)
 	if !ok {
 		return ValueRef{}, fmt.Errorf(
@@ -77,15 +77,15 @@ func (a *Array) IndexRef(key Value) (ValueRef, error) {
 	}
 
 	i := int(index.Int64())
-	if i >= len(a.array) {
+	if i >= len(a.list) {
 		return ValueRef{}, fmt.Errorf(
-			"cannot index list: index %v is greater than array size %v",
-			i, len(a.array))
+			"cannot index list: index %v is greater than list size %v",
+			i, len(a.list))
 	}
-	return NewValueRef(&a.array[i]), nil
+	return NewValueRef(&a.list[i]), nil
 }
 
-func (a *Array) Slice(b, e Value) (Value, error) {
+func (a *List) Slice(b, e Value) (Value, error) {
 	bi, ok := b.(Int)
 	ei, ok2 := e.(Int)
 	if !ok || !ok2 {
@@ -104,20 +104,20 @@ func (a *Array) Slice(b, e Value) (Value, error) {
 	}
 
 	if end < 0 {
-		end = len(a.array) + end
+		end = len(a.list) + end
 	}
-	if end > len(a.array) {
-		end = len(a.array)
+	if end > len(a.list) {
+		end = len(a.list)
 	}
 	if end < begin {
 		begin = 0
 		end = 0
 	}
 
-	return NewArrayWithSlice(a.array[begin:end]), nil
+	return NewListWithSlice(a.list[begin:end]), nil
 }
 
-func (a *Array) AddIter(vm *VM, iter Iterator) error {
+func (a *List) AddIter(vm *VM, iter Iterator) error {
 	for {
 		v, err := vm.IterNext(iter, 1)
 		if err != nil {
@@ -130,36 +130,36 @@ func (a *Array) AddIter(vm *VM, iter Iterator) error {
 	return nil
 }
 
-func (a *Array) Len() int {
-	return len(a.array)
+func (a *List) Len() int {
+	return len(a.list)
 }
 
-func (a *Array) String() string {
+func (a *List) String() string {
 	return formatObject(a)
 }
 
-func (a *Array) MakeIterator() Iterator {
-	i := &arrayIter{
-		arr:  a,
+func (a *List) MakeIterator() Iterator {
+	i := &listIter{
+		list: a,
 		next: 0,
 	}
 	return NewIterator(i.Next, nil, 2)
 }
 
-type arrayIter struct {
-	arr  *Array
+type listIter struct {
+	list *List
 	next int
 }
 
-func (i *arrayIter) Next(m *VM, args []Value, nret int) ([]Value, error) {
-	if i.next >= i.arr.Len() {
+func (i *listIter) Next(m *VM, args []Value, nret int) ([]Value, error) {
+	if i.next >= i.list.Len() {
 		return nil, nil
 	}
 
 	idx := i.next
 	i.next++
 
-	v := i.arr.Get(idx)
+	v := i.list.Get(idx)
 
 	return []Value{v, NewInt(int64(idx))}, nil
 }

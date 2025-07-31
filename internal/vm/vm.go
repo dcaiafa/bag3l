@@ -599,13 +599,13 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 				}
 				lastArg := m.co.stack[m.co.sp-1]
 				if lastArg != nil {
-					arr, ok := lastArg.(*Array)
+					arr, ok := lastArg.(*List)
 					if !ok {
 						return fmt.Errorf("cannot expand %v argument", TypeName(lastArg))
 					}
-					copy(m.co.stack[m.co.sp-1:], arr.array)
-					m.co.sp += len(arr.array) - 1
-					narg += len(arr.array) - 1
+					copy(m.co.stack[m.co.sp-1:], arr.list)
+					m.co.sp += len(arr.list) - 1
+					narg += len(arr.list) - 1
 				} else {
 					m.co.sp--
 					narg--
@@ -685,7 +685,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.sp++
 
 		case OpNewArray:
-			m.co.stack[m.co.sp] = NewArray()
+			m.co.stack[m.co.sp] = NewList()
 			m.co.sp++
 
 		case OpLoadGlobal:
@@ -840,13 +840,13 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.sp--
 
 		case OpArrayAppendNoPop:
-			array := m.co.stack[m.co.sp-2].(*Array)
+			array := m.co.stack[m.co.sp-2].(*List)
 			value := m.co.stack[m.co.sp-1]
 			array.Add(value)
 			m.co.sp--
 
 		case OpArrayExpandElemNoPop:
-			array := m.co.stack[m.co.sp-2].(*Array)
+			array := m.co.stack[m.co.sp-2].(*List)
 			iterValue := m.co.stack[m.co.sp-1]
 			m.co.sp--
 

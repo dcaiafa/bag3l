@@ -6,6 +6,6 @@ func args(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	frameArgs := m.GetCallerArgs()
 	argsCopy := make([]vm.Value, len(frameArgs))
 	copy(argsCopy, frameArgs)
-	res := vm.NewArrayWithSlice(argsCopy)
+	res := vm.NewListWithSlice(argsCopy)
 	return []vm.Value{res}, nil
 }
