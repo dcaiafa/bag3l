@@ -4,7 +4,7 @@ import "github.com/dcaiafa/bag3l/internal/vm"
 
 type IfStmt struct {
 	PosImpl
-	Sections ASTs
+	Sections []*IfSection
 
 	end *vm.Label
 }
@@ -15,7 +15,7 @@ func (s *IfStmt) RunPass(ctx *Context, pass Pass) {
 		s.end = ctx.Emitter().NewLabel()
 	}
 
-	ctx.RunPassChild(s, s.Sections, pass)
+	RunPassChildren(ctx, s, s.Sections, pass)
 
 	switch pass {
 	case Emit:
@@ -23,7 +23,7 @@ func (s *IfStmt) RunPass(ctx *Context, pass Pass) {
 	}
 }
 
-type IfBlock struct {
+type IfSection struct {
 	PosImpl
 	Pred  Expr
 	Block AST
@@ -31,7 +31,7 @@ type IfBlock struct {
 	end *vm.Label
 }
 
-func (b *IfBlock) RunPass(ctx *Context, pass Pass) {
+func (b *IfSection) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Emit:
 		b.end = ctx.Emitter().NewLabel()

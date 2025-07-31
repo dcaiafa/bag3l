@@ -54,7 +54,7 @@ func (a *ArrayLiteral) RunPass(ctx *Context, pass Pass) {
 type ArrayElementBlock struct {
 	PosImpl
 
-	Elements ASTs
+	Elements []*ArrayElement
 
 	scope scope.Scope
 }
@@ -79,9 +79,7 @@ func (b *ArrayElementBlock) RunPass(ctx *Context, pass Pass) {
 	}
 
 	ctx.Push(b)
-	for _, b := range b.Elements {
-		b.RunPass(ctx, pass)
-	}
+	RunPassSlice(ctx, b.Elements, pass)
 	ctx.Pop()
 
 	switch pass {

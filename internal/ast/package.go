@@ -151,7 +151,7 @@ func (p *Package) GetImports() []string {
 	var imports []string
 	for _, unit := range p.Units {
 		for _, importAST := range unit.(*Unit).Imports {
-			imports = append(imports, importAST.(*Import).Package)
+			imports = append(imports, importAST.Package)
 		}
 	}
 	return imports

@@ -8,7 +8,7 @@ import (
 type ObjectFieldBlock struct {
 	PosImpl
 
-	Fields ASTs
+	Fields []*ObjectField
 
 	scope scope.Scope
 }
@@ -33,9 +33,7 @@ func (b *ObjectFieldBlock) RunPass(ctx *Context, pass Pass) {
 	}
 
 	ctx.Push(b)
-	for _, b := range b.Fields {
-		b.RunPass(ctx, pass)
-	}
+	RunPassSlice(ctx, b.Fields, pass)
 	ctx.Pop()
 
 	switch pass {

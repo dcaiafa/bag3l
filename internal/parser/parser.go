@@ -57,7 +57,7 @@ func (p *parser) on_start__error(e Error) any {
 	return nil
 }
 
-func (p *parser) on_unit(meta []ast.AST, imports []ast.AST, stmts *ast.StmtBlock) *ast.Unit {
+func (p *parser) on_unit(meta []ast.AST, imports []*ast.Import, stmts *ast.StmtBlock) *ast.Unit {
 	return &ast.Unit{
 		Meta:    meta,
 		Imports: imports,
@@ -133,8 +133,7 @@ func (p *parser) on_meta_literal(lit Token) vm.Value {
 	}
 }
 
-// TODO: this should return *ast.Import
-func (p *parser) on_import_stmt(_ Token, alias Token, pkg Token, _ Token) ast.AST {
+func (p *parser) on_import_stmt(_ Token, alias Token, pkg Token, _ Token) *ast.Import {
 	return &ast.Import{
 		Alias:   string(alias.Str),
 		Package: string(pkg.Str),
@@ -210,7 +209,7 @@ func (p *parser) on_var_decl_init(_ Token, initValues []ast.Expr) []ast.Expr {
 }
 
 func (p *parser) on_for_stmt(_ Token, vars []Token, _ Token, iterExpr ast.Expr, _ Token, block *ast.StmtBlock, _ Token) ast.AST {
-	forVars := make(ast.ASTs, len(vars))
+	forVars := make([]*ast.ForVar, len(vars))
 	for i, v := range vars {
 		name := p.tokenToNitro(v)
 		forVars[i] = &ast.ForVar{
@@ -232,10 +231,10 @@ func (p *parser) on_while_stmt(_ Token, pred ast.Expr, _ Token, block *ast.StmtB
 	}
 }
 
-func (p *parser) on_if_stmt(ifkw Token, pred ast.Expr, _ Token, block *ast.StmtBlock, _ Token, elseSections []*ast.IfBlock) ast.AST {
+func (p *parser) on_if_stmt(ifkw Token, pred ast.Expr, _ Token, block *ast.StmtBlock, _ Token, elseSections []*ast.IfSection) ast.AST {
 	ifStmt := &ast.IfStmt{}
 
-	ifSection := &ast.IfBlock{
+	ifSection := &ast.IfSection{
 		Pred:  pred,
 		Block: block,
 	}
@@ -249,28 +248,25 @@ func (p *parser) on_if_stmt(ifkw Token, pred ast.Expr, _ Token, block *ast.StmtB
 		}
 	}
 
-	ifStmt.Sections = append(ifStmt.Sections, ifSection)
-	for _, elseSection := range elseSections {
-		ifStmt.Sections = append(ifStmt.Sections, elseSection)
-	}
+	ifStmt.Sections = append([]*ast.IfSection{ifSection}, elseSections...)
 
 	return ifStmt
 }
 
-func (p *parser) on_if_else__if(_, _ Token, pred ast.Expr, _ Token, block *ast.StmtBlock, _ Token) *ast.IfBlock {
-	return &ast.IfBlock{
+func (p *parser) on_if_else__if(_, _ Token, pred ast.Expr, _ Token, block *ast.StmtBlock, _ Token) *ast.IfSection {
+	return &ast.IfSection{
 		Pred:  pred,
 		Block: block,
 	}
 }
 
-func (p *parser) on_if_else(_, _ Token, block *ast.StmtBlock, _ Token) *ast.IfBlock {
-	return &ast.IfBlock{
+func (p *parser) on_if_else(_, _ Token, block *ast.StmtBlock, _ Token) *ast.IfSection {
+	return &ast.IfSection{
 		Block: block,
 	}
 }
 
-func (p *parser) on_func_stmt(_ Token, name Token, _ Token, params []ast.AST, _, _ Token, block *ast.StmtBlock, _ Token) ast.AST {
+func (p *parser) on_func_stmt(_ Token, name Token, _ Token, params []*ast.FuncParam, _, _ Token, block *ast.StmtBlock, _ Token) ast.AST {
 	f := &ast.FuncStmt{}
 	f.Name = string(name.Str)
 	f.Params = params
@@ -278,9 +274,8 @@ func (p *parser) on_func_stmt(_ Token, name Token, _ Token, params []ast.AST, _,
 	return f
 }
 
-func (p *parser) on_param_list(params []Token) []ast.AST {
-	// TODO: this should return []*ast.FuncParam
-	fparams := make([]ast.AST, len(params))
+func (p *parser) on_param_list(params []Token) []*ast.FuncParam {
+	fparams := make([]*ast.FuncParam, len(params))
 	for i, param := range params {
 		fparams[i] = &ast.FuncParam{
 			Name: string(param.Str),
@@ -516,14 +511,14 @@ func (p *parser) on_func_call_arg_list(args []ast.Expr, _ Token, expand Token) *
 	}
 }
 
-func (p *parser) on_lambda_expr(_, _ Token, params []ast.AST, _, _ Token, block *ast.StmtBlock, _ Token) ast.Expr {
+func (p *parser) on_lambda_expr(_, _ Token, params []*ast.FuncParam, _, _ Token, block *ast.StmtBlock, _ Token) ast.Expr {
 	lambda := &ast.AnonFuncExpr{}
 	lambda.Params = params
 	lambda.Block = block
 	return lambda
 }
 
-func (p *parser) on_short_lambda_expr(_ Token, params []ast.AST, _ Token, e ast.Expr) ast.Expr {
+func (p *parser) on_short_lambda_expr(_ Token, params []*ast.FuncParam, _ Token, e ast.Expr) ast.Expr {
 	lambda := &ast.AnonFuncExpr{}
 	lambda.Params = params
 	lambda.Block = &ast.StmtBlock{
@@ -588,7 +583,7 @@ func (p *parser) on_exec_expr_arg__expr(_ Token, e ast.Expr, expand Token, _ Tok
 	return e
 }
 
-func (p *parser) on_object_literal(_ Token, fields []ast.AST, _ Token) ast.Expr {
+func (p *parser) on_object_literal(_ Token, fields []*ast.ObjectField, _ Token) ast.Expr {
 	return &ast.ObjectLiteral{
 		FieldBlock: &ast.ObjectFieldBlock{
 			Fields: fields,
@@ -596,26 +591,25 @@ func (p *parser) on_object_literal(_ Token, fields []ast.AST, _ Token) ast.Expr 
 	}
 }
 
-func (p *parser) on_object_fields(fields []ast.AST, _ Token) []ast.AST {
+func (p *parser) on_object_fields(fields []*ast.ObjectField, _ Token) []*ast.ObjectField {
 	return fields
 }
 
-// TODO: this should return *ast.ObjectField.
-func (p *parser) on_object_field__id_name(name string, _ Token, value ast.Expr) ast.AST {
+func (p *parser) on_object_field__id_name(name string, _ Token, value ast.Expr) *ast.ObjectField {
 	return &ast.ObjectField{
 		NameID: name,
 		Val:    value,
 	}
 }
 
-func (p *parser) on_object_field__expr_name(_ Token, name ast.Expr, _, _ Token, value ast.Expr) ast.AST {
+func (p *parser) on_object_field__expr_name(_ Token, name ast.Expr, _, _ Token, value ast.Expr) *ast.ObjectField {
 	return &ast.ObjectField{
 		NameExpr: name,
 		Val:      value,
 	}
 }
 
-func (p *parser) on_array_literal(_ Token, elems []ast.AST, _ Token) ast.Expr {
+func (p *parser) on_array_literal(_ Token, elems []*ast.ArrayElement, _ Token) ast.Expr {
 	return &ast.ArrayLiteral{
 		Block: &ast.ArrayElementBlock{
 			Elements: elems,
@@ -623,12 +617,11 @@ func (p *parser) on_array_literal(_ Token, elems []ast.AST, _ Token) ast.Expr {
 	}
 }
 
-func (p *parser) on_array_elems(elems []ast.AST, _ Token) []ast.AST {
+func (p *parser) on_array_elems(elems []*ast.ArrayElement, _ Token) []*ast.ArrayElement {
 	return elems
 }
 
-// TODO: this should return *ast.ArrayElement.
-func (p *parser) on_array_elem(elem ast.Expr, expand Token) ast.AST {
+func (p *parser) on_array_elem(elem ast.Expr, expand Token) *ast.ArrayElement {
 	return &ast.ArrayElement{
 		Val:    elem,
 		Expand: expand.Type != 0,

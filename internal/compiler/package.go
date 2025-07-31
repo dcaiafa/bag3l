@@ -97,7 +97,6 @@ func (c *packageCompiler) processImports() error {
 	for _, unit := range c.packageAST.Units {
 		unit := unit.(*ast.Unit)
 		for _, imp := range unit.Imports {
-			imp := imp.(*ast.Import)
 			if strings.HasPrefix(imp.Package, "//") {
 				imp.ExpandedPackage = c.ModuleName + "/" + imp.Package[2:]
 			} else {
