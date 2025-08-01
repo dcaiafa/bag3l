@@ -138,7 +138,7 @@ func open0(vm *vm.VM, name string, opts *OpenOptions) (*File, error) {
 	return file, nil
 }
 
-func stat0(vm *vm.VM, f *File) (*vm.Object, error) {
+func stat0(vm *vm.VM, f *File) (*vm.Map, error) {
 	fi, err := f.Stat()
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func stat0(vm *vm.VM, f *File) (*vm.Object, error) {
 	return fileInfoToMap(fi), nil
 }
 
-func stat1(vm *vm.VM, name string) (*vm.Object, error) {
+func stat1(vm *vm.VM, name string) (*vm.Map, error) {
 	fi, err := os.Stat(name)
 	if err != nil {
 		return nil, err
@@ -154,8 +154,8 @@ func stat1(vm *vm.VM, name string) (*vm.Object, error) {
 	return fileInfoToMap(fi), nil
 }
 
-func fileInfoToMap(fi os.FileInfo) *vm.Object {
-	res := vm.NewObject()
+func fileInfoToMap(fi os.FileInfo) *vm.Map {
+	res := vm.NewMap()
 	res.Put(vm.NewString("name"), vm.NewString(fi.Name()))
 	res.Put(vm.NewString("size"), vm.NewInt(fi.Size()))
 	res.Put(vm.NewString("mod_time"), time.NewTime(fi.ModTime()))

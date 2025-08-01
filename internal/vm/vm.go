@@ -681,7 +681,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.sp++
 
 		case OpNewObject:
-			m.co.stack[m.co.sp] = NewObject()
+			m.co.stack[m.co.sp] = NewMap()
 			m.co.sp++
 
 		case OpNewArray:
@@ -798,7 +798,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.stack[m.co.sp-1] = res
 
 		case OpObjectPutNoPop:
-			obj := m.co.stack[m.co.sp-3].(*Object)
+			obj := m.co.stack[m.co.sp-3].(*Map)
 			key := m.co.stack[m.co.sp-2]
 			val := m.co.stack[m.co.sp-1]
 			obj.Put(key, val)

@@ -97,7 +97,7 @@ func getObjectArg(args []vm.Value, ndx int) (*nitro.Object, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
-	v, ok := args[ndx].(*vm.Object)
+	v, ok := args[ndx].(*vm.Map)
 	if !ok {
 		return nil, errExpectedArg(ndx, args[ndx], "map")
 	}

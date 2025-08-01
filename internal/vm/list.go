@@ -135,7 +135,7 @@ func (a *List) Len() int {
 }
 
 func (a *List) String() string {
-	return formatObject(a)
+	return formatMap(a)
 }
 
 func (a *List) MakeIterator() Iterator {

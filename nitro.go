@@ -27,7 +27,7 @@ type (
 	Iterable     = vm.Iterable
 	Iterator     = vm.Iterator
 	NativeFn     = vm.NativeFn
-	Object       = vm.Object
+	Object       = vm.Map
 	Program      = vm.Program
 	Readable     = vm.Readable
 	Reader       = vm.Reader
@@ -105,7 +105,7 @@ func NewBool(v bool) Bool                { return vm.NewBool(v) }
 func NewValueRef(ref *Value) ValueRef    { return vm.NewValueRef(ref) }
 func NewArray() *Array                   { return vm.NewList() }
 func NewArrayFromSlice(s []Value) *Array { return vm.NewListWithSlice(s) }
-func NewObject() *Object                 { return vm.NewObject() }
+func NewObject() *Object                 { return vm.NewMap() }
 func NewRegex(r *regexp.Regexp) *Regex   { return vm.NewRegex(r) }
 func CoerceToBool(v Value) bool          { return vm.CoerceToBool(v) }
 
