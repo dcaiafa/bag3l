@@ -1,15 +1,18 @@
 package json
 
-import _p0 "github.com/dcaiafa/bag3l/internal/export"
-import _p1 "github.com/dcaiafa/bag3l/internal/stub"
-import _p2 "github.com/dcaiafa/bag3l/internal/vm"
+import (
+	_p0 "github.com/dcaiafa/bag3l/internal/export"
+	_p1 "github.com/dcaiafa/bag3l/internal/stub"
+
+	_p2 "github.com/dcaiafa/bag3l/internal/vm"
+)
 
 type EncodeOptions struct {
 	Indent string
 	Prefix string
 }
 
-func (m *EncodeOptions) FromMap(v *_p2.Object) error {
+func (m *EncodeOptions) FromMap(v *_p2.Map) error {
 	var err error
 	_ = err
 	v.ForEach(func(k, v _p2.Value) bool {
@@ -90,7 +93,7 @@ func _encode(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	switch _a0 := args[0].(type) {
 	case _p2.Value:
 		if len(args) == 1 {
-			var _a1 *_p2.Object = nil
+			var _a1 *_p2.Map = nil
 			{
 				_ta0 := _a0
 				var _ta1 *EncodeOptions
@@ -109,7 +112,7 @@ func _encode(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 			}
 		}
 		switch _a1 := args[1].(type) {
-		case *_p2.Object:
+		case *_p2.Map:
 			if len(args) > 2 {
 				return nil, _p1.ErrTooManyArgs
 			}

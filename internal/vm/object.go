@@ -5,64 +5,64 @@ import (
 	"strings"
 )
 
-type objectNode struct {
-	next, prev *objectNode
+type mapNode struct {
+	next, prev *mapNode
 	key        Value
 	value      Value
 }
 
-func newObjectNodeList() *objectNode {
-	l := &objectNode{}
+func newMapNodeList() *mapNode {
+	l := &mapNode{}
 	l.prev = l
 	l.next = l
 	return l
 }
 
-func (n *objectNode) InsertAfter(o *objectNode) {
+func (n *mapNode) InsertAfter(o *mapNode) {
 	n.prev = o
 	n.next = o.next
 	o.next.prev = n
 	o.next = n
 }
 
-func (n *objectNode) Remove() {
+func (n *mapNode) Remove() {
 	n.prev.next = n.next
 	n.next.prev = n.prev
 	n.next = nil
 	n.prev = nil
 }
 
-type Object struct {
-	data map[Value]*objectNode
-	list *objectNode
+type Map struct {
+	data map[Value]*mapNode
+	list *mapNode
 }
 
-var _ Iterable = (*Object)(nil)
+var _ Iterable = (*Map)(nil)
 
-func NewObject() *Object {
-	return NewObjectWithCapacity(0)
+func NewMap() *Map {
+	return NewMapWithCapacity(0)
 }
 
-func NewObjectWithCapacity(c int) *Object {
-	return &Object{
-		data: make(map[Value]*objectNode, c),
-		list: newObjectNodeList(),
+func NewMapWithCapacity(c int) *Map {
+	return &Map{
+		data: make(map[Value]*mapNode, c),
+		list: newMapNodeList(),
 	}
 }
 
-func (o *Object) Type() string   { return "Object" }
-func (o *Object) Traits() Traits { return TraitNone }
+func (o *Map) Type() string   { return "map" }
+func (o *Map) Traits() Traits { return TraitNone }
 
-func (o *Object) Len() int {
+func (o *Map) Len() int {
 	return len(o.data)
 }
 
-func (o *Object) Has(k Value) bool {
+func (o *Map) Has(k Value) bool {
 	_, ok := o.data[k]
 	return ok
 }
 
-func (o *Object) Get(k Value) (Value, bool) {
+func (o *Map) Get(k Value) (Value, bool) {
 	n, ok := o.data[k]
 	if !ok {
 		return nil, false
@@ -70,18 +70,18 @@ func (o *Object) Get(k Value) (Value, bool) {
 	return n.value, true
 }
 
-func (o *Object) Put(k, v Value) {
+func (o *Map) Put(k, v Value) {
 	n := o.data[k]
 	if n == nil {
-		n = &objectNode{key: k}
+		n = &mapNode{key: k}
 		n.InsertAfter(o.list.prev)
 		o.data[k] = n
 	}
 	n.value = v
 }
 
-func (o *Object) Clone() *Object {
-	r := NewObjectWithCapacity(o.Len())
+func (o *Map) Clone() *Map {
+	r := NewMapWithCapacity(o.Len())
 	o.ForEach(func(k, v Value) bool {
 		r.Put(k, v)
 		return true
@@ -89,7 +89,7 @@ func (o *Object) Clone() *Object {
 	return r
 }
 
-func (o *Object) Index(k Value) (Value, error) {
+func (o *Map) Index(k Value) (Value, error) {
 	n := o.data[k]
 	if n == nil {
 		return nil, nil
@@ -97,24 +97,24 @@ func (o *Object) Index(k Value) (Value, error) {
 	return n.value, nil
 }
 
-func (o *Object) IndexRef(k Value) (ValueRef, error) {
+func (o *Map) IndexRef(k Value) (ValueRef, error) {
 	n := o.data[k]
 	if n == nil {
-		n = &objectNode{key: k}
+		n = &mapNode{key: k}
 		n.InsertAfter(o.list.prev)
 		o.data[k] = n
 	}
 	return NewValueRef(&n.value), nil
 }
 
-func (o *Object) GetFirst() (key Value, val Value) {
+func (o *Map) GetFirst() (key Value, val Value) {
 	if len(o.data) == 0 {
 		return nil, nil
 	}
 	return o.list.next.key, o.list.next.value
 }
 
-func (o *Object) GetNext(key Value) (nextKey Value, nextVal Value) {
+func (o *Map) GetNext(key Value) (nextKey Value, nextVal Value) {
 	node := o.data[key]
 	if node == nil || node.next == o.list {
 		return nil, nil
@@ -122,7 +122,7 @@ func (o *Object) GetNext(key Value) (nextKey Value, nextVal Value) {
 	return node.next.key, node.next.value
 }
 
-func (o *Object) Delete(key Value) {
+func (o *Map) Delete(key Value) {
 	node := o.data[key]
 	if node == nil {
 		return
@@ -131,7 +131,7 @@ func (o *Object) Delete(key Value) {
 	delete(o.data, key)
 }
 
-func (o *Object) ForEach(f func(k, v Value) bool) {
+func (o *Map) ForEach(f func(k, v Value) bool) {
 	for n := o.list.next; n != o.list; n = n.next {
 		if !f(n.key, n.value) {
 			return
@@ -139,14 +139,14 @@ func (o *Object) ForEach(f func(k, v Value) bool) {
 	}
 }
 
-func (o *Object) String() string {
-	return formatObject(o)
+func (o *Map) String() string {
+	return formatMap(o)
 }
 
-func (o *Object) MakeIterator() Iterator {
+func (o *Map) MakeIterator() Iterator {
 	key, _ := o.GetFirst()
 
-	i := &objectIter{
+	i := &mapIter{
 		obj: o,
 		key: key,
 	}
@@ -154,13 +154,13 @@ func (o *Object) MakeIterator() Iterator {
 	return NewIterator(i.Next, nil, 2)
 }
 
-type objectFormatter struct {
+type mapFormatter struct {
 	visited map[Value]bool
 	w       *strings.Builder
 }
 
-func formatObject(v Value) string {
-	of := &objectFormatter{
+func formatMap(v Value) string {
+	of := &mapFormatter{
 		visited: make(map[Value]bool),
 		w:       &strings.Builder{},
 	}
@@ -168,7 +168,7 @@ func formatObject(v Value) string {
 	return of.w.String()
 }
 
-func (of *objectFormatter) format(v Value) {
+func (of *mapFormatter) format(v Value) {
 	switch v := v.(type) {
 	case String:
 		// TODO: escape special characters.
@@ -183,7 +183,7 @@ func (of *objectFormatter) format(v Value) {
 		} else {
 			of.str("false")
 		}
-	case *Object:
+	case *Map:
 		if of.visited[v] {
 			of.str("<cycle>")
 			return
@@ -227,16 +227,16 @@ func (of *objectFormatter) format(v Value) {
 	}
 }
 
-func (of *objectFormatter) str(s string) {
+func (of *mapFormatter) str(s string) {
 	of.w.WriteString(s)
 }
 
-type objectIter struct {
-	obj *Object
+type mapIter struct {
+	obj *Map
 	key Value
 }
 
-func (i *objectIter) Next(m *VM, args []Value, nRet int) ([]Value, error) {
+func (i *mapIter) Next(m *VM, args []Value, nRet int) ([]Value, error) {
 	if i.key == nil {
 		return nil, nil
 	}

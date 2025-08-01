@@ -1,8 +1,11 @@
 package maps
 
-import _p0 "github.com/dcaiafa/bag3l/internal/export"
-import _p1 "github.com/dcaiafa/bag3l/internal/stub"
-import _p2 "github.com/dcaiafa/bag3l/internal/vm"
+import (
+	_p0 "github.com/dcaiafa/bag3l/internal/export"
+	_p1 "github.com/dcaiafa/bag3l/internal/stub"
+
+	_p2 "github.com/dcaiafa/bag3l/internal/vm"
+)
 
 func _clone(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
@@ -11,7 +14,7 @@ func _clone(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.ErrInsufficientArgs
 	}
 	switch _a0 := args[0].(type) {
-	case *_p2.Object:
+	case *_p2.Map:
 		if len(args) > 1 {
 			return nil, _p1.ErrTooManyArgs
 		}
@@ -34,7 +37,7 @@ func _delete(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.ErrInsufficientArgs
 	}
 	switch _a0 := args[0].(type) {
-	case *_p2.Object:
+	case *_p2.Map:
 		switch _a1 := args[1].(type) {
 		case _p2.Value:
 			if len(args) > 2 {
@@ -104,7 +107,7 @@ func _update(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.ErrInsufficientArgs
 	}
 	switch _a0 := args[0].(type) {
-	case *_p2.Object:
+	case *_p2.Map:
 		switch _a1 := args[1].(type) {
 		case _p2.Callable:
 			if len(args) > 2 {
@@ -119,7 +122,7 @@ func _update(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 				}
 				return []_p2.Value{_r0}, nil
 			}
-		case *_p2.Object:
+		case *_p2.Map:
 			if len(args) > 2 {
 				return nil, _p1.ErrTooManyArgs
 			}

@@ -137,7 +137,7 @@ func from_unix0(m *vm.VM, sec, nano int64) (Time, error) {
 	return NewTime(t), nil
 }
 
-func to_map0(vm *vm.VM, t Time) (*vm.Object, error) {
+func to_map0(vm *vm.VM, t Time) (*vm.Map, error) {
 	m := nitro.NewObject()
 	m.Put(nitro.NewString("year"), nitro.NewInt(int64(t.time.Year())))
 	m.Put(nitro.NewString("month"), nitro.NewInt(int64(t.time.Month())))
