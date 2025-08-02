@@ -50,7 +50,7 @@ type Callable interface {
 
 type Indexable interface {
 	Value
-	Index(key Value) (Value, error)
+	Index(key Value) (Value, bool, error)
 	IndexRef(key Value) (ValueRef, error)
 }
 

@@ -814,7 +814,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 				if !ok {
 					return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
 				}
-				value, err := indexable.Index(key)
+				value, _, err := indexable.Index(key)
 				if err != nil {
 					return err
 				}

@@ -54,10 +54,10 @@ func wrapRuntimeError(vm *VM, err *error, recoverable bool) *RuntimeError {
 	return rerr
 }
 
-func (e *RuntimeError) Index(k Value) (Value, error) {
+func (e *RuntimeError) Index(k Value) (Value, bool, error) {
 	k, ok := k.(String)
 	if !ok {
-		return nil, fmt.Errorf("RuntimeError does not have field %v", k)
+		return nil, false, fmt.Errorf("RuntimeError does not have field %v", k)
 	}
 
 	switch k.String() {
@@ -66,10 +66,10 @@ func (e *RuntimeError) Index(k Value) (Value, error) {
 		if errValue == nil {
 			errValue = NewString(e.Err.Error())
 		}
-		return errValue, nil
+		return errValue, true, nil
 
 	default:
-		return nil, fmt.Errorf("RuntimeError does not have field %v", k)
+		return nil, false, fmt.Errorf("RuntimeError does not have field %v", k)
 	}
 }
 

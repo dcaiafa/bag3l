@@ -121,3 +121,23 @@ func TestObjectOther(t *testing.T) {
 {w: 5} 1
 `)
 }
+
+func TestObjectIter(t *testing.T) {
+	RunSubO(t, "iter", `
+		var m = {
+			[nil]: 123
+			foo: "bar"
+			[true]: false
+			[456]: 789
+		}
+		for k,v in m {
+			print(k, v)
+		}
+`, `
+<nil> 123
+foo bar
+true false
+456 789
+`)
+
+}
