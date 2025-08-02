@@ -36,6 +36,24 @@ true
 true
 {a: 2, b: 2, c: 3}
 `)
+	btesting.RunSubO(t, "union", `
+    var m = { a: 1, b: 2 }
+    var r = maps.union(m, { b: 20, c: 30 })
+    print(m == r)
+    print(r)
+`, `
+false
+{a: 1, b: 20, c: 30}
+`)
+	btesting.RunSubO(t, "union_func", `
+    var m = { a: 1, b: 2 }
+    var r = maps.union(m, &x -> { a: x.a + 1, c: x.a + x.b })
+    print(m == r)
+    print(r)
+`, `
+false
+{a: 2, b: 2, c: 3}
+`)
 	btesting.RunSubO(t, "delete", `
     var m = { a: 1, b: 2, c: 3, d: 4 }
     var r = maps.delete(m, "b")

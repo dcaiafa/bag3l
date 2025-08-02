@@ -3,7 +3,6 @@ package maps
 import (
 	_p0 "github.com/dcaiafa/bag3l/internal/export"
 	_p1 "github.com/dcaiafa/bag3l/internal/stub"
-
 	_p2 "github.com/dcaiafa/bag3l/internal/vm"
 )
 
@@ -100,6 +99,48 @@ func _make(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _union(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case *_p2.Map:
+		switch _a1 := args[1].(type) {
+		case _p2.Callable:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _a0
+				_ta1 := _a1
+				_r0, err := union1(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
+			}
+		case *_p2.Map:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _a0
+				_ta1 := _a1
+				_r0, err := union0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _update(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -147,5 +188,6 @@ var Exports = _p0.Exports{
 	{N: "clone", T: _p0.Func, F: _clone},
 	{N: "delete", T: _p0.Func, F: _delete},
 	{N: "make", T: _p0.Func, F: _make},
+	{N: "union", T: _p0.Func, F: _union},
 	{N: "update", T: _p0.Func, F: _update},
 }
