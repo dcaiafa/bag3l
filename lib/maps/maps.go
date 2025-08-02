@@ -36,6 +36,14 @@ func update1(theVM *vm.VM, m *vm.Map, f vm.Callable) (*vm.Map, error) {
 	return update0(theVM, m, other)
 }
 
+func union0(vm *vm.VM, m *vm.Map, other *vm.Map) (*vm.Map, error) {
+	return update0(vm, m.Clone(), other)
+}
+
+func union1(vm *vm.VM, m *vm.Map, f vm.Callable) (*vm.Map, error) {
+	return update1(vm, m.Clone(), f)
+}
+
 func delete0(vm *vm.VM, m *vm.Map, k vm.Value) (*vm.Map, error) {
 	m.Delete(k)
 	return m, nil
