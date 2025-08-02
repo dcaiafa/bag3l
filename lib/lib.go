@@ -40,7 +40,7 @@ var GlobalPackage = export.Exports{
 	{N: "log", T: export.Func, F: log},
 	{N: "logf", T: export.Func, F: logf},
 	{N: "map", T: export.Func, F: imap},
-	{N: "mapreduce", T: export.Func, F: mapreduce},
+	{N: "map_reduce", T: export.Func, F: mapReduce},
 	{N: "max", T: export.Func, F: max},
 	{N: "min", T: export.Func, F: min},
 	{N: "narg", T: export.Func, F: narg},

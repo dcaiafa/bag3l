@@ -2,6 +2,8 @@ package lib
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -70,14 +72,16 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 func RunO(t *testing.T, prog string, expectedOutput string) {
 	t.Helper()
 
-	expectedOutput = strings.Trim(expectedOutput, "\r\n\t ")
-
 	output, err := run(prog, nil)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
+	expectedOutput = normalizeOutput(expectedOutput)
+	output = normalizeOutput(output)
+
 	if output != expectedOutput {
+		fmt.Println(len(expectedOutput), len(output))
 		t.Fatalf("Expected output:\n%v\nActual:\n%v", expectedOutput, output)
 	}
 }
@@ -107,4 +111,10 @@ func RunSubErr(t *testing.T, name string, prog string, expectedErr error) {
 		t.Helper()
 		RunErr(t, prog, expectedErr)
 	})
+}
+
+var normalizeOutputRegex = regexp.MustCompile(`(?m)(^\s+)|(\s+$)`)
+
+func normalizeOutput(v string) string {
+	return normalizeOutputRegex.ReplaceAllString(v, "")
 }
