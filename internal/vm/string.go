@@ -23,7 +23,7 @@ func (s String) Type() string   { return "str" }
 func (s String) Traits() Traits { return TraitEq }
 func (s String) Len() int       { return len(s.v) }
 
-func (s String) Index(key Value) (Value, error) {
+func (s String) Index(key Value) (Value, bool, error) {
 	switch key := key.(type) {
 	case Int:
 		idx := int(key.Int64())
@@ -31,12 +31,12 @@ func (s String) Index(key Value) (Value, error) {
 			idx = len(s.v) + idx
 		}
 		if idx < 0 || idx >= len(s.v) {
-			return nil, nil
+			return nil, false, nil
 		}
-		return NewInt(int64(s.v[idx])), nil
+		return NewInt(int64(s.v[idx])), true, nil
 
 	default:
-		return nil, fmt.Errorf(
+		return nil, false, fmt.Errorf(
 			"cannot index str using key of type %v",
 			TypeName(key))
 	}

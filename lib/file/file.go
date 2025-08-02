@@ -54,20 +54,20 @@ func (f *File) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 	return []nitro.Value{nitro.NewInt(n)}, nil
 }
 
-func (f *File) Index(key nitro.Value) (nitro.Value, error) {
+func (f *File) Index(key nitro.Value) (nitro.Value, bool, error) {
 	keyStr, ok := key.(nitro.String)
 	if !ok {
-		return nil, fmt.Errorf(
+		return nil, false, fmt.Errorf(
 			"file cannot be indexed by %q",
 			nitro.TypeName(key))
 	}
 
 	switch keyStr.String() {
 	case "name":
-		return nitro.NewString(f.Name()), nil
+		return nitro.NewString(f.Name()), true, nil
 
 	default:
-		return nil, fmt.Errorf(
+		return nil, false, fmt.Errorf(
 			"file does not have method %q",
 			keyStr.String())
 	}

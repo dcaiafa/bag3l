@@ -9,6 +9,10 @@ type List struct {
 	list []Value
 }
 
+var (
+	_ Indexable = (*List)(nil)
+)
+
 func NewList() *List {
 	return &List{}
 }
@@ -44,7 +48,7 @@ func (a *List) Find(v Value) int {
 	return -1
 }
 
-func (a *List) Index(key Value) (Value, error) {
+func (a *List) Index(key Value) (Value, bool, error) {
 	switch key := key.(type) {
 	case Int:
 		idx := int(key.Int64())
@@ -52,12 +56,12 @@ func (a *List) Index(key Value) (Value, error) {
 			idx = len(a.list) + idx
 		}
 		if idx < 0 || idx >= len(a.list) {
-			return nil, nil
+			return nil, false, nil
 		}
-		return a.list[idx], nil
+		return a.list[idx], true, nil
 
 	default:
-		return nil, fmt.Errorf(
+		return nil, false, fmt.Errorf(
 			"cannot index string using key type %v",
 			TypeName(key))
 	}

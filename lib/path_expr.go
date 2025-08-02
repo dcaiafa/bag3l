@@ -42,12 +42,12 @@ func evalPathOp(v nitro.Value, ops []pathOp) (nitro.Value, error) {
 	var err error
 	var child nitro.Value
 	if ops[0].member.String() != "" {
-		child, err = indexable.Index(ops[0].member)
+		child, _, err = indexable.Index(ops[0].member)
 		if err != nil {
 			return nil, nil
 		}
 	} else {
-		child, err = indexable.Index(ops[0].index)
+		child, _, err = indexable.Index(ops[0].index)
 		if err != nil {
 			return nil, nil
 		}

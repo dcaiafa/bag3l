@@ -89,12 +89,12 @@ func (o *Map) Clone() *Map {
 	return r
 }
 
-func (o *Map) Index(k Value) (Value, error) {
-	n := o.data[k]
-	if n == nil {
-		return nil, nil
+func (o *Map) Index(k Value) (Value, bool, error) {
+	n, ok := o.data[k]
+	if !ok {
+		return nil, false, nil
 	}
-	return n.value, nil
+	return n.value, true, nil
 }
 
 func (o *Map) IndexRef(k Value) (ValueRef, error) {
@@ -114,12 +114,12 @@ func (o *Map) GetFirst() (key Value, val Value) {
 	return o.list.next.key, o.list.next.value
 }
 
-func (o *Map) GetNext(key Value) (nextKey Value, nextVal Value) {
+func (o *Map) GetNext(key Value) (nextKey Value, nextVal Value, ok bool) {
 	node := o.data[key]
 	if node == nil || node.next == o.list {
-		return nil, nil
+		return nil, nil, false
 	}
-	return node.next.key, node.next.value
+	return node.next.key, node.next.value, true
 }
 
 func (o *Map) Delete(key Value) {
@@ -234,27 +234,29 @@ func (of *mapFormatter) str(s string) {
 type mapIter struct {
 	obj *Map
 	key Value
+	end bool
 }
 
 func (i *mapIter) Next(m *VM, args []Value, nRet int) ([]Value, error) {
-	if i.key == nil {
+	if i.end {
 		return nil, nil
 	}
-
-	// TODO: This wouldn't work with nil keys/values. Maybe change Index to return
-	// a third 'ok' result.
 
 	key := i.key
 
-	val, err := i.obj.Index(key)
+	val, ok, err := i.obj.Index(key)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
+	if !ok {
+		i.end = true
 		return nil, nil
 	}
 
-	i.key, _ = i.obj.GetNext(key)
+	i.key, _, ok = i.obj.GetNext(key)
+	if !ok {
+		i.end = true
+	}
 
 	return []Value{key, val}, nil
 }
