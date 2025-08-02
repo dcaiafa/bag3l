@@ -429,6 +429,8 @@ func printTable(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error
 						values[i] = vstr
 					} else if str, ok := v.(fmt.Stringer); ok {
 						values[i] = nitro.NewString(str.String())
+					} else if v == nil {
+						values[i] = nitro.NewString("<nil>")
 					} else {
 						values[i] = nitro.NewString("")
 					}

@@ -65,7 +65,6 @@ func NewValueRef(ref *Value) ValueRef {
 func (r ValueRef) String() string { return "&" + (*r.Ref).String() }
 func (r ValueRef) Type() string   { return "&" + TypeName(*r.Ref) }
 func (r ValueRef) Traits() Traits { return TraitNone }
-func (r ValueRef) Refo() *Value   { return r.Ref }
 
 func ToString(v Value) string {
 	if v == nil {
