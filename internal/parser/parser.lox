@@ -125,6 +125,7 @@ regex = REGEX
 simple_literal = string_literal | NUMBER | CHAR | 'true' | 'false' | 'nil'
 
 string_literal = STRING
+               | RAW_STRING
                | FSTR_OPEN fstr_part* FSTR_CLOSE
 
 fstr_part = FBSTR_LITERAL
@@ -137,7 +138,7 @@ lambda_expr = 'func' '(' param_list? ')' '{' stmts '}'
 
 short_lambda_expr = LAMBDA param_list? '->' expr3
 
-exec_expr = 'e`' exec_expr_arg* BACKTICK
+exec_expr = EXEC_OPEN exec_expr_arg* EXEC_CLOSE
 
 exec_expr_arg = EXEC_LITERAL
               | EXEC_DQUOTE_LITERAL
