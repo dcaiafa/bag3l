@@ -13,8 +13,6 @@ import (
 )
 
 var GlobalPackage = export.Exports{
-	//{N: "enumerate", T: export.Func, F: enumerate},
-
 	{N: "$concat", T: export.Func, F: concat},
 	{N: "$exec", T: export.Func, F: execExec},
 	{N: "$format", T: export.Func, F: format},
@@ -28,6 +26,7 @@ var GlobalPackage = export.Exports{
 	{N: "deep_equal", T: export.Func, F: deepEqual},
 	{N: "discard", T: export.Func, F: discard},
 	{N: "do", T: export.Func, F: dop},
+	{N: "enumerate", T: export.Func, F: enumerate},
 	{N: "env", T: export.Func, F: env},
 	{N: "filter", T: export.Func, F: filter},
 	{N: "first", T: export.Func, F: first},

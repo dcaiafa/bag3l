@@ -147,7 +147,7 @@ func (a *List) MakeIterator() Iterator {
 		list: a,
 		next: 0,
 	}
-	return NewIterator(i.Next, nil, 2)
+	return NewIterator(i.Next, nil, 1)
 }
 
 type listIter struct {
@@ -165,5 +165,5 @@ func (i *listIter) Next(m *VM, args []Value, nret int) ([]Value, error) {
 
 	v := i.list.Get(idx)
 
-	return []Value{v, NewInt(int64(idx))}, nil
+	return []Value{v}, nil
 }

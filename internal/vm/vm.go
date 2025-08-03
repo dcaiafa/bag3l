@@ -349,10 +349,6 @@ func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
 }
 
 func (m *VM) IterNext(iter Iterator, nret int) ([]Value, error) {
-	if nret == 0 {
-		return nil, errors.New("nret is zero")
-	}
-
 	sp := m.co.sp
 	ok, err := m.iterNext(iter, nret)
 	if err != nil {
