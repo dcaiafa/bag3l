@@ -36,6 +36,9 @@ func MakeIterator(m *VM, v Value) (Iterator, error) {
 type Iterator interface {
 	Value
 	IterNRet() int
+	Close(vm *VM) error
+	IsClosed() bool
+
 	isIterator()
 }
 
@@ -49,6 +52,7 @@ type ILIterator struct {
 	nlocals    int
 	ip         int
 	sp         int
+	closed     bool
 
 	preAllocStack [stackSize]Value
 }
@@ -59,8 +63,13 @@ func (e *ILIterator) isIterator()    {}
 func (e *ILIterator) String() string { return "<iterator>" }
 func (e *ILIterator) Type() string   { return "iterator" }
 func (e *ILIterator) Traits() Traits { return TraitNone }
+func (i *ILIterator) IterNRet() int  { return i.iterNRet }
+func (i *ILIterator) IsClosed() bool { return i.closed }
 
-func (i *ILIterator) IterNRet() int { return i.iterNRet }
+func (i *ILIterator) Close(vm *VM) error {
+	i.closed = true
+	return nil
+}
 
 type CloseFn func(m *VM) error
 
@@ -78,7 +87,7 @@ func (i *NativeIterator) String() string { return "<Iterator>" }
 func (i *NativeIterator) Type() string   { return "Iterator" }
 func (i *NativeIterator) Traits() Traits { return TraitNone }
 func (i *NativeIterator) IterNRet() int  { return i.iterNRet }
-func (i *NativeIterator) Closed() bool   { return i.closed }
+func (i *NativeIterator) IsClosed() bool { return i.closed }
 
 func (i *NativeIterator) Close(m *VM) error {
 	if i.closed {

@@ -13,6 +13,8 @@ import (
 )
 
 var GlobalPackage = export.Exports{
+	//{N: "enumerate", T: export.Func, F: enumerate},
+
 	{N: "$concat", T: export.Func, F: concat},
 	{N: "$exec", T: export.Func, F: execExec},
 	{N: "$format", T: export.Func, F: format},
@@ -36,6 +38,7 @@ var GlobalPackage = export.Exports{
 	{N: "has", T: export.Func, F: has},
 	{N: "hist", T: export.Func, F: hist},
 	{N: "in", T: export.Func, F: in},
+	{N: "iterate", T: export.Func, F: iterate},
 	{N: "join", T: export.Func, F: join},
 	{N: "len", T: export.Func, F: Len},
 	{N: "lines", T: export.Func, F: lines},
@@ -47,6 +50,7 @@ var GlobalPackage = export.Exports{
 	{N: "min", T: export.Func, F: min},
 	{N: "mod", T: export.Func, F: mod},
 	{N: "narg", T: export.Func, F: narg},
+	{N: "next", T: export.Func, F: next},
 	{N: "nonl", T: export.Func, F: nonl},
 	{N: "parse_base64", T: export.Func, F: parseBase64},
 	{N: "parse_csv", T: export.Func, F: parseCSV},
@@ -67,6 +71,7 @@ var GlobalPackage = export.Exports{
 	{N: "sleep", T: export.Func, F: sleep},
 	{N: "sort", T: export.Func, F: sort},
 	{N: "sprintf", T: export.Func, F: sprintf},
+	{N: "stream_lines", T: export.Func, F: streamLines},
 	{N: "sum", T: export.Func, F: sum},
 	{N: "take", T: export.Func, F: take},
 	{N: "to_base64", T: export.Func, F: toBase64},
@@ -102,11 +107,6 @@ var ExecPackage = export.Exports{
 	{N: "with_stderr", T: export.Func, F: execWithStderr},
 }
 
-var IterPackage = export.Exports{
-	{N: "into", T: export.Func, F: iter_into},
-	{N: "next", T: export.Func, F: iter_next},
-}
-
 var ListPackage = export.Exports{
 	{N: "append", T: export.Func, F: listAppend},
 	{N: "append_iter", T: export.Func, F: listAppendIter},
@@ -135,7 +135,6 @@ func RegisterAll(registry BuiltinRegistry) {
 	registry.RegisterBuiltins("exec", ExecPackage)
 	registry.RegisterBuiltins("file", file.Exports)
 	registry.RegisterBuiltins("io", io.Exports)
-	registry.RegisterBuiltins("iter", IterPackage)
 	registry.RegisterBuiltins("list", ListPackage)
 	registry.RegisterBuiltins("maps", maps.Exports)
 	registry.RegisterBuiltins("math", MathPackage)
