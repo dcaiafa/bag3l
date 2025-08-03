@@ -13,7 +13,9 @@ import (
 )
 
 var GlobalPackage = export.Exports{
+	{N: "$concat", T: export.Func, F: concat},
 	{N: "$exec", T: export.Func, F: execExec},
+	{N: "$format", T: export.Func, F: format},
 	{N: "$home", T: export.Func, F: osHome},
 	{N: "args", T: export.Func, F: args},
 	{N: "avg", T: export.Func, F: avg},
@@ -43,6 +45,7 @@ var GlobalPackage = export.Exports{
 	{N: "map_reduce", T: export.Func, F: mapReduce},
 	{N: "max", T: export.Func, F: max},
 	{N: "min", T: export.Func, F: min},
+	{N: "mod", T: export.Func, F: mod},
 	{N: "narg", T: export.Func, F: narg},
 	{N: "nonl", T: export.Func, F: nonl},
 	{N: "parse_base64", T: export.Func, F: parseBase64},
@@ -66,12 +69,12 @@ var GlobalPackage = export.Exports{
 	{N: "sprintf", T: export.Func, F: sprintf},
 	{N: "sum", T: export.Func, F: sum},
 	{N: "take", T: export.Func, F: take},
-	{N: "to_list", T: export.Func, F: toList},
 	{N: "to_base64", T: export.Func, F: toBase64},
 	{N: "to_bool", T: export.Func, F: toBool},
 	{N: "to_crlf", T: export.Func, F: toCRLF},
 	{N: "to_hex", T: export.Func, F: toHex},
 	{N: "to_int", T: export.Func, F: toInt},
+	{N: "to_list", T: export.Func, F: toList},
 	{N: "to_string", T: export.Func, F: toString},
 	{N: "type", T: export.Func, F: typep},
 	{N: "unique", T: export.Func, F: unique},

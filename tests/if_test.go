@@ -97,7 +97,7 @@ after`)
 
 	RunSubO(t, "func", `
 		func evenOdd(n) {
-			if n % 2 == 0 {
+			if mod(n, 2) == 0 {
 				return "even"
 			} else {
 				return "odd"

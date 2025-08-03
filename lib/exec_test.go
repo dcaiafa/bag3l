@@ -62,7 +62,7 @@ func TestExec(t *testing.T) {
   `)
 
 	RunSubO(t, `expr_iterator`, `
-`+"e`go run ./testexec/testexec.go -print-args a {range(5) | filter(&n->n%2==0)...} b` |\n"+`
+`+"e`go run ./testexec/testexec.go -print-args a {range(5) | filter(&n->mod(n,2)==0)...} b` |\n"+`
 			io.out
 	`, `
 [a]

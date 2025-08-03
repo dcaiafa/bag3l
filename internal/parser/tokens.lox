@@ -43,7 +43,6 @@ ADD             = '+'
 SUB             = '-'
 MUL             = '*'
 DIV             = '/'
-MOD             = '%'
 
 INC             = '++'
 DEC             = '--'
@@ -71,8 +70,11 @@ REGEX   = 'r`' ~[`]* '`'
 NEWLINE = '\n'
 CHAR    = '\'' (('\\' [nrt'\\]) | ~['\r\n\\]+) '\''
 
+SHEBANG = '#!' ~[\n]* '\n'
+
+FORMAT = '%' [ +-#.0-9]* [bcdeEfFgGoOqstUvxX]
+
 @frag ('//' | '#') ~[\n]* @discard
-@frag '#' ~[\n]* @discard
 @frag [ \r\t]+   @discard
 
 @frag '"' @push_mode(QSTR)
@@ -80,6 +82,16 @@ CHAR    = '\'' (('\\' [nrt'\\]) | ~['\r\n\\]+) '\''
   @frag ~["\r\n\\]
   @frag '\\' ([nrt"\\] | ('x' HEX_DIGIT HEX_DIGIT))
   STRING = '"' @pop_mode
+}
+
+FSTR_OPEN = 'f"' @push_mode(FQSTR)
+@mode FQSTR {
+  FBSTR_LITERAL     = ~[\r\n{"\\]+ 
+  FBSTR_ESC_LITERAL = '\\' [nrt{"\\] 
+                    | '\\' 'x' HEX_DIGIT HEX_DIGIT
+
+  @frag '{' @push_mode() @emit(OCURLY)
+  FSTR_CLOSE = '"' @pop_mode
 }
 
 @macro HEX_DIGIT = [a-fA-F0-9]

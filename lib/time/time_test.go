@@ -31,8 +31,8 @@ func TestTimeDuration(t *testing.T) {
 	btesting.RunSubErr(t, "div_dur0_err", `print(1 * time.SECOND / (0 * time.MILLISECOND))`, vm.ErrDivByZero)
 	btesting.RunSubErr(t, "div_int0_err", `print(1 * time.SECOND / 0)`, vm.ErrDivByZero)
 	btesting.RunSubErr(t, "div_err", `print(1 * time.SECOND / "hi")`, vm.ErrOperationNotSupported)
-	btesting.RunSubO(t, "mod", `print(250 * time.MILLISECOND % (200 * time.MILLISECOND))`, `50ms`)
-	btesting.RunSubErr(t, "mod_div0_err", `print(250 * time.MILLISECOND % (0 * time.MILLISECOND))`, nil)
+	btesting.RunSubO(t, "mod", `print(mod(250 * time.MILLISECOND, (200 * time.MILLISECOND)))`, `50ms`)
+	btesting.RunSubErr(t, "mod_div0_err", `print(mod(250 * time.MILLISECOND, (0 * time.MILLISECOND)))`, nil)
 
 	btesting.RunSubO(t, "lt1", `print(250 * time.MILLISECOND < 200 * time.MILLISECOND)`, `false`)
 	btesting.RunSubO(t, "lt2", `print(200 * time.MILLISECOND < 250 * time.MILLISECOND)`, `true`)

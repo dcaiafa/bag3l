@@ -3,7 +3,7 @@
 @start start = unit
              | @error
 
-unit = meta_directive* import_stmt* stmts
+unit = SHEBANG? meta_directive* import_stmt* stmts
 
 meta_directive = meta_info
                | meta_param
@@ -46,7 +46,7 @@ expr_stmt = expr
 assignment_stmt = @list(expr, ',') '=' @list(expr, ',')
 
 assignment_op_stmt = expr assign_op expr
-assign_op = '+=' | '-=' | '*=' | '/=' | '%='
+assign_op = '+=' | '-=' | '*=' | '/='
 
 var_decl_stmt = 'var' @list(ID, ',') var_decl_init?
 var_decl_init = '=' @list(expr, ',') 
@@ -90,7 +90,6 @@ expr3 = binary_expr '?' expr3 ':' expr3
 binary_expr = unary_expr
             | binary_expr '*' binary_expr      @left(10)
             | binary_expr '/' binary_expr      @left(10) 
-            | binary_expr '%' binary_expr      @left(10) 
             | binary_expr '+' binary_expr      @left(9) 
             | binary_expr '-' binary_expr      @left(9) 
             | binary_expr '|' binary_expr      @left(8)
@@ -106,7 +105,7 @@ binary_expr = unary_expr
 unary_expr = 'not' primary_expr
            | '+' primary_expr
            | '-' primary_expr
-           | primary_expr
+           | primary_expr FORMAT?
 
 primary_expr = ID
              | regex
@@ -123,7 +122,14 @@ primary_expr = ID
 
 regex = REGEX
 
-simple_literal = STRING | NUMBER | CHAR | 'true' | 'false' | 'nil'
+simple_literal = string_literal | NUMBER | CHAR | 'true' | 'false' | 'nil'
+
+string_literal = STRING
+               | FSTR_OPEN fstr_part* FSTR_CLOSE
+
+fstr_part = FBSTR_LITERAL
+          | FBSTR_ESC_LITERAL
+          | '{' expr '}'
 
 func_call_arg_list = @list(expr, ',') comma_semicolon? '...'?
 
@@ -131,7 +137,7 @@ lambda_expr = 'func' '(' param_list? ')' '{' stmts '}'
 
 short_lambda_expr = LAMBDA param_list? '->' expr3
 
-exec_expr = 'e`' exec_expr_arg* '`'
+exec_expr = 'e`' exec_expr_arg* BACKTICK
 
 exec_expr_arg = EXEC_LITERAL
               | EXEC_DQUOTE_LITERAL

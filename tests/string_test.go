@@ -6,8 +6,16 @@ func TestStringLiteral(t *testing.T) {
 	// TODO: unicode sequences
 	RunSubO(t, "simple_escape_seq", `print("Hello\n\r\t\\World")`, "Hello\n\r\t\\World")
 	RunSubO(t, "hex", `print("Hello\x2cWorld")`, "Hello,World")
-	// TODO: unicode sequences
 	RunSubO(t, "char", `print('A', '\n', '\'')`, `65 10 39`)
+}
+
+func TestFormattedString(t *testing.T) {
+	RunSubO(t, "", `print(f"One plus two is {1+2}!")`, "One plus two is 3!")
+	RunSubO(t, "", `print(f"{"hello"} world")`, "hello world")
+	RunSubO(t, "", `print(f"")`, "")
+	RunSubO(t, "", `print(f"Bye\n{"bye"}")`, "Bye\nbye")
+	RunSubO(t, "", `print(f"a{"b"}c")`, "abc")
+	RunSubO(t, "", `print(f"a\{1}c")`, `a{1}c`)
 }
 
 func TestStringSlice(t *testing.T) {
@@ -15,7 +23,6 @@ func TestStringSlice(t *testing.T) {
 		print("hello"[0:4])
 	`, `hell`)
 
-	// TODO: fix
 	RunSubO(t, "implicit_start", `
 		print("hello"[:4])
 	`, `hell`)
