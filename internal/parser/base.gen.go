@@ -60,25 +60,26 @@ const (
 	LAMBDA              int = 56
 	PIPE                int = 57
 	EXPAND              int = 58
-	BACKTICK            int = 59
-	NUMBER              int = 60
-	ID                  int = 61
-	REGEX               int = 62
-	NEWLINE             int = 63
-	CHAR                int = 64
-	SHEBANG             int = 65
-	FORMAT              int = 66
-	STRING              int = 67
+	NUMBER              int = 59
+	ID                  int = 60
+	REGEX               int = 61
+	NEWLINE             int = 62
+	CHAR                int = 63
+	SHEBANG             int = 64
+	FORMAT              int = 65
+	STRING              int = 66
+	RAW_STRING          int = 67
 	FSTR_OPEN           int = 68
 	FBSTR_LITERAL       int = 69
 	FBSTR_ESC_LITERAL   int = 70
 	FSTR_CLOSE          int = 71
-	EXEC_PREFIX         int = 72
+	EXEC_OPEN           int = 72
 	EXEC_WS             int = 73
 	EXEC_HOME           int = 74
 	EXEC_LITERAL        int = 75
-	EXEC_DQUOTE_LITERAL int = 76
-	EXEC_SQUOTE_LITERAL int = 77
+	EXEC_CLOSE          int = 76
+	EXEC_DQUOTE_LITERAL int = 77
+	EXEC_SQUOTE_LITERAL int = 78
 )
 
 func _TokenToString(t int) string {
@@ -201,8 +202,6 @@ func _TokenToString(t int) string {
 		return "PIPE"
 	case EXPAND:
 		return "EXPAND"
-	case BACKTICK:
-		return "BACKTICK"
 	case NUMBER:
 		return "NUMBER"
 	case ID:
@@ -219,6 +218,8 @@ func _TokenToString(t int) string {
 		return "FORMAT"
 	case STRING:
 		return "STRING"
+	case RAW_STRING:
+		return "RAW_STRING"
 	case FSTR_OPEN:
 		return "FSTR_OPEN"
 	case FBSTR_LITERAL:
@@ -227,14 +228,16 @@ func _TokenToString(t int) string {
 		return "FBSTR_ESC_LITERAL"
 	case FSTR_CLOSE:
 		return "FSTR_CLOSE"
-	case EXEC_PREFIX:
-		return "EXEC_PREFIX"
+	case EXEC_OPEN:
+		return "EXEC_OPEN"
 	case EXEC_WS:
 		return "EXEC_WS"
 	case EXEC_HOME:
 		return "EXEC_HOME"
 	case EXEC_LITERAL:
 		return "EXEC_LITERAL"
+	case EXEC_CLOSE:
+		return "EXEC_CLOSE"
 	case EXEC_DQUOTE_LITERAL:
 		return "EXEC_DQUOTE_LITERAL"
 	case EXEC_SQUOTE_LITERAL:

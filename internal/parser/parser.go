@@ -514,10 +514,20 @@ func (p *parser) on_simple_literal__expr(e ast.Expr) ast.Expr {
 func (p *parser) on_string_literal__token(str Token) ast.Expr {
 	v := string(str.Str)
 	v = v[1 : len(v)-1] // remove quotes
-	v, err := expandEscapeSequences(v)
-	if err != nil {
-		p.errLogger.Failf(p.tokenPos(str), "invalid string literal: %w", err)
+
+	var err error
+	switch str.Type {
+	case STRING:
+		v, err = expandEscapeSequences(v)
+		if err != nil {
+			p.errLogger.Failf(p.tokenPos(str), "invalid string literal: %w", err)
+		}
+	case RAW_STRING:
+		v = strings.ReplaceAll(v, "\r", "")
+	default:
+		panic("unreachable")
 	}
+
 	t := token.Token{
 		Type: token.String,
 		Str:  v,
