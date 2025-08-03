@@ -43,37 +43,42 @@ const (
 	SUB                 int = 39
 	MUL                 int = 40
 	DIV                 int = 41
-	MOD                 int = 42
-	INC                 int = 43
-	DEC                 int = 44
-	QUESTION_MARK       int = 45
-	SEMICOLON           int = 46
-	COMMA               int = 47
-	COLON               int = 48
-	PERIOD              int = 49
-	OPAREN              int = 50
-	CPAREN              int = 51
-	OBRACKET            int = 52
-	CBRACKET            int = 53
-	OCURLY              int = 54
-	CCURLY              int = 55
-	ARROW               int = 56
-	LAMBDA              int = 57
-	PIPE                int = 58
-	EXPAND              int = 59
-	BACKTICK            int = 60
-	NUMBER              int = 61
-	ID                  int = 62
-	REGEX               int = 63
-	NEWLINE             int = 64
-	CHAR                int = 65
-	STRING              int = 66
-	EXEC_PREFIX         int = 67
-	EXEC_WS             int = 68
-	EXEC_HOME           int = 69
-	EXEC_LITERAL        int = 70
-	EXEC_DQUOTE_LITERAL int = 71
-	EXEC_SQUOTE_LITERAL int = 72
+	INC                 int = 42
+	DEC                 int = 43
+	QUESTION_MARK       int = 44
+	SEMICOLON           int = 45
+	COMMA               int = 46
+	COLON               int = 47
+	PERIOD              int = 48
+	OPAREN              int = 49
+	CPAREN              int = 50
+	OBRACKET            int = 51
+	CBRACKET            int = 52
+	OCURLY              int = 53
+	CCURLY              int = 54
+	ARROW               int = 55
+	LAMBDA              int = 56
+	PIPE                int = 57
+	EXPAND              int = 58
+	BACKTICK            int = 59
+	NUMBER              int = 60
+	ID                  int = 61
+	REGEX               int = 62
+	NEWLINE             int = 63
+	CHAR                int = 64
+	SHEBANG             int = 65
+	FORMAT              int = 66
+	STRING              int = 67
+	FSTR_OPEN           int = 68
+	FBSTR_LITERAL       int = 69
+	FBSTR_ESC_LITERAL   int = 70
+	FSTR_CLOSE          int = 71
+	EXEC_PREFIX         int = 72
+	EXEC_WS             int = 73
+	EXEC_HOME           int = 74
+	EXEC_LITERAL        int = 75
+	EXEC_DQUOTE_LITERAL int = 76
+	EXEC_SQUOTE_LITERAL int = 77
 )
 
 func _TokenToString(t int) string {
@@ -162,8 +167,6 @@ func _TokenToString(t int) string {
 		return "MUL"
 	case DIV:
 		return "DIV"
-	case MOD:
-		return "MOD"
 	case INC:
 		return "INC"
 	case DEC:
@@ -210,8 +213,20 @@ func _TokenToString(t int) string {
 		return "NEWLINE"
 	case CHAR:
 		return "CHAR"
+	case SHEBANG:
+		return "SHEBANG"
+	case FORMAT:
+		return "FORMAT"
 	case STRING:
 		return "STRING"
+	case FSTR_OPEN:
+		return "FSTR_OPEN"
+	case FBSTR_LITERAL:
+		return "FBSTR_LITERAL"
+	case FBSTR_ESC_LITERAL:
+		return "FBSTR_ESC_LITERAL"
+	case FSTR_CLOSE:
+		return "FSTR_CLOSE"
 	case EXEC_PREFIX:
 		return "EXEC_PREFIX"
 	case EXEC_WS:

@@ -26,6 +26,8 @@ func expandEscapeSequences(s string) (string, error) {
 			return "'"
 		case '\\':
 			return "\\"
+		case '{':
+			return "{"
 		case 'x':
 			bytes, _ := hex.DecodeString(s[2:])
 			return string(bytes)

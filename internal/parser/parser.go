@@ -57,7 +57,7 @@ func (p *parser) on_start__error(e Error) any {
 	return nil
 }
 
-func (p *parser) on_unit(meta []ast.AST, imports []*ast.Import, stmts *ast.StmtBlock) *ast.Unit {
+func (p *parser) on_unit(_ Token, meta []ast.AST, imports []*ast.Import, stmts *ast.StmtBlock) *ast.Unit {
 	return &ast.Unit{
 		Meta:    meta,
 		Imports: imports,
@@ -184,8 +184,6 @@ func (p *parser) on_assignment_op_stmt(lvalueExpr ast.Expr, op Token, rvalue ast
 		opAssign.Op = ast.BinOpMult
 	case ASSIGN_DIV:
 		opAssign.Op = ast.BinOpDiv
-	case ASSIGN_MOD:
-		opAssign.Op = ast.BinOpMod
 	default:
 		panic("unreachable")
 	}
@@ -391,8 +389,6 @@ func (p *parser) on_binary_expr__binary(l ast.Expr, op Token, r ast.Expr) ast.Ex
 		binExpr.Op = ast.BinOpMult
 	case DIV:
 		binExpr.Op = ast.BinOpDiv
-	case MOD:
-		binExpr.Op = ast.BinOpMod
 	case ADD:
 		binExpr.Op = ast.BinOpPlus
 	case SUB:
@@ -439,7 +435,14 @@ func (p *parser) on_unary_expr__op(op Token, term ast.Expr) ast.Expr {
 	}
 }
 
-func (p *parser) on_unary_expr__other(e ast.Expr) ast.Expr {
+func (p *parser) on_unary_expr__format(e ast.Expr, f Token) ast.Expr {
+	if f.Type == FORMAT {
+		e = &ast.FormatExpr{
+			Target: e,
+			Format: string(f.Str),
+		}
+	}
+
 	return e
 }
 
@@ -502,6 +505,59 @@ func (p *parser) on_simple_literal(lit Token) ast.Expr {
 	return &ast.LiteralExpr{
 		Val: p.tokenToNitro(lit),
 	}
+}
+
+func (p *parser) on_simple_literal__expr(e ast.Expr) ast.Expr {
+	return e
+}
+
+func (p *parser) on_string_literal__token(str Token) ast.Expr {
+	v := string(str.Str)
+	v = v[1 : len(v)-1] // remove quotes
+	v, err := expandEscapeSequences(v)
+	if err != nil {
+		p.errLogger.Failf(p.tokenPos(str), "invalid string literal: %w", err)
+	}
+	t := token.Token{
+		Type: token.String,
+		Str:  v,
+	}
+	return &ast.LiteralExpr{
+		Val: t,
+	}
+}
+
+func (p *parser) on_string_literal__format(_ Token, parts []ast.Expr, _ Token) ast.Expr {
+	return &ast.FormattedStringLiteral{
+		Parts: parts,
+	}
+}
+
+func (p *parser) on_fstr_part__token(t Token) ast.Expr {
+	token := token.Token{
+		Type: token.String,
+	}
+
+	switch t.Type {
+	case FBSTR_LITERAL:
+		token.Str = string(t.Str)
+	case FBSTR_ESC_LITERAL:
+		var err error
+		token.Str, err = expandEscapeSequences(string(t.Str))
+		if err != nil {
+			p.errLogger.Failf(p.tokenPos(t), "%v", err)
+		}
+	default:
+		panic("unreached")
+	}
+
+	return &ast.LiteralExpr{
+		Val: token,
+	}
+}
+
+func (p *parser) on_fstr_part__expr(_ Token, e ast.Expr, _ Token) ast.Expr {
+	return e
 }
 
 func (p *parser) on_func_call_arg_list(args []ast.Expr, _ Token, expand Token) *ast.FuncCallExpr {

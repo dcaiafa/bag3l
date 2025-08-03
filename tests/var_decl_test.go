@@ -74,7 +74,7 @@ func TestVarDecl(t *testing.T) {
 	RunSubO(t, "scope", `
 for i in range(5) {
   var state
-  if i % 2 == 0 {
+  if mod(i, 2) == 0 {
     state = i
   }
   print(state)

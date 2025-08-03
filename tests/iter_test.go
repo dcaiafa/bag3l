@@ -33,7 +33,7 @@ func TestIter(t *testing.T) {
 		func counter(n, m) {
 			var last
 			for i in range(n) {
-				var res = i % m
+				var res = mod(i, m)
 				yield res, last
 				last = res
 			}
