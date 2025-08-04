@@ -61,6 +61,8 @@ func (i *flattenIter) Next(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.
 
 func (i *flattenIter) Close(vm *nitro.VM) error {
 	vm.IterClose(i.first)
-	vm.IterClose(i.second)
+	if i.second != nil {
+		vm.IterClose(i.second)
+	}
 	return nil
 }

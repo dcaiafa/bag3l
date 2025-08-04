@@ -39,13 +39,13 @@ func TestArrayLiteral(t *testing.T) {
 	`, `[foo bar baz]`)
 
 	RunSubO(t, "iter", `
-		for e, i in ["a", "b", "c"] {
-			print(e, i)
+		for e in ["a", "b", "c"] {
+			print(e)
 		}
 	`, `
-a 0
-b 1
-c 2
+a
+b
+c
 `)
 
 }

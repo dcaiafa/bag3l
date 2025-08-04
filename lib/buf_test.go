@@ -5,7 +5,7 @@ import "testing"
 func TestBuf(t *testing.T) {
 	RunSubO(t, ``, `
 		var b = buf.new()
-		["hello", "world"] | b()
+		["hello", "world"] | stream | b()
 		print(b)
 	`, `
 hello

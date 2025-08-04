@@ -349,10 +349,6 @@ func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
 }
 
 func (m *VM) IterNext(iter Iterator, nret int) ([]Value, error) {
-	if nret == 0 {
-		return nil, errors.New("nret is zero")
-	}
-
 	sp := m.co.sp
 	ok, err := m.iterNext(iter, nret)
 	if err != nil {
@@ -368,12 +364,7 @@ func (m *VM) IterNext(iter Iterator, nret int) ([]Value, error) {
 }
 
 func (m *VM) IterClose(iter Iterator) error {
-	nativeIter, ok := iter.(*NativeIterator)
-	if !ok {
-		return nil
-	}
-
-	return nativeIter.Close(m)
+	return iter.Close(m)
 }
 
 func (m *VM) ShuttingDown() bool {
@@ -381,6 +372,10 @@ func (m *VM) ShuttingDown() bool {
 }
 
 func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
+	if iter.IsClosed() {
+		return false, fmt.Errorf("iterator is closed")
+	}
+
 	switch iter := iter.(type) {
 	case *NativeIterator:
 		f := m.co.NewFrame()

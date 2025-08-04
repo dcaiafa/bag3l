@@ -1,6 +1,6 @@
 package "crypto"
 
-import nitro "github.com/dcaiafa/nitro"
+import nitro "github.com/dcaiafa/bag3l"
 
 const ALPHANUM Str = `#nitro.NewString("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")` 
 

@@ -5,3 +5,4 @@ func out(r Reader = `nil`) Writer
 func err(r Reader = `nil`) Writer
 func push_out(w Writer)
 func pop_out() Writer
+

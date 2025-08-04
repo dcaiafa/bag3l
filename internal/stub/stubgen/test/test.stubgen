@@ -1,6 +1,6 @@
 package "yay/foobar"
 
-import libtime "github.com/dcaiafa/nitro/lib/time"
+import libtime "github.com/dcaiafa/bag3l/lib/time"
 import gotime "time"
 
 type Time "github.com/dcaiafa/nitro/lib/time".Time
