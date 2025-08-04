@@ -70,7 +70,7 @@ var GlobalPackage = export.Exports{
 	{N: "sleep", T: export.Func, F: sleep},
 	{N: "sort", T: export.Func, F: sort},
 	{N: "sprintf", T: export.Func, F: sprintf},
-	{N: "stream_lines", T: export.Func, F: streamLines},
+	{N: "stream", T: export.Func, F: stream},
 	{N: "sum", T: export.Func, F: sum},
 	{N: "take", T: export.Func, F: take},
 	{N: "to_base64", T: export.Func, F: toBase64},

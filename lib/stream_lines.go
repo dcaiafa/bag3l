@@ -8,7 +8,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func streamLines(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func stream(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 	if len(args) != 1 {
 		return nil, errInvalidNumberOfArgs
 	}

@@ -95,7 +95,7 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `input`, `
 		range(100000) | 
 			map(to_string) |
-			stream_lines |
+			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 				read() |
 				lines() |
@@ -114,7 +114,7 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `input2`, `
 		range(100001) |
 			map(to_string) |
-			stream_lines |
+			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 			lines() |
 			map(&e -> parse_int(e)) |
@@ -126,7 +126,7 @@ func TestExec(t *testing.T) {
 			var err_buf = buf.new()
 			var out = range(2049) |
 				map(to_string) |
-				stream_lines |
+				stream |
 				exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-range", "11", "-range-stdout"]) |
         exec.with_stderr(err_buf)
 	    var out_sum = out | lines() | map(&l -> parse_int(l)) | reduce(sum)
@@ -162,7 +162,7 @@ exit status 128
 		defer file.remove(tmp)
 		range(100000) | 
 			map(to_string) |
-			stream_lines |
+			stream |
 			tmp
 		file.seek(tmp, 0)
 		tmp |
@@ -178,7 +178,7 @@ exit status 128
       defer file.remove(tmp)
       range(100000) |
         map(to_string) |
-				stream_lines |
+				stream |
         exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr"]) |
         exec.with_stderr(tmp) |
         discard
