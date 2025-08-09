@@ -133,7 +133,7 @@ func (c *Context) IsInRepeatableScope() bool {
 	for i := len(c.stack) - 1; i >= 0; i-- {
 		ast := c.stack[i]
 		switch ast.(type) {
-		case RepeatableScope:
+		case *Repeatable:
 			return true
 		case *Func:
 			return false

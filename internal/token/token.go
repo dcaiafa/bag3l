@@ -1,6 +1,8 @@
 package token
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Type int
 
@@ -31,4 +33,18 @@ type Token struct {
 	Int   int64
 	Float float64
 	Bool  bool
+}
+
+func StringToken(v string) Token {
+	return Token{
+		Type: String,
+		Str:  v,
+	}
+}
+
+func BoolToken(v bool) Token {
+	return Token{
+		Type: Bool,
+		Bool: v,
+	}
 }

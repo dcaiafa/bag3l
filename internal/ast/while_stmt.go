@@ -1,50 +1,25 @@
 package ast
 
-import (
-	"github.com/dcaiafa/bag3l/internal/token"
-	"github.com/dcaiafa/bag3l/internal/vm"
-)
-
 type WhileStmt struct {
 	PosImpl
 
 	Predicate Expr
 	Block     *StmtBlock
 
-	begin *vm.Label
-	end   *vm.Label
+	loop *Loop
 }
-
-func (s *WhileStmt) IsRepeatableScope() {}
 
 func (s *WhileStmt) RunPass(ctx *Context, pass Pass) {
-	var emitter *vm.Emitter
+	if pass == Rewrite {
+		s.loop = &Loop{
+			PosImpl:   s.PosImpl,
+			Predicate: s.Predicate,
+			Block:     s.Block,
+		}
 
-	if pass == Emit {
-		emitter = ctx.Emitter()
-		s.begin = emitter.NewLabel()
-		s.end = emitter.NewLabel()
-		emitter.ResolveLabel(s.begin)
+		s.Predicate = nil
+		s.Block = nil
 	}
 
-	ctx.RunPassChild(s, s.Predicate, pass)
-
-	if pass == Emit {
-		emitter.EmitJump(s.Predicate.Pos(), vm.OpJumpIfFalse, s.end, 0)
-	}
-
-	ctx.RunPassChild(s, s.Block, pass)
-
-	if pass == Emit {
-		emitter.EmitJump(s.Block.Pos(), vm.OpJump, s.begin, 0)
-		emitter.ResolveLabel(s.end)
-	}
-}
-
-func (s *WhileStmt) EmitBreak(pos token.Pos, e *vm.Emitter) {
-	e.EmitJump(pos, vm.OpJump, s.end, 0)
-}
-
-func (s *WhileStmt) EmitContinue(pos token.Pos, e *vm.Emitter) {
-	e.EmitJump(pos, vm.OpJump, s.begin, 0)
+	ctx.RunPassChild(s, s.loop, pass)
 }
