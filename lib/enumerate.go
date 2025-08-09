@@ -18,7 +18,7 @@ func enumerate(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
 		iter: inner,
 	}
 
-	res := vm.NewIterator(iter.Next, iter.Close, 1)
+	res := vm.NewIterator(iter.Next, iter.Close, iter.iter.IterNRet()+1)
 
 	return []vm.Value{res}, nil
 }
@@ -29,6 +29,7 @@ type enumIter struct {
 }
 
 func (i *enumIter) Next(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
+	// TODO: this could be negative...
 	res, err := m.IterNext(i.iter, nret-1)
 	if err != nil {
 		return nil, err

@@ -31,11 +31,6 @@ type Scope interface {
 	Scope() scope.Scope
 }
 
-type RepeatableScope interface {
-	Scope
-	IsRepeatableScope()
-}
-
 type PosImpl struct {
 	pos token.Pos
 }

@@ -1,6 +1,10 @@
 package tests
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dcaiafa/bag3l/internal/vm"
+)
 
 func TestIter(t *testing.T) {
 	RunSubO(t, "simple", `
@@ -68,22 +72,17 @@ func TestIter(t *testing.T) {
 3
 `)
 
-	RunSubO(t, "call_again_after_ended", `
+	RunSubErr(t, "call_again_after_ended", `
 		func iter() {
 			yield 1
 			yield 2
 		}
 		var i = iter()
 		for x in i {
-			print(x)
 		}
 		for x in i {
-			print(x)
 		}
-`, `
-1
-2
-`)
+`, vm.ErrIteratorClosed)
 
 	RunSubO(t, "nil", `
 		print("begin")

@@ -11,6 +11,8 @@ import (
 	"github.com/dcaiafa/bag3l/internal/fiber"
 )
 
+var ErrIteratorClosed = errors.New("iterator is closed")
+
 const stackSize = 1000
 
 type Op byte
@@ -373,7 +375,7 @@ func (m *VM) ShuttingDown() bool {
 
 func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 	if iter.IsClosed() {
-		return false, fmt.Errorf("iterator is closed")
+		return false, ErrIteratorClosed
 	}
 
 	switch iter := iter.(type) {

@@ -13,6 +13,54 @@ func TestForStmt(t *testing.T) {
 3
 `)
 
+	RunSubO(t, "iter_close_at_end", `
+		var it = range(1, 4) | iterate
+		for x in it {
+			print(x)
+		}
+		print(harness.is_iter_closed(it))
+`, `
+1
+2
+3
+true
+`)
+
+	RunSubO(t, "iter_close_after_break", `
+		var it = range(1, 4) | iterate
+		for x in it {
+			print(x)
+			if x == 2 {
+				break
+			}
+		}
+		print(harness.is_iter_closed(it))
+`, `
+1
+2
+true
+`)
+
+	RunSubO(t, "iter_close_after_error", `
+		var it = range(1, 4) | iterate
+		try {
+			for x in it {
+				print(x)
+				if x == 2 {
+					throw "boom"
+				}
+			}
+		} catch e {
+    	print(e.error)
+		}
+		print(harness.is_iter_closed(it))
+`, `
+1
+2
+boom
+true
+`)
+
 	RunSubO(t, "break", `
 		for x in range(1,10) {
 			if x == 5 {
