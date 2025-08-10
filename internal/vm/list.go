@@ -62,7 +62,7 @@ func (a *List) Index(key Value) (Value, bool, error) {
 
 	default:
 		return nil, false, fmt.Errorf(
-			"cannot index string using key type %v",
+			"cannot index list using key type %v",
 			TypeName(key))
 	}
 }

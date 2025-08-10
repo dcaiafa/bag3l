@@ -20,6 +20,11 @@ func harnessCall(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 	return m.Call(callable, args, nRet)
 }
 
+func isIterClosed(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+	iter := args[0].(nitro.Iterator)
+	return []nitro.Value{nitro.NewBool(iter.IsClosed())}, nil
+}
+
 func compile(prog string) (*vm.Program, error) {
 	compiler := compiler.New()
 
@@ -27,6 +32,7 @@ func compile(prog string) (*vm.Program, error) {
 
 	var harnessPackage = export.Exports{
 		{N: "call", T: export.Func, F: harnessCall},
+		{N: "is_iter_closed", T: export.Func, F: isIterClosed},
 	}
 	compiler.RegisterBuiltins("harness", harnessPackage)
 

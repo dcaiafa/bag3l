@@ -84,6 +84,5 @@ func (i *skipIterator) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.
 }
 
 func (i *skipIterator) Close(vm *nitro.VM) error {
-	vm.IterClose(i.inIter)
-	return nil
+	return vm.IterClose(i.inIter)
 }

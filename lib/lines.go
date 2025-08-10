@@ -45,14 +45,13 @@ func lines(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		l.scanner.Buffer(nil, int(opt.MaxLineSize))
 	}
 
-	outIter := nitro.NewIterator(l.Next, l.Close, 2)
+	outIter := nitro.NewIterator(l.Next, l.Close, 1)
 	return []nitro.Value{outIter}, nil
 }
 
 type linesIter struct {
 	input   io.Reader
 	scanner *bufio.Scanner
-	idxLine int
 }
 
 func (l *linesIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
@@ -63,10 +62,8 @@ func (l *linesIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Val
 		}
 		return nil, nil
 	}
-	l.idxLine++
 	return []nitro.Value{
 		nitro.NewString(l.scanner.Text()),
-		nitro.NewInt(int64(l.idxLine - 1)),
 	}, nil
 }
 
