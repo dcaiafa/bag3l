@@ -23,7 +23,7 @@ var readableGoType = GoType{Package: vmPackage, Name: "Readable"}
 var iterableGoType = GoType{Package: vmPackage, Name: "Iterable"}
 var iteratorGoType = GoType{Package: vmPackage, Name: "Iterator"}
 var strGoType = GoType{Package: vmPackage, Name: "String"}
-var mapGoType = GoType{Package: vmPackage, Name: "Object", Ref: true}
+var mapGoType = GoType{Package: vmPackage, Name: "Map", Ref: true}
 
 type Analysis struct {
 	pkg          string
@@ -225,7 +225,7 @@ func (a *Analysis) emitStruct(w *bytes.Buffer, st *Struct) {
 		stType.GoType.Name, a.goType(
 			GoType{
 				Package: vmPackage,
-				Name:    "Object",
+				Name:    "Map",
 				Ref:     true,
 			},
 		))
