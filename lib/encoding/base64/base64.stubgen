@@ -1,0 +1,11 @@
+package "encoding/base64"
+
+struct Options {
+  strict Bool;
+  mode Str;
+}
+
+func decode(input Str, opts Options = "nil") Str
+func decode(input Reader, opts Options = "nil") Str
+func encode(v Str, opts Options = "nil") Str
+func encode(v Reader, opts Options = "nil") Str

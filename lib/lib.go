@@ -3,6 +3,7 @@ package lib
 import (
 	"github.com/dcaiafa/bag3l/internal/export"
 	"github.com/dcaiafa/bag3l/lib/crypto"
+	"github.com/dcaiafa/bag3l/lib/encoding/base64"
 	"github.com/dcaiafa/bag3l/lib/encoding/json"
 	"github.com/dcaiafa/bag3l/lib/file"
 	"github.com/dcaiafa/bag3l/lib/io"
@@ -54,7 +55,6 @@ var GlobalPackage = export.Exports{
 	{N: "narg", T: export.Func, F: narg},
 	{N: "next", T: export.Func, F: next},
 	{N: "nonl", T: export.Func, F: nonl},
-	{N: "parse_base64", T: export.Func, F: parseBase64},
 	{N: "parse_csv", T: export.Func, F: parseCSV},
 	{N: "parse_float", T: export.Func, F: parseFloat},
 	{N: "parse_int", T: export.Func, F: parseInt},
@@ -78,7 +78,6 @@ var GlobalPackage = export.Exports{
 	{N: "sum", T: export.Func, F: sum},
 	{N: "take", T: export.Func, F: take},
 	{N: "take_while", T: export.Func, F: takeWhile},
-	{N: "to_base64", T: export.Func, F: toBase64},
 	{N: "to_bool", T: export.Func, F: toBool},
 	{N: "to_crlf", T: export.Func, F: toCRLF},
 	{N: "to_hex", T: export.Func, F: toHex},
@@ -135,6 +134,7 @@ func RegisterAll(registry BuiltinRegistry) {
 	registry.RegisterBuiltins("buf", BufPackage)
 	registry.RegisterBuiltins("co", CoPackage)
 	registry.RegisterBuiltins("crypto", crypto.Exports)
+	registry.RegisterBuiltins("encoding/base64", base64.Exports)
 	registry.RegisterBuiltins("encoding/json", json.Exports)
 	registry.RegisterBuiltins("exec", ExecPackage)
 	registry.RegisterBuiltins("file", file.Exports)
