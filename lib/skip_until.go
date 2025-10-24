@@ -4,7 +4,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func skipWhile(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+func skipUntil(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 3); err != nil {
 		return nil, err
 	}
@@ -14,26 +14,26 @@ func skipWhile(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 		return nil, err
 	}
 
-	whileFunc, err := getCallableArg(args, 1)
+	untilFunc, err := getCallableArg(args, 1)
 	if err != nil {
 		return nil, err
 	}
 
-	skipIter := &skipWhileIterator{
+	skipIter := &skipUntilIterator{
 		inIter:    inIter,
-		whichFunc: whileFunc,
+		untilFunc: untilFunc,
 	}
 
 	return []vm.Value{vm.NewIterator(skipIter.Next, skipIter.Close, inIter.IterNRet())}, nil
 }
 
-type skipWhileIterator struct {
+type skipUntilIterator struct {
 	inIter    vm.Iterator
-	whichFunc vm.Callable
+	untilFunc vm.Callable
 	open      bool
 }
 
-func (i *skipWhileIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+func (i *skipUntilIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	for {
 		v, err := m.IterNext(i.inIter, i.inIter.IterNRet())
 		if err != nil {
@@ -43,19 +43,17 @@ func (i *skipWhileIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Valu
 			return nil, nil
 		}
 		if !i.open {
-			res, err := m.Call(i.whichFunc, v, 1)
+			res, err := m.Call(i.untilFunc, v, 1)
 			if err != nil {
 				return nil, err
 			}
-			i.open = !vm.CoerceToBool(res[0])
-		}
-		if !i.open {
+			i.open = vm.CoerceToBool(res[0])
 			continue
 		}
 		return v, nil
 	}
 }
 
-func (i *skipWhileIterator) Close(vm *vm.VM) error {
+func (i *skipUntilIterator) Close(vm *vm.VM) error {
 	return vm.IterClose(i.inIter)
 }
