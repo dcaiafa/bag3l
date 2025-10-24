@@ -49,6 +49,7 @@ func (l *lexer) ReadToken() (Token, int) {
 			CBRACKET,
 			CCURLY,
 			EXPAND,
+			FSTR_CLOSE,
 			NUMBER,
 			STRING,
 			ID,
