@@ -2,25 +2,24 @@ package lib
 
 import "testing"
 
-func TestSkipWhile(t *testing.T) {
+func TestSkipUntil(t *testing.T) {
 	RunSubO(t, "basic", `
-		[1, 2, 3, 4] |
-			skip_while(&v -> v != 2) |
+		[1, 2, 3, 4, 5] |
+			skip_until(&v -> v == 3) |
 			print
 `, `
-2
-3
 4
+5
 `)
 	RunSubO(t, "close", `
-  	var it = [1, 2, 3, 4] | iterate
+  	var it = [1, 2, 3, 4, 5] | iterate
 		it |
-			skip_while(&v -> v != 2) |
+			skip_until(&v -> v == 3) |
 			take(1) |
 			print
 		print(f"iter_closed={harness.is_iter_closed(it)}")
 `, `
-2
+4
 iter_closed=true
 `)
 
