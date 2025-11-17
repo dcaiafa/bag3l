@@ -52,6 +52,7 @@ func (l *lexer) ReadToken() (Token, int) {
 			FSTR_CLOSE,
 			NUMBER,
 			STRING,
+			RAW_STRING,
 			ID,
 			TRUE,
 			FALSE,

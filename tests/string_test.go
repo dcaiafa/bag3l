@@ -8,6 +8,8 @@ func TestStringLiteral(t *testing.T) {
 	RunSubO(t, "hex", `print("Hello\x2cWorld")`, "Hello,World")
 	RunSubO(t, "char", `print('A', '\n', '\'')`, `65 10 39`)
 	RunSubO(t, "raw", "print(`hello\\nworld`)", `hello\nworld`)
+	RunSubO(t, "raw-nl", "var s = `hi`\nprint(s)", "hi")
+
 }
 
 func TestFormattedString(t *testing.T) {
