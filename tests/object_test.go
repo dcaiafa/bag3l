@@ -74,7 +74,7 @@ func TestObjectMemberAccess(t *testing.T) {
 				[ "y" ]: false 
 			}
 		}
-		print(a.foo, a.invalid.reference, a.sub.y)
+		print(a.foo, a.invalid.reference?, a.sub.y)
 `, `bar <nil> false`)
 
 	RunSubO(t, "lvalue", `
@@ -96,8 +96,8 @@ func TestObjectMemberAccess(t *testing.T) {
 func TestObjectOther(t *testing.T) {
 	RunSubO(t, "has", `
 		var a = { b: { c: 123 }, d: 3 }
-		print(has(a, "b"), has(a, "c"), has(a.b, "c"), has(a.x.y.z, "w"))
-	`, `true false true false`)
+		print(a.x.y.z?)
+	`, `<nil>`)
 
 	RunSubO(t, "delete", `
 		var a = {

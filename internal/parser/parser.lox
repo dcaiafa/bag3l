@@ -84,7 +84,7 @@ inc_dec_stmt = expr '++'
 expr  = short_lambda_expr
       | expr3
 
-expr3 = binary_expr '?' expr3 ':' expr3 
+expr3 = binary_expr '??' expr3 ':' expr3 
       | binary_expr
 
 binary_expr = unary_expr
@@ -109,8 +109,8 @@ unary_expr = 'not' primary_expr
 
 primary_expr = ID
              | regex
-             | primary_expr '.' ID
-             | primary_expr '[' expr ']' 
+             | primary_expr '.' ID '?'?
+             | primary_expr '[' expr ']' '?'?
              | primary_expr '[' expr? ':' expr? ']'
              | primary_expr '(' func_call_arg_list? ')'
              | lambda_expr

@@ -805,15 +805,21 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			objRaw := m.co.stack[m.co.sp-2]
 			key := m.co.stack[m.co.sp-1]
 			if objRaw == nil {
+				if instr.op2&OptionalIndexFlag == 0 {
+					return fmt.Errorf("cannot index nil value")
+				}
 				m.co.stack[m.co.sp-2] = nil
 			} else {
 				indexable, ok := objRaw.(Indexable)
 				if !ok {
 					return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
 				}
-				value, _, err := indexable.Index(key)
+				value, ok, err := indexable.Index(key)
 				if err != nil {
 					return err
+				}
+				if !ok && (instr.op2&OptionalIndexFlag == 0) {
+					return fmt.Errorf("cannot index value with key %q", key)
 				}
 				m.co.stack[m.co.sp-2] = value
 			}

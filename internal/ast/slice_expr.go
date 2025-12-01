@@ -4,6 +4,7 @@ import "github.com/dcaiafa/bag3l/internal/vm"
 
 type SliceExpr struct {
 	PosImpl
+
 	Target Expr
 	Begin  Expr
 	End    Expr
@@ -24,7 +25,9 @@ func (e *SliceExpr) RunPass(ctx *Context, pass Pass) {
 	} else if pass == Emit {
 		ctx.Emitter().Emit(e.Pos(), vm.OpNewInt, 0xFFFFFFFF, 0)
 	}
-	if pass == Emit {
+
+	switch pass {
+	case Emit:
 		ctx.Emitter().Emit(e.Pos(), vm.OpSlice, 0, 0)
 	}
 }
