@@ -452,31 +452,32 @@ func (p *parser) on_primary_expr__simple_ref(id Token) ast.Expr {
 	}
 }
 
-func (p *parser) on_primary_expr__member_access(target ast.Expr, _ Token, member Token) ast.Expr {
-	return &ast.MemberAccess{
-		Target: target,
-		Member: p.tokenToNitro(member),
+func (p *parser) on_primary_expr__member_access(target ast.Expr, _ Token, member Token, opt Token) ast.Expr {
+	e := &ast.MemberAccess{
+		Target:   target,
+		Member:   p.tokenToNitro(member),
+		Optional: opt.Type != EOF,
 	}
+	return e
 }
 
-func (p *parser) on_primary_expr__index_or_call(target ast.Expr, delim Token, index ast.Expr, _ Token) ast.Expr {
-	switch delim.Type {
-	case OBRACKET:
-		return &ast.IndexExpr{
-			Target: target,
-			Index:  index,
-		}
-	case OPAREN:
-		funcCall, _ := index.(*ast.FuncCallExpr)
-		if funcCall == nil {
-			funcCall = &ast.FuncCallExpr{}
-		}
-		funcCall.Target = target
-		funcCall.RetN = 1
-		return funcCall
-	default:
-		panic("unreachable")
+func (p *parser) on_primary_expr__index(target ast.Expr, _ Token, index ast.Expr, _ Token, opt Token) ast.Expr {
+	e := &ast.IndexExpr{
+		Target:   target,
+		Index:    index,
+		Optional: opt.Type != EOF,
 	}
+	return e
+}
+
+func (p *parser) on_primary_expr__call(target ast.Expr, delim Token, index ast.Expr, _ Token) ast.Expr {
+	funcCall, _ := index.(*ast.FuncCallExpr)
+	if funcCall == nil {
+		funcCall = &ast.FuncCallExpr{}
+	}
+	funcCall.Target = target
+	funcCall.RetN = 1
+	return funcCall
 }
 
 func (p *parser) on_primary_expr__slice(target ast.Expr, _ Token, begin ast.Expr, _ Token, end ast.Expr, _ Token) ast.Expr {

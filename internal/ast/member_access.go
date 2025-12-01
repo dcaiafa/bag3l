@@ -8,8 +8,10 @@ import (
 
 type MemberAccess struct {
 	PosImpl
-	Target Expr
-	Member token.Token
+
+	Target   Expr
+	Member   token.Token
+	Optional bool
 
 	ModuleMember symbol.Symbol
 }
@@ -17,6 +19,17 @@ type MemberAccess struct {
 func (a *MemberAccess) isExpr() {}
 
 func (a *MemberAccess) RunPass(ctx *Context, pass Pass) {
+	switch pass {
+	case Check:
+		if !CheckNoOptional(ctx, a.Target) {
+			return
+		}
+	case Emit:
+		if a.Optional {
+			PropagateOptional(a.Target)
+		}
+	}
+
 	ctx.RunPassChild(a, a.Target, pass)
 
 	switch pass {
@@ -43,7 +56,11 @@ func (a *MemberAccess) RunPass(ctx *Context, pass Pass) {
 			if _, isLValue := ctx.Parent().(*LValue); isLValue {
 				emitter.Emit(a.Pos(), vm.OpObjectGetRef, 0, 0)
 			} else {
-				emitter.Emit(a.Pos(), vm.OpObjectGet, 0, 0)
+				var flags uint16
+				if a.Optional {
+					flags |= vm.OptionalIndexFlag
+				}
+				emitter.Emit(a.Pos(), vm.OpObjectGet, 0, flags)
 			}
 		} else {
 			if _, isLValue := ctx.Parent().(*LValue); isLValue {

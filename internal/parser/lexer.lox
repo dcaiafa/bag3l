@@ -48,6 +48,7 @@ INC             = '++'
 DEC             = '--'
 
 QUESTION_MARK   = '?'
+DQUESTION_MARK  = '??'
 SEMICOLON       = ';'
 COMMA           = ','
 COLON           = ':'

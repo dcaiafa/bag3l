@@ -187,6 +187,39 @@ func (c *Context) GetScope(typeMask scope.Type) scope.Scope {
 	return nil
 }
 
+func PropagateOptional(target Expr) {
+	switch target := target.(type) {
+	case *MemberAccess:
+		target.Optional = true
+		PropagateOptional(target.Target)
+	case *IndexExpr:
+		target.Optional = true
+		PropagateOptional(target.Target)
+	}
+}
+
+func CheckNoOptional(ctx *Context, target Expr) bool {
+	fail := func() {
+		ctx.Failf(target.Pos(), "optional modifier can only be used at the "+
+			"end of member-access/index expressions")
+	}
+	switch target := target.(type) {
+	case *MemberAccess:
+		if target.Optional {
+			fail()
+			return false
+		}
+		return CheckNoOptional(ctx, target.Target)
+	case *IndexExpr:
+		if target.Optional {
+			fail()
+			return false
+		}
+		return CheckNoOptional(ctx, target.Target)
+	}
+	return true
+}
+
 func (c *Context) Emitter() *vm.Emitter {
 	return c.emitter
 }
