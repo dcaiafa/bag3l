@@ -19,6 +19,7 @@ func TestFormattedString(t *testing.T) {
 	RunSubO(t, "", `print(f"Bye\n{"bye"}")`, "Bye\nbye")
 	RunSubO(t, "", `print(f"a{"b"}c")`, "abc")
 	RunSubO(t, "", `print(f"a\{1}c")`, `a{1}c`)
+	RunSubO(t, "", `print(f"a\{1\}c")`, `a{1}c`)
 }
 
 func TestStringSlice(t *testing.T) {
