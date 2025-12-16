@@ -93,7 +93,7 @@ FORMAT = '%' [ +-#.0-9]* [bcdeEfFgGoOqstUvxX]
 FSTR_OPEN = 'f"' @push_mode(FStr)
 @mode FStr {
   FBSTR_LITERAL     = ~[\r\n{"\\]+ 
-  FBSTR_ESC_LITERAL = '\\' [nrt{"\\] 
+  FBSTR_ESC_LITERAL = '\\' [nrt{}"\\] 
                     | '\\' 'x' HEX_DIGIT HEX_DIGIT
 
   @frag '{' @push_mode() @emit(OCURLY)
