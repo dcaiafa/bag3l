@@ -1,13 +1,17 @@
 package lib
 
 import (
+	"os"
+
 	"github.com/dcaiafa/bag3l/internal/export"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/crypto"
 	"github.com/dcaiafa/bag3l/lib/encoding/base64"
 	"github.com/dcaiafa/bag3l/lib/encoding/json"
 	"github.com/dcaiafa/bag3l/lib/file"
 	"github.com/dcaiafa/bag3l/lib/io"
 	"github.com/dcaiafa/bag3l/lib/maps"
+	ospkg "github.com/dcaiafa/bag3l/lib/os"
 	"github.com/dcaiafa/bag3l/lib/path/filepath"
 	"github.com/dcaiafa/bag3l/lib/str"
 	libtime "github.com/dcaiafa/bag3l/lib/time"
@@ -18,7 +22,7 @@ var GlobalPackage = export.Exports{
 	{N: "$concat", T: export.Func, F: concat},
 	{N: "$exec", T: export.Func, F: execExec},
 	{N: "$format", T: export.Func, F: format},
-	{N: "$home", T: export.Func, F: osHome},
+	{N: "$home", T: export.Func, F: internalHomeDir},
 	{N: "args", T: export.Func, F: args},
 	{N: "avg", T: export.Func, F: avg},
 	{N: "batch", T: export.Func, F: batch},
@@ -122,11 +126,6 @@ var MathPackage = export.Exports{
 	{N: "trunc", T: export.Func, F: mathTrunc},
 }
 
-var OSPackage = export.Exports{
-	{N: "home", T: export.Func, F: osHome},
-	{N: "wd", T: export.Func, F: osWD},
-}
-
 type BuiltinRegistry interface {
 	RegisterBuiltins(pkgName string, exports export.Exports)
 }
@@ -144,8 +143,16 @@ func RegisterAll(registry BuiltinRegistry) {
 	registry.RegisterBuiltins("list", ListPackage)
 	registry.RegisterBuiltins("maps", maps.Exports)
 	registry.RegisterBuiltins("math", MathPackage)
-	registry.RegisterBuiltins("os", OSPackage)
+	registry.RegisterBuiltins("os", ospkg.Exports)
 	registry.RegisterBuiltins("path/filepath", filepath.Exports)
 	registry.RegisterBuiltins("str", str.Exports)
 	registry.RegisterBuiltins("time", libtime.Exports)
+}
+
+func internalHomeDir(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	return []vm.Value{vm.NewString(dir)}, nil
 }

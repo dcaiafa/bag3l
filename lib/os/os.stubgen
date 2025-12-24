@@ -1,0 +1,5 @@
+package "os"
+
+func home_dir() Str
+func get_workdir() Str
+func set_workdir(dir Str)
