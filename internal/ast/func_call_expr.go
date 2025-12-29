@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/dcaiafa/bag3l/internal/vm"
+import (
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	"github.com/dcaiafa/bag3l/internal/vm"
+)
 
 type FuncCallExpr struct {
 	PosImpl
@@ -12,6 +15,10 @@ type FuncCallExpr struct {
 }
 
 func (c *FuncCallExpr) isExpr() {}
+
+func (c *FuncCallExpr) SetRetN(logger errlogger.ErrLogger, n int) {
+	c.RetN = n
+}
 
 func (c *FuncCallExpr) RunPass(ctx *Context, pass Pass) {
 	ctx.Push(c)

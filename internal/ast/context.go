@@ -227,3 +227,8 @@ func (c *Context) Emitter() *vm.Emitter {
 type PassRunner interface {
 	RunPass(ctx *Context, pass Pass)
 }
+
+func WithPos[T AST](e AST, v T) T {
+	v.SetPos(e.Pos())
+	return v
+}

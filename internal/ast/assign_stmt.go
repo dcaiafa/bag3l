@@ -12,7 +12,7 @@ func (s *AssignStmt) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Check:
 		if len(s.Lvalues) != len(s.Rvalues) {
-			if funcCall, ok := s.Rvalues[0].(*FuncCallExpr); ok && len(s.Rvalues) == 1 {
+			if funcCall, ok := Unwrap(s.Rvalues[0]).(*FuncCallExpr); ok && len(s.Rvalues) == 1 {
 				funcCall.RetN = len(s.Lvalues)
 			} else {
 				ctx.Failf(

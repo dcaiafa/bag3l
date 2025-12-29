@@ -105,6 +105,7 @@ binary_expr = unary_expr
 unary_expr = 'not' primary_expr
            | '+' primary_expr
            | '-' primary_expr
+           | '.' root_expr
            | primary_expr FORMAT?
 
 primary_expr = ID
@@ -119,6 +120,11 @@ primary_expr = ID
              | array_literal
              | simple_literal
              | '(' expr ')'
+
+root_expr = root_expr '.' ID '?'?
+          | ID '?'?
+          | root_expr '[' expr ']' '?'?
+          | '[' expr ']' '?'?
 
 regex = REGEX
 

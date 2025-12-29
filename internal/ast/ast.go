@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"github.com/dcaiafa/bag3l/internal/errlogger"
 	"github.com/dcaiafa/bag3l/internal/scope"
 	"github.com/dcaiafa/bag3l/internal/token"
 	"github.com/dcaiafa/bag3l/internal/vm"
@@ -85,4 +86,19 @@ func (exprs Exprs) SetPos(pos token.Pos) {}
 type BreakContinueEmitter interface {
 	EmitBreak(pos token.Pos, emitter *vm.Emitter)
 	EmitContinue(pos token.Pos, emitter *vm.Emitter)
+}
+
+type MultiValueExpr interface {
+	SetRetN(logger errlogger.ErrLogger, n int)
+}
+
+type Unwrapper interface {
+	Unwrap() AST
+}
+
+func Unwrap(v AST) AST {
+	if u, ok := v.(Unwrapper); ok {
+		return u.Unwrap()
+	}
+	return v
 }
