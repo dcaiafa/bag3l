@@ -9,10 +9,10 @@ func (c *ExprStmt) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Check:
 		switch expr := c.Expr.(type) {
-		case *FuncCallExpr:
-			expr.RetN = 0
+		case MultiValueExpr:
+			expr.SetRetN(ctx, 0)
 		default:
-			ctx.Failf(c.Pos(), "Expression not allowed without a statement")
+			ctx.Failf(c.Pos(), "Expression not allowed as a statement")
 		}
 	}
 

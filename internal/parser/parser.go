@@ -364,19 +364,10 @@ func (p *parser) on_binary_expr__unary(e ast.Expr) ast.Expr {
 
 func (p *parser) on_binary_expr__binary(l ast.Expr, op Token, r ast.Expr) ast.Expr {
 	if op.Type == PIPE {
-		if funcCall, ok := r.(*ast.FuncCallExpr); ok {
-			funcCall.Args = append(ast.Exprs{l}, funcCall.Args...)
-			funcCall.Pipeline = true
-			return funcCall
+		return &ast.PipeExpr{
+			Left:  l,
+			Right: r,
 		}
-
-		funcCall := &ast.FuncCallExpr{
-			Target:   r,
-			Args:     ast.Exprs{l},
-			RetN:     1,
-			Pipeline: true,
-		}
-		return funcCall
 	}
 
 	binExpr := &ast.BinaryExpr{
@@ -417,6 +408,10 @@ func (p *parser) on_binary_expr__binary(l ast.Expr, op Token, r ast.Expr) ast.Ex
 }
 
 func (p *parser) on_unary_expr__op(op Token, term ast.Expr) ast.Expr {
+	if op.Type == PERIOD {
+		return term
+	}
+
 	var opType ast.UnaryOp
 	switch op.Type {
 	case NOT:
@@ -494,6 +489,40 @@ func (p *parser) on_primary_expr__forward(e ast.Expr) ast.Expr {
 
 func (p *parser) on_primary_expr__parenthesis(_ Token, e ast.Expr, _ Token) ast.Expr {
 	return e
+}
+
+func (p *parser) on_root_expr__member_access_long(target *ast.RootExpr, _ Token, id Token, opt Token) *ast.RootExpr {
+	return &ast.RootExpr{
+		Type:     ast.RootExprMemberAccess,
+		Target:   target,
+		Member:   p.tokenToNitro(id),
+		Optional: opt.Type == QUESTION_MARK,
+	}
+}
+
+func (p *parser) on_root_expr__member_access_short(id, opt Token) *ast.RootExpr {
+	return &ast.RootExpr{
+		Type:     ast.RootExprMemberAccess,
+		Member:   p.tokenToNitro(id),
+		Optional: opt.Type == QUESTION_MARK,
+	}
+}
+
+func (p *parser) on_root_expr__index_long(target *ast.RootExpr, _ Token, index ast.Expr, _ Token, opt Token) *ast.RootExpr {
+	return &ast.RootExpr{
+		Type:     ast.RootExprIndex,
+		Target:   target,
+		Index:    index,
+		Optional: opt.Type == QUESTION_MARK,
+	}
+}
+
+func (p *parser) on_root_expr__index_short(_ Token, index ast.Expr, _ Token, opt Token) *ast.RootExpr {
+	return &ast.RootExpr{
+		Type:     ast.RootExprIndex,
+		Index:    index,
+		Optional: opt.Type == QUESTION_MARK,
+	}
 }
 
 func (p *parser) on_regex(r Token) ast.Expr {
