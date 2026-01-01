@@ -1,7 +1,9 @@
 package lib
 
 import (
+	"cmp"
 	"os"
+	"slices"
 
 	"github.com/dcaiafa/bag3l/internal/export"
 	"github.com/dcaiafa/bag3l/internal/vm"
@@ -9,6 +11,7 @@ import (
 	"github.com/dcaiafa/bag3l/lib/encoding/base64"
 	"github.com/dcaiafa/bag3l/lib/encoding/json"
 	"github.com/dcaiafa/bag3l/lib/file"
+	"github.com/dcaiafa/bag3l/lib/global"
 	"github.com/dcaiafa/bag3l/lib/io"
 	"github.com/dcaiafa/bag3l/lib/maps"
 	ospkg "github.com/dcaiafa/bag3l/lib/os"
@@ -23,9 +26,7 @@ var GlobalPackage = export.Exports{
 	{N: "$exec", T: export.Func, F: execExec},
 	{N: "$format", T: export.Func, F: format},
 	{N: "$home", T: export.Func, F: internalHomeDir},
-	{N: "args", T: export.Func, F: args},
 	{N: "avg", T: export.Func, F: avg},
-	{N: "batch", T: export.Func, F: batch},
 	{N: "close", T: export.Func, F: closep},
 	{N: "color", T: export.Func, F: color},
 	{N: "count", T: export.Func, F: count},
@@ -131,7 +132,12 @@ type BuiltinRegistry interface {
 }
 
 func RegisterAll(registry BuiltinRegistry) {
-	registry.RegisterBuiltins("$global", GlobalPackage)
+	globalPackage := slices.Concat(GlobalPackage, global.Exports)
+	slices.SortFunc(globalPackage, func(a, b export.Export) int {
+		return cmp.Compare(a.N, b.N)
+	})
+
+	registry.RegisterBuiltins("$global", globalPackage)
 	registry.RegisterBuiltins("buf", BufPackage)
 	registry.RegisterBuiltins("co", CoPackage)
 	registry.RegisterBuiltins("crypto", crypto.Exports)

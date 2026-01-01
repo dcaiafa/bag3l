@@ -1,0 +1,4 @@
+package "global"
+
+func args() Any
+func batch(iter Iter, n Int) Iter
