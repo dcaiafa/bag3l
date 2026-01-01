@@ -1,0 +1,74 @@
+@lexer
+
+CONST   = 'const'
+FUNC    = 'func'
+PACKAGE = 'package'
+TYPE    = 'type'
+STRUCT  = 'struct'
+NIL     = 'nil'
+IMPORT  = 'import'
+
+EQ     = '='
+OCURLY = '{'
+CCURLY = '}'
+STAR   = '*'
+DOT    = '.'
+OPAREN = '('
+CPAREN = ')'
+COMMA  = ','
+QMARK  = '?'
+
+@frag '"' @push_mode(QStr)
+@mode QStr {
+  @frag ~["\r\n\\]
+  @frag '\\' [nrt"\\]
+  STRING = '"' @pop_mode
+}
+
+ID = [A-Za-z_][A-Za-z0-9_]*
+
+ELLIPSIS = '...'
+
+@frag [ \r\n\t]+ @discard
+
+@parser
+
+@start s = unit
+         | @error
+
+unit = package decl*
+
+package = 'package' STRING
+
+decl = const_decl
+     | import_decl
+     | type_decl
+     | struct_decl
+     | func_decl
+
+const_decl = 'const' ID type_ref '=' const_value
+
+const_value = STRING
+
+import_decl = 'import' ID STRING
+
+struct_decl = 'struct' ID '{' struct_field* '}'
+
+struct_field = ID type_ref
+
+type_decl = 'type' ID go_type
+
+go_type = '*'? simple_go_type
+
+simple_go_type = STRING '.' ID | ID
+
+func_decl = 'func' ID '(' @list(func_param, ',')? ')' func_rets?
+
+func_param = ID '...'? type_ref func_param_default?
+
+func_param_default = '=' const_value
+
+func_rets = '(' @list(type_ref, ',') ')'
+          | type_ref
+
+type_ref = ID '?'?

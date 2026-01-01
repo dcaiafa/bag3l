@@ -18,8 +18,8 @@ func TestMapReduce(t *testing.T) {
 
 		var res = map_reduce(data, ".group", [
 			{ reduce: count }
-			{ reduce: min, pick: ".x" }
-			{ reduce: max, pick: &v -> v.y? }
+			{ reduce: min, pick: .x }
+			{ reduce: max, pick: .y? }
 		])
 
 		res |
