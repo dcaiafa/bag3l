@@ -1,10 +1,8 @@
 package os
 
-import (
-	_p0 "github.com/dcaiafa/bag3l/internal/export"
-	_p1 "github.com/dcaiafa/bag3l/internal/stub"
-	_p2 "github.com/dcaiafa/bag3l/internal/vm"
-)
+import _p0 "github.com/dcaiafa/bag3l/internal/export"
+import _p1 "github.com/dcaiafa/bag3l/internal/stub"
+import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
 func _get_workdir(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error

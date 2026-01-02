@@ -25,6 +25,8 @@ QMARK  = '?'
   STRING = '"' @pop_mode
 }
 
+RSTRING = '`' ~[`]* '`'
+
 ID = [A-Za-z_][A-Za-z0-9_]*
 
 ELLIPSIS = '...'
@@ -38,7 +40,7 @@ ELLIPSIS = '...'
 
 unit = package decl*
 
-package = 'package' STRING
+package = 'package' string
 
 decl = const_decl
      | import_decl
@@ -48,9 +50,9 @@ decl = const_decl
 
 const_decl = 'const' ID type_ref '=' const_value
 
-const_value = STRING
+const_value = string
 
-import_decl = 'import' ID STRING
+import_decl = 'import' ID string
 
 struct_decl = 'struct' ID '{' struct_field* '}'
 
@@ -60,7 +62,7 @@ type_decl = 'type' ID go_type
 
 go_type = '*'? simple_go_type
 
-simple_go_type = STRING '.' ID | ID
+simple_go_type = string '.' ID | ID
 
 func_decl = 'func' ID '(' @list(func_param, ',')? ')' func_rets?
 
@@ -72,3 +74,6 @@ func_rets = '(' @list(type_ref, ',') ')'
           | type_ref
 
 type_ref = ID '?'?
+
+string = STRING
+       | RSTRING

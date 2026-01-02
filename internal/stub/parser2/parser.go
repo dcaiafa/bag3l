@@ -68,9 +68,9 @@ func (p *parser) on_unit(u *ast.Unit, decls []ast.AST) *ast.Unit {
 	return u
 }
 
-func (p *parser) on_package(_ Token, n Token) *ast.Unit {
+func (p *parser) on_package(_ Token, n token.Token) *ast.Unit {
 	return &ast.Unit{
-		Package: p.tokenToNitro(n),
+		Package: n,
 	}
 }
 
@@ -86,14 +86,14 @@ func (p *parser) on_const_decl(_ Token, id Token, t *ast.TypeRef, _ Token, v *as
 	}
 }
 
-func (p *parser) on_const_value(v Token) *ast.ConstValue {
-	return &ast.ConstValue{Expr: p.tokenToNitro(v).Str}
+func (p *parser) on_const_value(v token.Token) *ast.ConstValue {
+	return &ast.ConstValue{Expr: v.Str}
 }
 
-func (p *parser) on_import_decl(_ Token, a Token, i Token) *ast.ImportDecl {
+func (p *parser) on_import_decl(_ Token, a Token, i token.Token) *ast.ImportDecl {
 	return &ast.ImportDecl{
 		Alias:  p.tokenToNitro(a).Str,
-		Import: p.tokenToNitro(i).Str,
+		Import: i.Str,
 	}
 }
 
@@ -123,9 +123,9 @@ func (p *parser) on_go_type(ref Token, gt *ast.GoType) *ast.GoType {
 	return gt
 }
 
-func (p *parser) on_simple_go_type__full(pkg Token, _ Token, id Token) *ast.GoType {
+func (p *parser) on_simple_go_type__full(pkg token.Token, _ Token, id Token) *ast.GoType {
 	return &ast.GoType{
-		Package: p.tokenToNitro(pkg),
+		Package: pkg,
 		ID:      p.tokenToNitro(id),
 	}
 }
@@ -193,6 +193,12 @@ func (p *parser) tokenToNitro(at Token) token.Token {
 			p.errLogger.Failf(p.tokenPos(at), "Invalid string literal: %v", err)
 		}
 
+	case RSTRING:
+		s := string(at.Str)
+		s = s[1 : len(s)-1] // remove quotes
+		t.Type = token.String
+		t.Str = s
+
 	default:
 		t.Type = token.String
 		t.Str = string(at.Str)
@@ -200,6 +206,10 @@ func (p *parser) tokenToNitro(at Token) token.Token {
 
 	t.Pos = p.tokenPos(at)
 	return t
+}
+
+func (p *parser) on_string(n Token) token.Token {
+	return p.tokenToNitro(n)
 }
 
 var escapeSeqRegex = regexp.MustCompile(

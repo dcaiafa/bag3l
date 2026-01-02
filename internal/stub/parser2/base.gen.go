@@ -20,8 +20,9 @@ const (
 	COMMA    int = 16
 	QMARK    int = 17
 	STRING   int = 18
-	ID       int = 19
-	ELLIPSIS int = 20
+	RSTRING  int = 19
+	ID       int = 20
+	ELLIPSIS int = 21
 )
 
 func _TokenToString(t int) string {
@@ -64,6 +65,8 @@ func _TokenToString(t int) string {
 		return "QMARK"
 	case STRING:
 		return "STRING"
+	case RSTRING:
+		return "RSTRING"
 	case ID:
 		return "ID"
 	case ELLIPSIS:

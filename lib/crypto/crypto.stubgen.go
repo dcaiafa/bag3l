@@ -1,12 +1,9 @@
 package crypto
 
-import (
-	_p0 "github.com/dcaiafa/bag3l"
-	_p1 "github.com/dcaiafa/bag3l/internal/export"
-	_p2 "github.com/dcaiafa/bag3l/internal/stub"
-
-	_p3 "github.com/dcaiafa/bag3l/internal/vm"
-)
+import _p0 "github.com/dcaiafa/bag3l"
+import _p1 "github.com/dcaiafa/bag3l/internal/export"
+import _p2 "github.com/dcaiafa/bag3l/internal/stub"
+import _p3 "github.com/dcaiafa/bag3l/internal/vm"
 
 func _generate_secret(vm *_p3.VM, args []_p3.Value, nret int) ([]_p3.Value, error) {
 	var err error
