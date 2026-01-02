@@ -32,9 +32,9 @@ Convert all functions in `GlobalPackage` @/Users/dcaiafa/src/my/bag3l/lib/lib.go
 
 ### Marked as REVISIT
 - `avg` - complex runtime dispatch with accumulator pattern, variadic args, and iterator consumption; cannot be expressed in stubgen's static overloading
+- `count` - uses custom countAccum type and runtime-based overload resolution
 
 ### Next to convert
-- `count`
 - `deep_equal`
 - ... (continue in order from GlobalPackage in lib.go)
 
