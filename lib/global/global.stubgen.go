@@ -94,10 +94,40 @@ func _color(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return []_p2.Value{_r0}, nil
 	}
 }
+func _deep_equal(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Value:
+		switch _a1 := args[1].(type) {
+		case _p2.Value:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _a0
+				_ta1 := _a1
+				_r0, err := deep_equal0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 
 var Exports = _p0.Exports{
 	{N: "args", T: _p0.Func, F: _args},
 	{N: "batch", T: _p0.Func, F: _batch},
 	{N: "close", T: _p0.Func, F: _close},
 	{N: "color", T: _p0.Func, F: _color},
+	{N: "deep_equal", T: _p0.Func, F: _deep_equal},
 }

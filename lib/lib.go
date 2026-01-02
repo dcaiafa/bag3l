@@ -30,7 +30,6 @@ var GlobalPackage = export.Exports{
 	{N: "avg", T: export.Func, F: avg},
 	// REVISIT: count uses custom countAccum type and runtime-based overload resolution.
 	{N: "count", T: export.Func, F: count},
-	{N: "deep_equal", T: export.Func, F: deepEqual},
 	{N: "discard", T: export.Func, F: discard},
 	{N: "do", T: export.Func, F: dop},
 	{N: "dont_close", T: export.Func, F: dontClose},
