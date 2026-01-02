@@ -30,7 +30,7 @@ var GlobalPackage = export.Exports{
 	{N: "avg", T: export.Func, F: avg},
 	// REVISIT: count uses custom countAccum type and runtime-based overload resolution.
 	{N: "count", T: export.Func, F: count},
-	{N: "filter", T: export.Func, F: filter},
+	// REVISIT: first uses iter.IterNRet() for dynamic return count; cannot be statically typed in stubgen.
 	{N: "first", T: export.Func, F: first},
 	{N: "flatten", T: export.Func, F: flatten},
 	{N: "from_crlf", T: export.Func, F: fromCRLF},
