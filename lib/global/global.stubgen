@@ -9,3 +9,4 @@ func discard(v Any)
 func do(iter Iter, fn Callable)
 func dont_close(iter Iter) Iter
 func enumerate(iter Iter) Iter
+func env(name Str = `""`) Any
