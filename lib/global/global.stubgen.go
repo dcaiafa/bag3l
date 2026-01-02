@@ -198,6 +198,29 @@ func _dont_close(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _enumerate(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Iterable, _p2.Iterator:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _p1.MustMakeIter(vm, _a0)
+			_r0, err := enumerate0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_r0}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 
 var Exports = _p0.Exports{
 	{N: "args", T: _p0.Func, F: _args},
@@ -208,4 +231,5 @@ var Exports = _p0.Exports{
 	{N: "discard", T: _p0.Func, F: _discard},
 	{N: "do", T: _p0.Func, F: _do},
 	{N: "dont_close", T: _p0.Func, F: _dont_close},
+	{N: "enumerate", T: _p0.Func, F: _enumerate},
 }
