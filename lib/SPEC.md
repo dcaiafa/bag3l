@@ -22,3 +22,19 @@ Convert all functions in `GlobalPackage` @/Users/dcaiafa/src/my/bag3l/lib/lib.go
   files. There should be one commit per function (or source file) that was
   converted.
 
+## Progress
+
+### Completed
+- `args` - already converted before this work
+- `batch` - already converted before this work
+- `close` - converted successfully
+- `color` - converted successfully
+
+### Marked as REVISIT
+- `avg` - complex runtime dispatch with accumulator pattern, variadic args, and iterator consumption; cannot be expressed in stubgen's static overloading
+
+### Next to convert
+- `count`
+- `deep_equal`
+- ... (continue in order from GlobalPackage in lib.go)
+

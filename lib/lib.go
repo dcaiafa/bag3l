@@ -28,7 +28,6 @@ var GlobalPackage = export.Exports{
 	{N: "$home", T: export.Func, F: internalHomeDir},
 	// REVISIT: avg uses custom avgAccum type and runtime-based overload resolution
 	{N: "avg", T: export.Func, F: avg},
-	{N: "color", T: export.Func, F: color},
 	{N: "count", T: export.Func, F: count},
 	{N: "deep_equal", T: export.Func, F: deepEqual},
 	{N: "discard", T: export.Func, F: discard},

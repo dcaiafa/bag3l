@@ -3,3 +3,4 @@ package "global"
 func args() Any
 func batch(iter Iter, n Int) Iter
 func close(v Any)
+func color(attrs ...Str) Any
