@@ -29,12 +29,14 @@ Convert all functions in `GlobalPackage` @/Users/dcaiafa/src/my/bag3l/lib/lib.go
 - `batch` - already converted before this work
 - `close` - converted successfully
 - `color` - converted successfully
+- `deep_equal` - converted successfully
+- `discard` - converted successfully
 
 ### Marked as REVISIT
 - `avg` - complex runtime dispatch with accumulator pattern, variadic args, and iterator consumption; cannot be expressed in stubgen's static overloading
 - `count` - uses custom countAccum type and runtime-based overload resolution
 
 ### Next to convert
-- `deep_equal`
+- `do`
 - ... (continue in order from GlobalPackage in lib.go)
 

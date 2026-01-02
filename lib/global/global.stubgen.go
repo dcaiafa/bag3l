@@ -123,6 +123,29 @@ func _deep_equal(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _discard(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Value:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _a0
+			err := discard0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 
 var Exports = _p0.Exports{
 	{N: "args", T: _p0.Func, F: _args},
@@ -130,4 +153,5 @@ var Exports = _p0.Exports{
 	{N: "close", T: _p0.Func, F: _close},
 	{N: "color", T: _p0.Func, F: _color},
 	{N: "deep_equal", T: _p0.Func, F: _deep_equal},
+	{N: "discard", T: _p0.Func, F: _discard},
 }

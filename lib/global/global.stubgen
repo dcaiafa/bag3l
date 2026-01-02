@@ -5,3 +5,4 @@ func batch(iter Iter, n Int) Iter
 func close(v Any)
 func color(attrs ...Str) Any
 func deep_equal(a Any, b Any) Bool
+func discard(v Any)
