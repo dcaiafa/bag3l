@@ -354,7 +354,14 @@ func (p *parser) on_expr3__ternary(pred ast.Expr, _ Token, thenValue ast.Expr, _
 	}
 }
 
-func (p *parser) on_expr3__binary(e ast.Expr) ast.Expr {
+func (p *parser) on_expr3__binary(e ast.Expr, f Token) ast.Expr {
+	if f.Type == FORMAT {
+		e = &ast.FormatExpr{
+			Target: e,
+			Format: string(f.Str),
+		}
+	}
+
 	return e
 }
 
@@ -430,14 +437,7 @@ func (p *parser) on_unary_expr__op(op Token, term ast.Expr) ast.Expr {
 	}
 }
 
-func (p *parser) on_unary_expr__format(e ast.Expr, f Token) ast.Expr {
-	if f.Type == FORMAT {
-		e = &ast.FormatExpr{
-			Target: e,
-			Format: string(f.Str),
-		}
-	}
-
+func (p *parser) on_unary_expr__forward(e ast.Expr) ast.Expr {
 	return e
 }
 

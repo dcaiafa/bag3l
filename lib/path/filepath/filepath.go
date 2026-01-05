@@ -67,7 +67,7 @@ func match0(vm *vm.VM, path, pattern string) (bool, error) {
 	return res, nil
 }
 
-func rel0(vm *vm.VM, basePath, targPath string) (string, error) {
+func rel0(vm *vm.VM, targPath, basePath string) (string, error) {
 	res, err := filepath.Rel(basePath, targPath)
 	if err != nil {
 		return "", err
