@@ -10,7 +10,7 @@ func from_slash(p Str) Str
 func is_abs(p Str) Bool
 func join(elem ...Str) Str
 func match(pattern Str, path Str) Bool
-func rel(base_path Str, targ_path Str) Str
+func rel(targ_path Str, base_path Str) Str
 func split_list(path Str) List
 func to_slash(path Str) Str
 func from_slash(path Str) Str

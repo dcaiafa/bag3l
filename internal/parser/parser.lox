@@ -85,7 +85,7 @@ expr  = short_lambda_expr
       | expr3
 
 expr3 = binary_expr '??' expr3 ':' expr3 
-      | binary_expr
+      | binary_expr FORMAT?
 
 binary_expr = unary_expr
             | binary_expr '*' binary_expr      @left(10)
@@ -106,7 +106,7 @@ unary_expr = 'not' primary_expr
            | '+' primary_expr
            | '-' primary_expr
            | '.' root_expr
-           | primary_expr FORMAT?
+           | primary_expr
 
 primary_expr = ID
              | regex
