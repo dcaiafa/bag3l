@@ -7,18 +7,17 @@ import (
 
 type StructDecl struct {
 	Name   string
-	Fields ASTs
+	Fields []*StructField
 }
 
 func (d *StructDecl) RunPass(ctx *Context, pass Pass) {
-	ctx.RunPassChild(d, d.Fields, pass)
+	RunPassChildren(ctx, d, d.Fields, pass)
 
 	if pass == Check {
 		structDecl := &analysis.Struct{
 			Name: d.Name,
 		}
 		for _, fieldAST := range d.Fields {
-			fieldAST := fieldAST.(*StructField)
 			field := &analysis.StructField{
 				Name: fieldAST.Name,
 				Type: fieldAST.Type.Type,

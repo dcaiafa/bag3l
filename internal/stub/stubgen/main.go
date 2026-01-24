@@ -6,7 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dcaiafa/bag3l/internal/stub/parser"
+	"github.com/dcaiafa/bag3l/internal/errlogger"
+	parser "github.com/dcaiafa/bag3l/internal/stub/parser2"
 )
 
 func main() {
@@ -30,7 +31,9 @@ func run(defFile string) error {
 		return err
 	}
 
-	unit, err := parser.Parse(defFile, defFileBytes)
+	errLogger := errlogger.NewErrLoggerBase(&errlogger.ConsoleErrLogger{})
+
+	unit, err := parser.Parse(defFile, defFileBytes, errLogger)
 	if err != nil {
 		return err
 	}

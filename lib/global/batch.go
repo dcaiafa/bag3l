@@ -1,22 +1,11 @@
-package lib
+package global
 
-import nitro "github.com/dcaiafa/bag3l"
+import (
+	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
+)
 
-func batch(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
-	if len(args) > 2 {
-		return nil, errTooManyArgs
-	}
-
-	inIter, err := getIterArg(vm, args, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	n, err := getIntArg(args, 1)
-	if err != nil {
-		return nil, err
-	}
-
+func batch0(m *vm.VM, inIter vm.Iterator, n int64) (vm.Iterator, error) {
 	batchIter := &batchIter{
 		inIter: inIter,
 		n:      int(n),
@@ -25,7 +14,7 @@ func batch(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
 	outIter := nitro.NewIterator(
 		batchIter.Next, batchIter.Close, 1)
 
-	return []nitro.Value{outIter}, nil
+	return outIter, nil
 }
 
 type batchIter struct {
@@ -34,6 +23,10 @@ type batchIter struct {
 }
 
 func (i *batchIter) Next(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+	if i.inIter.IsClosed() {
+		return nil, nil
+	}
+
 	var b = make([]nitro.Value, 0, i.n)
 	for len(b) < i.n {
 		v, err := vm.IterNext(i.inIter, 1)

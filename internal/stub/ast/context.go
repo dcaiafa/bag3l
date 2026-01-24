@@ -28,3 +28,9 @@ func NewContext(l *errlogger.ErrLoggerWrapper) *Context {
 func (c *Context) RunPassChild(parent AST, child AST, pass Pass) {
 	child.RunPass(c, pass)
 }
+
+func RunPassChildren[T AST](ctx *Context, parent AST, children []T, pass Pass) {
+	for _, child := range children {
+		child.RunPass(ctx, pass)
+	}
+}

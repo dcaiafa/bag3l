@@ -1,8 +1,8 @@
 package "encoding/base64"
 
 struct Options {
-  strict Bool;
-  mode Str;
+  strict Bool
+  mode Str
 }
 
 func decode(input Str, opts Options = "nil") Str

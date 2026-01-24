@@ -3,12 +3,12 @@ package "file"
 type File *File
 
 struct OpenOptions {
-  read Bool;
-  write Bool;
-  append Bool;
-  create Bool;
-  excl Bool;
-  trunc Bool;
+  read Bool
+  write Bool
+  append Bool
+  create Bool
+  excl Bool
+  trunc Bool
 }
 
 func create(name Str) File

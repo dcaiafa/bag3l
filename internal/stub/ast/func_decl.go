@@ -8,18 +8,17 @@ import (
 type FuncDecl struct {
 	Doc    *Doc
 	ID     token.Token
-	Params ASTs
-	Rets   ASTs
+	Params []*FuncParam
+	Rets   []*TypeRef
 }
 
 func (d *FuncDecl) RunPass(ctx *Context, pass Pass) {
-	ctx.RunPassChild(d, d.Params, pass)
-	ctx.RunPassChild(d, d.Rets, pass)
+	RunPassChildren(ctx, d, d.Params, pass)
+	RunPassChildren(ctx, d, d.Rets, pass)
 
 	if pass == Check {
 		sig := new(analysis.Signature)
 		for i, paramAST := range d.Params {
-			paramAST := paramAST.(*FuncParam)
 			param := analysis.Param{
 				Name: paramAST.ID.Str,
 				Type: paramAST.Type.Type,
@@ -41,7 +40,6 @@ func (d *FuncDecl) RunPass(ctx *Context, pass Pass) {
 			sig.Params = append(sig.Params, param)
 		}
 		for _, retAST := range d.Rets {
-			retAST := retAST.(*TypeRef)
 			sig.Rets = append(sig.Rets, retAST.Type)
 		}
 		fun := &analysis.Func{

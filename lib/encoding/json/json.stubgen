@@ -4,8 +4,8 @@ func decode(input Str) Any
 func decode(input Reader) Any
 
 struct EncodeOptions {
-  indent Str;
-  prefix Str;
+  indent Str
+  prefix Str
 }
 
 func encode(v Any, opts EncodeOptions = "nil") Str
