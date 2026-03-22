@@ -17,7 +17,11 @@ const (
 	stateTerminated
 )
 
+// Fiber is a cooperative unit of execution managed by a Scheduler. Each fiber
+// runs in its own goroutine but only one fiber is logically active at a time.
+// Fibers yield control explicitly via Block or SwitchToNew.
 type Fiber struct {
+	// Data is an arbitrary user-data slot for attaching per-fiber state.
 	Data any
 
 	le    fiberListElem
@@ -48,6 +52,11 @@ func newFiber(sched *Scheduler, id uint32, fn func()) *Fiber {
 	return f
 }
 
+// Scheduler implements cooperative (non-preemptive) scheduling of fibers. At
+// most one fiber is active at any time; fibers yield control by calling Block
+// or SwitchToNew. Blocking operations run concurrently in their fiber's
+// goroutine, allowing I/O parallelism while maintaining single-threaded
+// logical execution for non-blocking code.
 type Scheduler struct {
 	mutex   sync.Mutex
 	cv      *sync.Cond
@@ -57,6 +66,7 @@ type Scheduler struct {
 	lastID  uint32
 }
 
+// NewScheduler creates a new fiber scheduler.
 func NewScheduler() *Scheduler {
 	s := &Scheduler{}
 	s.cv = sync.NewCond(&s.mutex)
@@ -65,6 +75,8 @@ func NewScheduler() *Scheduler {
 	return s
 }
 
+// Run starts the scheduler loop with the given fiber as the initial fiber.
+// It blocks until all fibers (active, ready, and blocked) have terminated.
 func (s *Scheduler) Run(main *Fiber) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -95,10 +107,15 @@ func (s *Scheduler) Run(main *Fiber) {
 	}
 }
 
+// Block suspends the active fiber, allowing other fibers to run, while fn
+// executes concurrently in this fiber's goroutine. When fn returns, the fiber
+// is re-enqueued and waits to be re-scheduled. The context passed to fn is
+// derived from ctx and can be cancelled via CancelBlocked.
 func (s *Scheduler) Block(ctx context.Context, fn func(ctx context.Context)) {
 	s.mutex.Lock()
 
 	me := s.active
+	me.expectState(stateRunning)
 
 	ctx, me.blockCancel = context.WithCancel(ctx)
 	defer me.blockCancel()
@@ -128,11 +145,15 @@ func (s *Scheduler) Block(ctx context.Context, fn func(ctx context.Context)) {
 	me.blockCancel = nil
 }
 
+// NewFiber creates a new fiber that will execute fn when started. The fiber is
+// not started until it is passed to SwitchToNew or Run.
 func (s *Scheduler) NewFiber(fn func()) *Fiber {
 	id := atomic.AddUint32(&s.lastID, 1)
 	return newFiber(s, id, fn)
 }
 
+// SwitchToNew parks the active fiber in the ready queue and immediately starts
+// f. The caller resumes when the scheduler re-schedules it (FIFO).
 func (s *Scheduler) SwitchToNew(f *Fiber) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -153,6 +174,8 @@ func (s *Scheduler) SwitchToNew(f *Fiber) {
 	}
 }
 
+// ForEachFiber calls h for every fiber in the scheduler: the active fiber (if
+// any), all ready fibers, and all blocked fibers.
 func (s *Scheduler) ForEachFiber(h func(fiber *Fiber)) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -168,6 +191,9 @@ func (s *Scheduler) ForEachFiber(h func(fiber *Fiber)) {
 	}
 }
 
+// CancelBlocked cancels the context of every currently blocked fiber. This
+// causes the context passed to each Block callback to be cancelled, which
+// should cause the callback to return promptly.
 func (s *Scheduler) CancelBlocked() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
