@@ -114,6 +114,29 @@ func _has_prefix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _into(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Value:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _a0
+			_r0, err := into0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_p2.NewString(_r0)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _match(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -502,6 +525,7 @@ var Exports = _p0.Exports{
 	{N: "find", T: _p0.Func, F: _find},
 	{N: "find_last", T: _p0.Func, F: _find_last},
 	{N: "has_prefix", T: _p0.Func, F: _has_prefix},
+	{N: "into", T: _p0.Func, F: _into},
 	{N: "match", T: _p0.Func, F: _match},
 	{N: "match_all", T: _p0.Func, F: _match_all},
 	{N: "repeat", T: _p0.Func, F: _repeat},

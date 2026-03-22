@@ -87,14 +87,14 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `no_input`, `
 		exec.exec(["go", "run", "./testexec/testexec.go", "-range", "1024", "-range-stdout"]) |
 			lines() |
-			map(&e -> parse_int(e)) |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `523776`)
 
 	RunSubO(t, `input`, `
 		range(100000) | 
-			map(to_string) |
+			map(str.into) |
 			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 				read() |
@@ -113,11 +113,11 @@ func TestExec(t *testing.T) {
 
 	RunSubO(t, `input2`, `
 		range(100001) |
-			map(to_string) |
+			map(str.into) |
 			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 			lines() |
-			map(&e -> parse_int(e)) |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `5000050000`)
@@ -125,12 +125,12 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `capture_stderr`, `
 			var err_buf = buf.new()
 			var out = range(2049) |
-				map(to_string) |
+				map(str.into) |
 				stream |
 				exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-range", "11", "-range-stdout"]) |
         exec.with_stderr(err_buf)
-	    var out_sum = out | lines() | map(&l -> parse_int(l)) | reduce(sum)
-			var err_sum = err_buf | lines() | map(&l -> parse_int(l)) | reduce(sum)
+	    var out_sum = out | lines() | map(&l -> int.parse(l)) | reduce(sum)
+			var err_sum = err_buf | lines() | map(&l -> int.parse(l)) | reduce(sum)
 			print(out_sum, err_sum)
 		`, `55 2098176`)
 
@@ -152,7 +152,7 @@ exit status 128
 		exec.exec(["go", "run", "./testexec/testexec.go", "-range", "1024", "-range-stdout"]) |
 			lines() |
 			take(10) |
-			map(&e -> parse_int(e)) |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `45`)
@@ -161,7 +161,7 @@ exit status 128
 		var tmp = file.create_temp()
 		defer file.remove(tmp)
 		range(100000) | 
-			map(to_string) |
+			map(str.into) |
 			stream |
 			tmp
 		file.seek(tmp, 0)
@@ -177,7 +177,7 @@ exit status 128
       var tmp = file.create_temp()
       defer file.remove(tmp)
       range(100000) |
-        map(to_string) |
+        map(str.into) |
 				stream |
         exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr"]) |
         exec.with_stderr(tmp) |

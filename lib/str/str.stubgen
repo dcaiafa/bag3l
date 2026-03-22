@@ -20,3 +20,4 @@ func to_lower(s Str) Str
 func has_prefix(s Str, prefix Str) Bool
 func fields(s Str) Any
 func repeat(s Str, n Int) Str
+func into(v Any) Str

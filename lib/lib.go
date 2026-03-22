@@ -7,12 +7,18 @@ import (
 
 	"github.com/dcaiafa/bag3l/internal/export"
 	"github.com/dcaiafa/bag3l/internal/vm"
+	libbool "github.com/dcaiafa/bag3l/lib/bool"
 	"github.com/dcaiafa/bag3l/lib/crypto"
 	"github.com/dcaiafa/bag3l/lib/encoding/base64"
+	libcsv "github.com/dcaiafa/bag3l/lib/encoding/csv"
+	libhex "github.com/dcaiafa/bag3l/lib/encoding/hex"
 	"github.com/dcaiafa/bag3l/lib/encoding/json"
 	"github.com/dcaiafa/bag3l/lib/file"
+	"github.com/dcaiafa/bag3l/lib/float"
 	"github.com/dcaiafa/bag3l/lib/global"
+	libint "github.com/dcaiafa/bag3l/lib/int"
 	"github.com/dcaiafa/bag3l/lib/io"
+	"github.com/dcaiafa/bag3l/lib/list"
 	"github.com/dcaiafa/bag3l/lib/maps"
 	ospkg "github.com/dcaiafa/bag3l/lib/os"
 	"github.com/dcaiafa/bag3l/lib/path/filepath"
@@ -50,9 +56,6 @@ var GlobalPackage = export.Exports{
 	{N: "mod", T: export.Func, F: mod},
 	{N: "narg", T: export.Func, F: narg},
 	{N: "next", T: export.Func, F: next},
-	{N: "parse_csv", T: export.Func, F: parseCSV},
-	{N: "parse_float", T: export.Func, F: parseFloat},
-	{N: "parse_int", T: export.Func, F: parseInt},
 	{N: "print", T: export.Func, F: print},
 	{N: "print_table", T: export.Func, F: printTable},
 	{N: "probe", T: export.Func, F: probe},
@@ -73,14 +76,8 @@ var GlobalPackage = export.Exports{
 	{N: "take", T: export.Func, F: take},
 	{N: "take_until", T: export.Func, F: takeUntil},
 	{N: "take_while", T: export.Func, F: takeWhile},
-	{N: "to_bool", T: export.Func, F: toBool},
-	{N: "to_hex", T: export.Func, F: toHex},
-	{N: "to_int", T: export.Func, F: toInt},
-	{N: "to_list", T: export.Func, F: toList},
-	{N: "to_string", T: export.Func, F: toString},
 	{N: "type", T: export.Func, F: typep},
 	{N: "unique", T: export.Func, F: unique},
-	{N: "write_csv", T: export.Func, F: writeCSV},
 }
 
 var BufPackage = export.Exports{
@@ -104,12 +101,6 @@ var ExecPackage = export.Exports{
 	{N: "with_stderr", T: export.Func, F: execWithStderr},
 }
 
-var ListPackage = export.Exports{
-	{N: "append", T: export.Func, F: listAppend},
-	{N: "append_iter", T: export.Func, F: listAppendIter},
-	{N: "find", T: export.Func, F: listFind},
-}
-
 var MathPackage = export.Exports{
 	{N: "trunc", T: export.Func, F: mathTrunc},
 }
@@ -125,15 +116,20 @@ func RegisterAll(registry BuiltinRegistry) {
 	})
 
 	registry.RegisterBuiltins("$global", globalPackage)
+	registry.RegisterBuiltins("bool", libbool.Exports)
 	registry.RegisterBuiltins("buf", BufPackage)
 	registry.RegisterBuiltins("co", CoPackage)
 	registry.RegisterBuiltins("crypto", crypto.Exports)
 	registry.RegisterBuiltins("encoding/base64", base64.Exports)
+	registry.RegisterBuiltins("encoding/csv", libcsv.Exports)
+	registry.RegisterBuiltins("encoding/hex", libhex.Exports)
 	registry.RegisterBuiltins("encoding/json", json.Exports)
 	registry.RegisterBuiltins("exec", ExecPackage)
 	registry.RegisterBuiltins("file", file.Exports)
+	registry.RegisterBuiltins("float", float.Exports)
+	registry.RegisterBuiltins("int", libint.Exports)
 	registry.RegisterBuiltins("io", io.Exports)
-	registry.RegisterBuiltins("list", ListPackage)
+	registry.RegisterBuiltins("list", list.Exports)
 	registry.RegisterBuiltins("maps", maps.Exports)
 	registry.RegisterBuiltins("math", MathPackage)
 	registry.RegisterBuiltins("os", ospkg.Exports)

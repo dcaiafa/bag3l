@@ -13,7 +13,7 @@ func TestDiscard(t *testing.T) {
   `, `done`)
 
 	btesting.RunSubO(t, "discard_reader", `
-    range(10) | map(to_string) | stream | discard
+    range(10) | map(str.into) | stream | discard
     print("done")
   `, `done`)
 

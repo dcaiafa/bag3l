@@ -152,3 +152,10 @@ func fields0(m *vm.VM, s string) (vm.Value, error) {
 func repeat0(m *vm.VM, s string, n int64) (string, error) {
 	return strings.Repeat(s, int(n)), nil
 }
+
+func into0(m *vm.VM, v vm.Value) (string, error) {
+	if v == nil {
+		return "<nil>", nil
+	}
+	return v.String(), nil
+}

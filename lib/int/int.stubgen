@@ -1,0 +1,4 @@
+package "int"
+
+func parse(v Str, base Int = `0`) Int
+func into(v Any) Int

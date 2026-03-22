@@ -112,7 +112,7 @@ func sort(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, errNotEnoughArgs
 	}
 
-	arr, err := ToArray(m, args[0])
+	arr, err := ListFromIter(m, args[0])
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func shuffle(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, errNotEnoughArgs
 	}
 
-	arr, err := ToArray(m, args[0])
+	arr, err := ListFromIter(m, args[0])
 	if err != nil {
 		return nil, err
 	}

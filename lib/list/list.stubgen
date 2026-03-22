@@ -1,0 +1,6 @@
+package "list"
+
+func append(l List, v ...Any) List
+func append_iter(l List, iter Iter) List
+func find(l List, v Any) Any
+func from_iter(v Iter) List

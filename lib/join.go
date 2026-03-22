@@ -16,7 +16,7 @@ func join(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, err
 	}
 
-	list, err := ToArray(m, iter)
+	list, err := ListFromIter(m, iter)
 	if err != nil {
 		return nil, err
 	}
