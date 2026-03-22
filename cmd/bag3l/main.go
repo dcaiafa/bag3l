@@ -16,6 +16,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/compiler"
 	"github.com/dcaiafa/bag3l/internal/fs"
 	"github.com/dcaiafa/bag3l/lib"
+	libio "github.com/dcaiafa/bag3l/lib/io"
 	"github.com/fatih/color"
 )
 
@@ -156,6 +157,7 @@ func main() {
 	}
 
 	vm := bag3l.NewVM(compiled)
+	libio.SetStdout(vm, os.Stdout)
 
 	signalCh := make(chan os.Signal)
 	stopCh := make(chan struct{})

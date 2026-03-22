@@ -1,7 +1,6 @@
 package io
 
 import (
-	"fmt"
 	"io"
 	"os"
 
@@ -51,35 +50,23 @@ func wrapWriter(w io.Writer) vm.Writer {
 	return &wb
 }
 
-var stdoutUserDataKey = "stdout"
+type stdoutUserDataKey struct{}
 
 type stdoutStack struct {
 	def   vm.Writer
 	stack []vm.Writer
 }
 
-func getOutState(vm *nitro.VM) *stdoutStack {
-	state, ok := vm.GetUserData(&stdoutUserDataKey).(*stdoutStack)
+func Stdout(m *nitro.VM) vm.Writer {
+	stdout, ok := m.GetUserData(stdoutUserDataKey{}).(vm.Writer)
 	if !ok {
-		state = &stdoutStack{
-			def: DefaultOut,
-		}
-		vm.SetUserData(&stdoutUserDataKey, state)
+		panic("stdout is not set")
 	}
-	return state
+	return stdout
 }
 
-func Stdout(vm *nitro.VM) vm.Writer {
-	state := getOutState(vm)
-	if len(state.stack) == 0 {
-		return state.def
-	}
-	return state.stack[len(state.stack)-1]
-}
-
-func SetStdout(vm *vm.VM, w io.Writer) {
-	state := getOutState(vm)
-	state.def = wrapWriter(w)
+func SetStdout(m *vm.VM, w io.Writer) {
+	m.SetUserData(stdoutUserDataKey{}, wrapWriter(w))
 }
 
 func Stderr(m *nitro.VM) vm.Writer {
@@ -114,20 +101,4 @@ func err0(vm *nitro.VM, r vm.Reader) (vm.Writer, error) {
 	}
 	core.CloseReader(r)
 	return out, nil
-}
-
-func push_out0(vm *nitro.VM, w vm.Writer) error {
-	state := getOutState(vm)
-	state.stack = append(state.stack, w)
-	return nil
-}
-
-func pop_out0(vm *nitro.VM) (vm.Writer, error) {
-	state := getOutState(vm)
-	if len(state.stack) == 0 {
-		return nil, fmt.Errorf("output stack is empty")
-	}
-	popped := state.stack[len(state.stack)-1]
-	state.stack = state.stack[:len(state.stack)-1]
-	return popped, nil
 }
