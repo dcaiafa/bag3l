@@ -1,5 +1,14 @@
 package "io"
 
+import goruntime "runtime"
+
 func in() Reader
 func out(r Reader = `nil`) Writer
 func err(r Reader = `nil`) Writer
+
+func from_crlf(s Str) Str
+func from_crlf(r Reader) Reader
+func from_crlf(w Writer) Writer
+
+func to_crlf(s Str, convert Bool = `#goruntime.GOOS == "windows"`) Str
+func to_crlf(r Reader, convert Bool = `#goruntime.GOOS == "windows"`) Reader

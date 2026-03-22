@@ -414,6 +414,15 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 				transitions = append(transitions, t)
 			}
 			sort.Slice(transitions, func(i, j int) bool {
+				// Types that match multiple Go interfaces (Reader matches
+				// Reader+Readable, Iter matches Iterable+Iterator) must sort
+				// after single-match types to avoid shadowing more specific
+				// cases in the type switch.
+				wi := isWideType(transitions[i].Type.Name)
+				wj := isWideType(transitions[j].Type.Name)
+				if wi != wj {
+					return !wi
+				}
 				return transitions[i].Type.Name < transitions[j].Type.Name
 			})
 
@@ -441,6 +450,12 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 
 	emitDFA(0, dfa.Start)
 	fmt.Fprintf(w, "}\n")
+}
+
+// isWideType returns true for types whose generated case clause matches
+// multiple Go interfaces (e.g. Reader matches both Reader and Readable).
+func isWideType(name string) bool {
+	return name == "Reader" || name == "Iter"
 }
 
 func (a *Analysis) emitTypeCase(w *bytes.Buffer, typ Type) {

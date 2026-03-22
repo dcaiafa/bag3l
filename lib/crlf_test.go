@@ -7,15 +7,15 @@ import (
 
 func TestFromCRLF(t *testing.T) {
 	run := func(name, input, output string) {
-		RunSubO(t, name+"-s", `"`+input+`" | from_crlf | (&r->"["+r+"]") | print`, "["+output+"]")
+		RunSubO(t, name+"-s", `"`+input+`" | io.from_crlf | (&r->"["+r+"]") | print`, "["+output+"]")
 		RunSubO(t, name+"-r", strings.ReplaceAll(`
 	var b = buf.new()
 	$input$ | b
-	print(f"[{b | from_crlf | read}]")
+	print(f"[{b | io.from_crlf | read}]")
 `, `$input$`, `"`+input+`"`), "["+output+"]")
 		RunSubO(t, name+"-w", strings.ReplaceAll(`
 	var b = buf.new()
-	var b2 = b | from_crlf
+	var b2 = b | io.from_crlf
 
 	$input$ | b2
 	print(f"[{b | read}]")
@@ -31,7 +31,7 @@ func TestFromCRLF(t *testing.T) {
 
 func TestToCRLF(t *testing.T) {
 	run := func(name, input, output string) {
-		RunSubO(t, name, `"`+input+`" | to_crlf(true) | (&r->"["+r+"]") | print`, "["+output+"]")
+		RunSubO(t, name, `"`+input+`" | io.to_crlf(true) | (&r->"["+r+"]") | print`, "["+output+"]")
 	}
 
 	run("crlf", `abc\r\ndef\r\n`, "abc\r\ndef\r\n")
@@ -45,7 +45,7 @@ func TestToCRLF(t *testing.T) {
 	RunSubO(t, "reader", `
 	var b = buf.new()
 	"abc\ndef\n" | b
-	b = b | to_crlf(true)
+	b = b | io.to_crlf(true)
 
 	print(f"[{b | read(4)}{b | read()}]")
 `, "[abc\r\ndef\r\n]")

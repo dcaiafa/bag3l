@@ -33,7 +33,6 @@ var GlobalPackage = export.Exports{
 	// REVISIT: first uses iter.IterNRet() for dynamic return count; cannot be statically typed in stubgen.
 	{N: "first", T: export.Func, F: first},
 	{N: "flatten", T: export.Func, F: flatten},
-	{N: "from_crlf", T: export.Func, F: fromCRLF},
 	{N: "get", T: export.Func, F: get},
 	{N: "group", T: export.Func, F: group},
 	{N: "has", T: export.Func, F: has},
@@ -75,7 +74,6 @@ var GlobalPackage = export.Exports{
 	{N: "take_until", T: export.Func, F: takeUntil},
 	{N: "take_while", T: export.Func, F: takeWhile},
 	{N: "to_bool", T: export.Func, F: toBool},
-	{N: "to_crlf", T: export.Func, F: toCRLF},
 	{N: "to_hex", T: export.Func, F: toHex},
 	{N: "to_int", T: export.Func, F: toInt},
 	{N: "to_list", T: export.Func, F: toList},
