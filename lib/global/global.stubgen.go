@@ -70,30 +70,6 @@ func _close(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
-func _color(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
-	var err error
-	_ = err
-	if len(args) < 1 {
-		return nil, _p1.ErrInsufficientArgs
-	}
-	var _a0 []_p2.Value = args[0:]
-	{
-		_ta0 := make([]string, len(_a0))
-		for i := range _a0 {
-			switch _a := _a0[i].(type) {
-			case _p2.String:
-				_ta0[i] = (_a).String()
-			default:
-				return nil, _p1.InvalidArg(args, 0)
-			}
-		}
-		_r0, err := color0(vm, _ta0)
-		if err != nil {
-			return nil, err
-		}
-		return []_p2.Value{_r0}, nil
-	}
-}
 func _deep_equal(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -286,7 +262,6 @@ var Exports = _p0.Exports{
 	{N: "args", T: _p0.Func, F: _args},
 	{N: "batch", T: _p0.Func, F: _batch},
 	{N: "close", T: _p0.Func, F: _close},
-	{N: "color", T: _p0.Func, F: _color},
 	{N: "deep_equal", T: _p0.Func, F: _deep_equal},
 	{N: "discard", T: _p0.Func, F: _discard},
 	{N: "do", T: _p0.Func, F: _do},
