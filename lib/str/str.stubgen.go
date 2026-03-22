@@ -4,6 +4,39 @@ import _p0 "github.com/dcaiafa/bag3l/internal/export"
 import _p1 "github.com/dcaiafa/bag3l/internal/stub"
 import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
+type LinesOptions struct {
+	Max_line_size int64
+}
+
+func (m *LinesOptions) FromMap(v *_p2.Map) error {
+	var err error
+	_ = err
+	v.ForEach(func(k, v _p2.Value) bool {
+		n, ok := k.(_p2.String)
+		if !ok {
+			err = _p1.ErrMapKeyMustBeStr
+			return false
+		}
+		switch n.String() {
+		case "max_line_size":
+			cv, ok := v.(_p2.Int)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Int64()
+			m.Max_line_size = tv
+		default:
+			err = _p1.StructDoesNotHaveField("LinesOptions", n.String())
+			return false
+		}
+		return true
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func _contains(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -306,6 +339,90 @@ func _into(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 				return nil, err
 			}
 			return []_p2.Value{_p2.NewString(_r0)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _join(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Iterable, _p2.Iterator:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _p1.MustMakeIter(vm, _a0)
+				_ta1 := (_a1).String()
+				_r0, err := join0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _lines(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Reader, _p2.Readable:
+		if len(args) == 1 {
+			var _a1 *_p2.Map = nil
+			{
+				_ta0 := _p1.MustMakeReader(vm, _a0)
+				var _ta1 *LinesOptions
+				if _a1 != nil {
+					_ta1 = new(LinesOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 1, err)
+					}
+				}
+				_r0, err := lines0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
+			}
+		}
+		switch _a1 := args[1].(type) {
+		case *_p2.Map:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _p1.MustMakeReader(vm, _a0)
+				var _ta1 *LinesOptions
+				if _a1 != nil {
+					_ta1 = new(LinesOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 2, err)
+					}
+				}
+				_r0, err := lines0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
 		}
 	default:
 		return nil, _p1.InvalidArg(args, 0)
@@ -816,6 +933,8 @@ var Exports = _p0.Exports{
 	{N: "has_prefix", T: _p0.Func, F: _has_prefix},
 	{N: "has_suffix", T: _p0.Func, F: _has_suffix},
 	{N: "into", T: _p0.Func, F: _into},
+	{N: "join", T: _p0.Func, F: _join},
+	{N: "lines", T: _p0.Func, F: _lines},
 	{N: "match", T: _p0.Func, F: _match},
 	{N: "match_all", T: _p0.Func, F: _match_all},
 	{N: "repeat", T: _p0.Func, F: _repeat},

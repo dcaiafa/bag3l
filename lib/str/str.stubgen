@@ -31,3 +31,11 @@ func to_title(s Str) Str
 func fields(s Str) Any
 func repeat(s Str, n Int) Str
 func into(v Any) Str
+
+func join(iter Iter, sep Str) Str
+
+struct LinesOptions {
+  max_line_size Int
+}
+
+func lines(input Reader, options LinesOptions = `nil`) Iter
