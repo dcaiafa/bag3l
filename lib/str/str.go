@@ -136,8 +136,45 @@ func has_prefix0(m *vm.VM, s string, prefix string) (bool, error) {
 	return strings.HasPrefix(s, prefix), nil
 }
 
-func has_suffix(m *vm.VM, s string, suffix string) (bool, error) {
+func has_suffix0(m *vm.VM, s string, suffix string) (bool, error) {
 	return strings.HasSuffix(s, suffix), nil
+}
+
+func contains0(m *vm.VM, s string, substr string) (bool, error) {
+	return strings.Contains(s, substr), nil
+}
+
+func contains_any0(m *vm.VM, s string, chars string) (bool, error) {
+	return strings.ContainsAny(s, chars), nil
+}
+
+func count0(m *vm.VM, s string, substr string) (int64, error) {
+	return int64(strings.Count(s, substr)), nil
+}
+
+func equal_fold0(m *vm.VM, s string, t string) (bool, error) {
+	return strings.EqualFold(s, t), nil
+}
+
+func cut0(m *vm.VM, s string, sep string) (string, string, bool, error) {
+	before, after, found := strings.Cut(s, sep)
+	return before, after, found, nil
+}
+
+func trim0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.Trim(s, cutset), nil
+}
+
+func trim_left0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.TrimLeft(s, cutset), nil
+}
+
+func trim_right0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.TrimRight(s, cutset), nil
+}
+
+func to_title0(m *vm.VM, s string) (string, error) {
+	return strings.ToTitle(s), nil
 }
 
 func fields0(m *vm.VM, s string) (vm.Value, error) {

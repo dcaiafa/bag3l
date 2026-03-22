@@ -95,6 +95,58 @@ func TestStrHasPrefix(t *testing.T) {
 	btesting.RunSubO(t, "false", `"hello world" | str.has_prefix("world") | print`, `false`)
 }
 
+func TestStrHasSuffix(t *testing.T) {
+	btesting.RunSubO(t, "true", `"hello world" | str.has_suffix("world") | print`, `true`)
+	btesting.RunSubO(t, "false", `"hello world" | str.has_suffix("hello") | print`, `false`)
+}
+
+func TestStrContains(t *testing.T) {
+	btesting.RunSubO(t, "true", `"hello world" | str.contains("lo wo") | print`, `true`)
+	btesting.RunSubO(t, "false", `"hello world" | str.contains("xyz") | print`, `false`)
+	btesting.RunSubO(t, "empty", `"hello" | str.contains("") | print`, `true`)
+}
+
+func TestStrContainsAny(t *testing.T) {
+	btesting.RunSubO(t, "true", `"hello" | str.contains_any("aeiou") | print`, `true`)
+	btesting.RunSubO(t, "false", `"hello" | str.contains_any("xyz") | print`, `false`)
+}
+
+func TestStrCount(t *testing.T) {
+	btesting.RunSubO(t, "multiple", `"banana" | str.count("an") | print`, `2`)
+	btesting.RunSubO(t, "none", `"banana" | str.count("xyz") | print`, `0`)
+}
+
+func TestStrEqualFold(t *testing.T) {
+	btesting.RunSubO(t, "true", `str.equal_fold("Hello", "hello") | print`, `true`)
+	btesting.RunSubO(t, "false", `str.equal_fold("Hello", "world") | print`, `false`)
+}
+
+func TestStrCut(t *testing.T) {
+	btesting.RunSubO(t, "found", `
+    var before, after, found = str.cut("hello=world", "=")
+    print(before, after, found)`, `hello world true`)
+	btesting.RunSubO(t, "not_found", `
+    var before, after, found = str.cut("hello", "=")
+    print(before, after, found)`, `hello  false`)
+}
+
+func TestStrTrim(t *testing.T) {
+	btesting.RunSubO(t, "basic", `"##hello##" | str.trim("#") | print`, `hello`)
+	btesting.RunSubO(t, "multi_chars", `"¡¡¡Hello, Gophers!!!" | str.trim("!¡") | print`, `Hello, Gophers`)
+}
+
+func TestStrTrimLeft(t *testing.T) {
+	btesting.RunSubO(t, "basic", `"##hello##" | str.trim_left("#") | print`, `hello##`)
+}
+
+func TestStrTrimRight(t *testing.T) {
+	btesting.RunSubO(t, "basic", `"##hello##" | str.trim_right("#") | print`, `##hello`)
+}
+
+func TestStrToTitle(t *testing.T) {
+	btesting.RunSubO(t, "basic", `"hello world" | str.to_title | print`, `HELLO WORLD`)
+}
+
 func TestStrFields(t *testing.T) {
 	btesting.RunSubO(t, "basic", `"  one  two   three  " | str.fields | print`, `[one two three]`)
 	btesting.RunSubO(t, "single", `"hello" | str.fields | print`, `[hello]`)

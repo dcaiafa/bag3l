@@ -18,6 +18,16 @@ func trim_suffix(s Str, prefix Str) Str
 func to_upper(s Str) Str
 func to_lower(s Str) Str
 func has_prefix(s Str, prefix Str) Bool
+func has_suffix(s Str, suffix Str) Bool
+func contains(s Str, substr Str) Bool
+func contains_any(s Str, chars Str) Bool
+func count(s Str, substr Str) Int
+func equal_fold(s Str, t Str) Bool
+func cut(s Str, sep Str) (Str, Str, Bool)
+func trim(s Str, cutset Str) Str
+func trim_left(s Str, cutset Str) Str
+func trim_right(s Str, cutset Str) Str
+func to_title(s Str) Str
 func fields(s Str) Any
 func repeat(s Str, n Int) Str
 func into(v Any) Str
