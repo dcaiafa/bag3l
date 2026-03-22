@@ -11,14 +11,14 @@ func TestFromCRLF(t *testing.T) {
 		RunSubO(t, name+"-r", strings.ReplaceAll(`
 	var b = buf.new()
 	$input$ | b
-	printf("[%v]", b | from_crlf | read)
+	print(f"[{b | from_crlf | read}]")
 `, `$input$`, `"`+input+`"`), "["+output+"]")
 		RunSubO(t, name+"-w", strings.ReplaceAll(`
 	var b = buf.new()
 	var b2 = b | from_crlf
 
 	$input$ | b2
-	printf("[%v]", b | read)
+	print(f"[{b | read}]")
 `, `$input$`, `"`+input+`"`), "["+output+"]")
 	}
 
@@ -47,9 +47,6 @@ func TestToCRLF(t *testing.T) {
 	"abc\ndef\n" | b
 	b = b | to_crlf(true)
 
-	print(nonl(), "[")
-	print(nonl(), b | read(4))
-	print(nonl(), b | read())
-	print(nonl(), "]")
+	print(f"[{b | read(4)}{b | read()}]")
 `, "[abc\r\ndef\r\n]")
 }

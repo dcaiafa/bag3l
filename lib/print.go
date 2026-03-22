@@ -8,98 +8,21 @@ import (
 	"text/tabwriter"
 
 	nitro "github.com/dcaiafa/bag3l"
-	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
-	"github.com/dcaiafa/bag3l/lib/global"
 	libio "github.com/dcaiafa/bag3l/lib/io"
-	fatihcolor "github.com/fatih/color"
 )
-
-type printMods struct {
-	NoNL  bool
-	Color *fatihcolor.Color
-}
-
-type nonlMod struct{}
-
-func (m *nonlMod) String() string    { return "<nonl>" }
-func (m *nonlMod) Type() string      { return "nonl" }
-func (m *nonlMod) Traits() vm.Traits { return vm.TraitNone }
-
-func getPrintMods(args []nitro.Value) (printMods, []nitro.Value) {
-	hasMods := false
-Loop:
-	for _, arg := range args {
-		switch arg.(type) {
-		case *nonlMod, *global.ColorMod:
-			hasMods = true
-			break Loop
-		}
-	}
-
-	if !hasMods {
-		// Shortcut: there are no mod arguments.
-		return printMods{}, args
-	}
-
-	// Compute mods while simultaneously compiling the list of non-mod args.
-	var mods printMods
-	newArgs := make([]nitro.Value, 0, len(args))
-	for _, arg := range args {
-		switch m := arg.(type) {
-		case *nonlMod:
-			mods.NoNL = true
-		case *global.ColorMod:
-			mods.Color = m.Color
-		default:
-			newArgs = append(newArgs, arg)
-		}
-	}
-
-	return mods, newArgs
-}
-
-var errNoNLUsage = errors.New(
-	`invalid usage. Expected nonl()`)
-
-func nonl(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	if len(args) != 0 {
-		return nil, errNoNLUsage
-	}
-
-	return []nitro.Value{&nonlMod{}}, nil
-}
 
 func print(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 	return basePrint(libio.Stdout(vm), vm, args, nRet)
 }
 
 func basePrint(out io.Writer, m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	mods, args := getPrintMods(args)
-
 	fprint := fmt.Fprintln
-	if mods.NoNL {
-		fprint = fmt.Fprint
-	}
-	if mods.Color != nil {
-		if mods.NoNL {
-			fprint = mods.Color.Fprint
-		} else {
-			fprint = mods.Color.Fprintln
-		}
-	}
 
 	if len(args) == 1 {
 		switch arg := args[0].(type) {
 		case nitro.Iterator:
-			first := true
 			for {
-				if mods.NoNL && !first {
-					_, err := fprint(out, " ")
-					if err != nil {
-						return nil, err
-					}
-				}
 				nret := arg.IterNRet()
 				v, err := m.IterNext(arg, nret)
 				if err != nil {
@@ -113,7 +36,6 @@ func basePrint(out io.Writer, m *nitro.VM, args []nitro.Value, nRet int) ([]nitr
 				if err != nil {
 					return nil, err
 				}
-				first = false
 			}
 			return nil, nil
 
@@ -122,9 +44,7 @@ func basePrint(out io.Writer, m *nitro.VM, args []nitro.Value, nRet int) ([]nitr
 			if err != nil {
 				return nil, err
 			}
-			if !mods.NoNL {
-				fmt.Fprintln(out, "")
-			}
+			fmt.Fprintln(out, "")
 
 			return nil, nil
 		}
@@ -134,61 +54,6 @@ func basePrint(out io.Writer, m *nitro.VM, args []nitro.Value, nRet int) ([]nitr
 	fprint(out, iargs...)
 
 	return nil, nil
-}
-
-func printf(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	return basePrintf(libio.Stdout(vm), vm, args, nRet)
-}
-
-func basePrintf(out io.Writer, m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	mods, args := getPrintMods(args)
-
-	fprintf := fmt.Fprintf
-	if mods.Color != nil {
-		fprintf = mods.Color.Fprintf
-	}
-
-	if len(args) < 1 {
-		return nil, errNotEnoughArgs
-	}
-
-	format, err := getStringArg(args, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	if !mods.NoNL {
-		format = format + "\n"
-	}
-
-	iargs := valuesToInterface(args[1:])
-	fprintf(out, format, iargs...)
-
-	return nil, nil
-}
-
-func log(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	return basePrint(libio.Stderr(vm), vm, args, nRet)
-}
-
-func logf(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	return basePrintf(libio.Stderr(vm), vm, args, nRet)
-}
-
-func sprintf(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	if len(args) < 1 {
-		return nil, errNotEnoughArgs
-	}
-
-	format, err := getStringArg(args, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	iargs := valuesToInterface(args[1:])
-	res := fmt.Sprintf(format, iargs...)
-
-	return []nitro.Value{nitro.NewString(res)}, nil
 }
 
 type printTableOptions struct {
