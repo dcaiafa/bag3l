@@ -18,7 +18,7 @@ const (
 )
 
 type Fiber struct {
-	Data interface{}
+	Data any
 
 	le    fiberListElem
 	id    uint32
@@ -179,12 +179,14 @@ func (s *Scheduler) CancelBlocked() {
 
 func (s *Scheduler) runFiber(f *Fiber) {
 	go func() {
-		f.fn()
+		defer func() {
+			s.mutex.Lock()
+			s.active = nil
+			f.state = stateTerminated
+			s.mutex.Unlock()
+			s.cv.Signal()
+		}()
 
-		s.mutex.Lock()
-		s.active = nil
-		f.state = stateTerminated
-		s.mutex.Unlock()
-		s.cv.Signal()
+		f.fn()
 	}()
 }
