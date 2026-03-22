@@ -63,7 +63,8 @@ func (l *lexer) ReadToken() (Token, int) {
 			CHAR,
 			INC,
 			DEC,
-			NIL:
+			NIL,
+			QUESTION_MARK:
 			l.eolToken = true
 
 		default:
