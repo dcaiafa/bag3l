@@ -12,7 +12,7 @@ import (
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
-//go:generate stubgen json.stubgen
+//go:generate go run ../../../internal/stub/stubgen json.stubgen
 
 func decode0(vm *vm.VM, input string) (nitro.Value, error) {
 	v, err := ParseJSON(strings.NewReader(input))

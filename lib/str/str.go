@@ -8,7 +8,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-//go:generate stubgen str.stubgen
+//go:generate go run ../../internal/stub/stubgen str.stubgen
 
 func find0(m *vm.VM, s string, substr string) (vm.Value, error) {
 	idx := strings.Index(s, substr)
