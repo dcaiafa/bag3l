@@ -1,19 +1,21 @@
-package lib
+package io_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/dcaiafa/bag3l/internal/btesting"
 )
 
 func TestFromCRLF(t *testing.T) {
 	run := func(name, input, output string) {
-		RunSubO(t, name+"-s", `"`+input+`" | io.from_crlf | (&r->"["+r+"]") | print`, "["+output+"]")
-		RunSubO(t, name+"-r", strings.ReplaceAll(`
+		btesting.RunSubO(t, name+"-s", `"`+input+`" | io.from_crlf | (&r->"["+r+"]") | print`, "["+output+"]")
+		btesting.RunSubO(t, name+"-r", strings.ReplaceAll(`
 	var b = buf.new()
 	$input$ | b
 	print(f"[{b | io.from_crlf | read}]")
 `, `$input$`, `"`+input+`"`), "["+output+"]")
-		RunSubO(t, name+"-w", strings.ReplaceAll(`
+		btesting.RunSubO(t, name+"-w", strings.ReplaceAll(`
 	var b = buf.new()
 	var b2 = b | io.from_crlf
 
@@ -31,7 +33,7 @@ func TestFromCRLF(t *testing.T) {
 
 func TestToCRLF(t *testing.T) {
 	run := func(name, input, output string) {
-		RunSubO(t, name, `"`+input+`" | io.to_crlf(true) | (&r->"["+r+"]") | print`, "["+output+"]")
+		btesting.RunSubO(t, name, `"`+input+`" | io.to_crlf(true) | (&r->"["+r+"]") | print`, "["+output+"]")
 	}
 
 	run("crlf", `abc\r\ndef\r\n`, "abc\r\ndef\r\n")
@@ -42,7 +44,7 @@ func TestToCRLF(t *testing.T) {
 	run("cr", `abc\rdef\n`, "abc\rdef\r\n")
 	run("cr_end", `abc\ndef\r`, "abc\r\ndef\r")
 
-	RunSubO(t, "reader", `
+	btesting.RunSubO(t, "reader", `
 	var b = buf.new()
 	"abc\ndef\n" | b
 	b = b | io.to_crlf(true)
