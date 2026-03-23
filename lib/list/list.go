@@ -33,7 +33,7 @@ func find0(m *vm.VM, l *vm.List, v vm.Value) (vm.Value, error) {
 	return vm.NewInt(int64(ndx)), nil
 }
 
-func from_iter0(m *vm.VM, v vm.Iterator) (*vm.List, error) {
+func into0(m *vm.VM, v vm.Iterator) (*vm.List, error) {
 	list := vm.NewList()
 	for {
 		vals, err := m.IterNext(v, 1)

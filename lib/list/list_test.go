@@ -25,7 +25,7 @@ func TestListFind(t *testing.T) {
 	btesting.RunSubO(t, "last_element", `[10, 20, 30] | list.find(30) | print`, `2`)
 }
 
-func TestListFromIter(t *testing.T) {
-	btesting.RunSubO(t, "range", `list.from_iter(range(4)) | print`, `[0 1 2 3]`)
-	btesting.RunSubO(t, "empty", `list.from_iter(range(0)) | print`, `[]`)
+func TestListInto(t *testing.T) {
+	btesting.RunSubO(t, "range", `list.into(range(4)) | print`, `[0 1 2 3]`)
+	btesting.RunSubO(t, "empty", `list.into(range(0)) | print`, `[]`)
 }

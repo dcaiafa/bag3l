@@ -84,7 +84,7 @@ func _find(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
-func _from_iter(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+func _into(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
 	if len(args) < 1 {
@@ -97,7 +97,7 @@ func _from_iter(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		}
 		{
 			_ta0 := _p1.MustMakeIter(vm, _a0)
-			_r0, err := from_iter0(vm, _ta0)
+			_r0, err := into0(vm, _ta0)
 			if err != nil {
 				return nil, err
 			}
@@ -112,5 +112,5 @@ var Exports = _p0.Exports{
 	{N: "append", T: _p0.Func, F: _append},
 	{N: "append_iter", T: _p0.Func, F: _append_iter},
 	{N: "find", T: _p0.Func, F: _find},
-	{N: "from_iter", T: _p0.Func, F: _from_iter},
+	{N: "into", T: _p0.Func, F: _into},
 }
