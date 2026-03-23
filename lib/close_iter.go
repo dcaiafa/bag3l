@@ -5,6 +5,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
+// $close_iter - used in for-loop.
 func close_iter(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 2 {
 		return nil, errInvalidNumberOfArgs

@@ -6,6 +6,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
+// $format - used by compiler to implement format expressions.
 func format(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 2 {
 		return nil, errInvalidNumberOfArgs

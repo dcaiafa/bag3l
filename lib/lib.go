@@ -32,11 +32,8 @@ var GlobalPackage = export.Exports{
 	{N: "$exec", T: export.Func, F: execExec},
 	{N: "$format", T: export.Func, F: format},
 	{N: "$home", T: export.Func, F: internalHomeDir},
-	// REVISIT: avg uses custom avgAccum type and runtime-based overload resolution
 	{N: "avg", T: export.Func, F: avg},
-	// REVISIT: count uses custom countAccum type and runtime-based overload resolution.
 	{N: "count", T: export.Func, F: count},
-	// REVISIT: first uses iter.IterNRet() for dynamic return count; cannot be statically typed in stubgen.
 	{N: "first", T: export.Func, F: first},
 	{N: "flatten", T: export.Func, F: flatten},
 	{N: "get", T: export.Func, F: get},
