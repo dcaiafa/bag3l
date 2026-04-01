@@ -317,6 +317,22 @@ func _filter(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _log(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	var _a0 []_p2.Value = args[0:]
+	{
+		_ta0 := _a0
+		err := log0(vm, _ta0)
+		if err != nil {
+			return nil, err
+		}
+		return []_p2.Value{}, nil
+	}
+}
 func _print(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -416,6 +432,7 @@ var Exports = _p0.Exports{
 	{N: "enumerate", T: _p0.Func, F: _enumerate},
 	{N: "env", T: _p0.Func, F: _env},
 	{N: "filter", T: _p0.Func, F: _filter},
+	{N: "log", T: _p0.Func, F: _log},
 	{N: "print", T: _p0.Func, F: _print},
 	{N: "print_table", T: _p0.Func, F: _print_table},
 	{N: "probe", T: _p0.Func, F: _probe},

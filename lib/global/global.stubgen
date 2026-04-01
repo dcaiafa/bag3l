@@ -21,3 +21,4 @@ struct PrintTableOptions {
 }
 
 func print_table(iter Iter, opts PrintTableOptions = `nil`)
+func log(args ...Any)
