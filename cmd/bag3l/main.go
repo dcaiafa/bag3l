@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/pprof"
 	"sync"
 	"syscall"
@@ -16,6 +17,8 @@ import (
 	"github.com/dcaiafa/bag3l/internal/compiler"
 	"github.com/dcaiafa/bag3l/internal/fs"
 	"github.com/dcaiafa/bag3l/lib"
+	libio "github.com/dcaiafa/bag3l/lib/io"
+	libruntime "github.com/dcaiafa/bag3l/lib/runtime"
 	"github.com/fatih/color"
 )
 
@@ -108,14 +111,24 @@ func main() {
 
 	var progName string
 	var scriptPath string
+	var scriptDir string
 	var compiled *bag3l.Program
 
 	if *flagC.Value.(*string) != "" {
+		scriptDir, err = os.Getwd()
+		if err != nil {
+			fatal(err)
+		}
 		scriptPath = "<inline>"
 		memFS := fs.NewMem()
 		memFS.Put(scriptPath, []byte(*flagC.Value.(*string)))
 		compiler.SetFS(memFS)
 	} else {
+		scriptDir, err = filepath.Abs(filepath.Dir(args[0]))
+		if err != nil {
+			fatal(err)
+		}
+
 		scriptPath = args[0]
 		args = args[1:]
 	}
@@ -156,6 +169,8 @@ func main() {
 	}
 
 	vm := bag3l.NewVM(compiled)
+	libio.SetStdout(vm, os.Stdout)
+	libruntime.SetScriptDir(vm, scriptDir)
 
 	signalCh := make(chan os.Signal)
 	stopCh := make(chan struct{})

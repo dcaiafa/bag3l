@@ -1,14 +1,16 @@
 package str
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"strings"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
+	"github.com/dcaiafa/bag3l/lib/core"
 )
 
-//go:generate stubgen str.stubgen
+//go:generate go run ../../internal/stub/stubgen str.stubgen
 
 func find0(m *vm.VM, s string, substr string) (vm.Value, error) {
 	idx := strings.Index(s, substr)
@@ -76,12 +78,12 @@ func replace2(m *vm.VM, s string, old *vm.Regex, rep vm.Callable) (string, error
 			}
 			return ""
 		}
-		resStr, ok := v[0].(nitro.String)
+		resStr, ok := v[0].(vm.String)
 		if !ok {
 			if err == nil {
 				err = fmt.Errorf(
 					"replace function must return string; returned %q instead",
-					nitro.TypeName(v[0]))
+					vm.TypeName(v[0]))
 			}
 			return ""
 		}
@@ -136,8 +138,45 @@ func has_prefix0(m *vm.VM, s string, prefix string) (bool, error) {
 	return strings.HasPrefix(s, prefix), nil
 }
 
-func has_suffix(m *vm.VM, s string, suffix string) (bool, error) {
+func has_suffix0(m *vm.VM, s string, suffix string) (bool, error) {
 	return strings.HasSuffix(s, suffix), nil
+}
+
+func contains0(m *vm.VM, s string, substr string) (bool, error) {
+	return strings.Contains(s, substr), nil
+}
+
+func contains_any0(m *vm.VM, s string, chars string) (bool, error) {
+	return strings.ContainsAny(s, chars), nil
+}
+
+func count0(m *vm.VM, s string, substr string) (int64, error) {
+	return int64(strings.Count(s, substr)), nil
+}
+
+func equal_fold0(m *vm.VM, s string, t string) (bool, error) {
+	return strings.EqualFold(s, t), nil
+}
+
+func cut0(m *vm.VM, s string, sep string) (string, string, bool, error) {
+	before, after, found := strings.Cut(s, sep)
+	return before, after, found, nil
+}
+
+func trim0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.Trim(s, cutset), nil
+}
+
+func trim_left0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.TrimLeft(s, cutset), nil
+}
+
+func trim_right0(m *vm.VM, s string, cutset string) (string, error) {
+	return strings.TrimRight(s, cutset), nil
+}
+
+func to_title0(m *vm.VM, s string) (string, error) {
+	return strings.ToTitle(s), nil
 }
 
 func fields0(m *vm.VM, s string) (vm.Value, error) {
@@ -151,4 +190,66 @@ func fields0(m *vm.VM, s string) (vm.Value, error) {
 
 func repeat0(m *vm.VM, s string, n int64) (string, error) {
 	return strings.Repeat(s, int(n)), nil
+}
+
+func into0(m *vm.VM, v vm.Value) (string, error) {
+	if v == nil {
+		return "<nil>", nil
+	}
+	return v.String(), nil
+}
+
+func join0(m *vm.VM, iter vm.Iterator, sep string) (string, error) {
+	defer m.IterClose(iter)
+
+	var elems []string
+	for {
+		v, err := m.IterNext(iter, 1)
+		if err != nil {
+			return "", err
+		}
+		if v == nil {
+			break
+		}
+		elems = append(elems, v[0].String())
+	}
+
+	return strings.Join(elems, sep), nil
+}
+
+type linesIter struct {
+	input   io.Reader
+	scanner *bufio.Scanner
+}
+
+func lines0(m *vm.VM, input vm.Reader, options *LinesOptions) (vm.Iterator, error) {
+	l := &linesIter{
+		input:   input,
+		scanner: bufio.NewScanner(input),
+	}
+
+	if options != nil && options.Max_line_size != 0 {
+		l.scanner.Buffer(nil, int(options.Max_line_size))
+	}
+
+	outIter := vm.NewIterator(l.Next, l.Close, 1)
+	return outIter, nil
+}
+
+func (l *linesIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	if !l.scanner.Scan() {
+		l.Close(m)
+		if l.scanner.Err() != nil {
+			return nil, l.scanner.Err()
+		}
+		return nil, nil
+	}
+	return []vm.Value{
+		vm.NewString(l.scanner.Text()),
+	}, nil
+}
+
+func (l *linesIter) Close(m *vm.VM) error {
+	core.CloseReader(l.input)
+	return nil
 }

@@ -206,6 +206,32 @@ func getCallableArg(args []nitro.Value, ndx int) (nitro.Callable, error) {
 	return callable, nil
 }
 
+func ListFromIter(m *nitro.VM, v nitro.Value) (*nitro.Array, error) {
+	if arr, ok := v.(*nitro.Array); ok {
+		return arr, nil
+	}
+
+	e, err := nitro.MakeIterator(m, v)
+	if err != nil {
+		return nil, err
+	}
+	defer m.IterClose(e)
+
+	arr := nitro.NewArray()
+	for {
+		v, err := m.IterNext(e, 1)
+		if err != nil {
+			return nil, err
+		}
+		if v == nil {
+			break
+		}
+		arr.Add(v[0])
+	}
+
+	return arr, nil
+}
+
 func errExpectedArg(ndx int, actual nitro.Value, expected ...string) error {
 	return vm.MakeNonRecoverableError(fmt.Errorf(
 		"expected argument #%v to be %v, but it was %v",

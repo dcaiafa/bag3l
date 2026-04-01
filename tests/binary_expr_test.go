@@ -15,7 +15,7 @@ func TestBinaryExpr(t *testing.T) {
 	RunSubO(t, "int/lt", `print(2<3, 3<2, 3<3)`, `true false false`)
 	RunSubO(t, "int/le", `print(2<=3, 3<=2, 3<=3)`, `true false true`)
 
-	RunSubO(t, "float/add", `printf("%.2f", 1.1+2.2)`, `3.30`)
+	RunSubO(t, "float/add", `print(f"{1.1+2.2%.2f}")`, `3.30`)
 	RunSubO(t, "float/sub", `print(1.1-2.2)`, `-1.1`)
 	RunSubO(t, "float/mul", `print(2.2*3.3)`, `7.26`)
 	RunSubO(t, "float/div", `print(7.26/2.2)`, `3.3`)

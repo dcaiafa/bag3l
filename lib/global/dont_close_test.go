@@ -11,15 +11,15 @@ func TestDontClose(t *testing.T) {
 	btesting.RunSubO(t, "with", `
 		var it = range(4)
 
-		print(it | dont_close | take(2) | to_list)
-		print(it | to_list)
+		print(it | dont_close | take(2) | list.into)
+		print(it | list.into)
 `, `[0 1]
 [2 3]`)
 
 	btesting.RunSubErr(t, "without", `
 		var it = range(4)
 
-		print(it | take(2) | to_list)
-		print(it | to_list)
+		print(it | take(2) | list.into)
+		print(it | list.into)
 `, vm.ErrIteratorClosed)
 }

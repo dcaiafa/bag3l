@@ -4,6 +4,184 @@ import _p0 "github.com/dcaiafa/bag3l/internal/export"
 import _p1 "github.com/dcaiafa/bag3l/internal/stub"
 import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
+type LinesOptions struct {
+	Max_line_size int64
+}
+
+func (m *LinesOptions) FromMap(v *_p2.Map) error {
+	var err error
+	_ = err
+	v.ForEach(func(k, v _p2.Value) bool {
+		n, ok := k.(_p2.String)
+		if !ok {
+			err = _p1.ErrMapKeyMustBeStr
+			return false
+		}
+		switch n.String() {
+		case "max_line_size":
+			cv, ok := v.(_p2.Int)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Int64()
+			m.Max_line_size = tv
+		default:
+			err = _p1.StructDoesNotHaveField("LinesOptions", n.String())
+			return false
+		}
+		return true
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func _contains(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := contains0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _contains_any(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := contains_any0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _count(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := count0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewInt(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _cut(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, _r1, _r2, err := cut0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0), _p2.NewString(_r1), _p2.NewBool(_r2)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _equal_fold(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := equal_fold0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _fields(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -106,6 +284,142 @@ func _has_prefix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 					return nil, err
 				}
 				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _has_suffix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := has_suffix0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewBool(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _into(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Value:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _a0
+			_r0, err := into0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_p2.NewString(_r0)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _join(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Iterable, _p2.Iterator:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _p1.MustMakeIter(vm, _a0)
+				_ta1 := (_a1).String()
+				_r0, err := join0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _lines(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Reader, _p2.Readable:
+		if len(args) == 1 {
+			var _a1 *_p2.Map = nil
+			{
+				_ta0 := _p1.MustMakeReader(vm, _a0)
+				var _ta1 *LinesOptions
+				if _a1 != nil {
+					_ta1 = new(LinesOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 1, err)
+					}
+				}
+				_r0, err := lines0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
+			}
+		}
+		switch _a1 := args[1].(type) {
+		case *_p2.Map:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _p1.MustMakeReader(vm, _a0)
+				var _ta1 *LinesOptions
+				if _a1 != nil {
+					_ta1 = new(LinesOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 2, err)
+					}
+				}
+				_r0, err := lines0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_r0}, nil
 			}
 		default:
 			return nil, _p1.InvalidArg(args, 1)
@@ -392,6 +706,29 @@ func _to_lower(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _to_title(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := (_a0).String()
+			_r0, err := to_title0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_p2.NewString(_r0)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _to_upper(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -415,6 +752,64 @@ func _to_upper(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _trim(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := trim0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _trim_left(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := trim_left0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _trim_prefix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -432,6 +827,35 @@ func _trim_prefix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 				_ta0 := (_a0).String()
 				_ta1 := (_a1).String()
 				_r0, err := trim_prefix0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{_p2.NewString(_r0)}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _trim_right(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 2 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.String:
+		switch _a1 := args[1].(type) {
+		case _p2.String:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := (_a0).String()
+				_ta1 := (_a1).String()
+				_r0, err := trim_right0(vm, _ta0, _ta1)
 				if err != nil {
 					return nil, err
 				}
@@ -498,18 +922,31 @@ func _trim_suffix(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 }
 
 var Exports = _p0.Exports{
+	{N: "contains", T: _p0.Func, F: _contains},
+	{N: "contains_any", T: _p0.Func, F: _contains_any},
+	{N: "count", T: _p0.Func, F: _count},
+	{N: "cut", T: _p0.Func, F: _cut},
+	{N: "equal_fold", T: _p0.Func, F: _equal_fold},
 	{N: "fields", T: _p0.Func, F: _fields},
 	{N: "find", T: _p0.Func, F: _find},
 	{N: "find_last", T: _p0.Func, F: _find_last},
 	{N: "has_prefix", T: _p0.Func, F: _has_prefix},
+	{N: "has_suffix", T: _p0.Func, F: _has_suffix},
+	{N: "into", T: _p0.Func, F: _into},
+	{N: "join", T: _p0.Func, F: _join},
+	{N: "lines", T: _p0.Func, F: _lines},
 	{N: "match", T: _p0.Func, F: _match},
 	{N: "match_all", T: _p0.Func, F: _match_all},
 	{N: "repeat", T: _p0.Func, F: _repeat},
 	{N: "replace", T: _p0.Func, F: _replace},
 	{N: "split", T: _p0.Func, F: _split},
 	{N: "to_lower", T: _p0.Func, F: _to_lower},
+	{N: "to_title", T: _p0.Func, F: _to_title},
 	{N: "to_upper", T: _p0.Func, F: _to_upper},
+	{N: "trim", T: _p0.Func, F: _trim},
+	{N: "trim_left", T: _p0.Func, F: _trim_left},
 	{N: "trim_prefix", T: _p0.Func, F: _trim_prefix},
+	{N: "trim_right", T: _p0.Func, F: _trim_right},
 	{N: "trim_space", T: _p0.Func, F: _trim_space},
 	{N: "trim_suffix", T: _p0.Func, F: _trim_suffix},
 }

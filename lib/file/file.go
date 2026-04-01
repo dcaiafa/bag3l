@@ -13,7 +13,7 @@ import (
 	"github.com/dcaiafa/bag3l/lib/time"
 )
 
-//go:generate stubgen file.stubgen
+//go:generate go run ../../internal/stub/stubgen file.stubgen
 
 type File struct {
 	*os.File

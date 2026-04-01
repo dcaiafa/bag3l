@@ -1,0 +1,8 @@
+package "encoding/csv"
+
+struct DecodeOptions {
+  columns List
+}
+
+func decode(input Reader, opts DecodeOptions = `nil`) Iter
+func encode(iter Iter, out Writer? = `nil`)

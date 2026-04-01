@@ -6,6 +6,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
+// $concat - used by the compiler.
 func concat(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	str := strings.Builder{}
 

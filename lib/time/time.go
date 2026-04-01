@@ -8,20 +8,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-//go:generate stubgen time.stubgen
-
-/*
-func init() {
-	Exports = append(Exports,
-		export.Export{N: "HOUR", T: export.Value, V: NewDuration(time.Hour)},
-		export.Export{N: "MICROSECOND", T: export.Value, V: NewDuration(time.Microsecond)},
-		export.Export{N: "MILLISECOND", T: export.Value, V: NewDuration(time.Millisecond)},
-		export.Export{N: "MINUTE", T: export.Value, V: NewDuration(time.Minute)},
-		export.Export{N: "NANOSECOND", T: export.Value, V: NewDuration(time.Nanosecond)},
-		export.Export{N: "SECOND", T: export.Value, V: NewDuration(time.Second)},
-	)
-}
-*/
+//go:generate go run ../../internal/stub/stubgen time.stubgen
 
 type Time struct {
 	time time.Time

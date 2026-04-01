@@ -7,7 +7,7 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-//go:generate stubgen maps.stubgen
+//go:generate go run ../../internal/stub/stubgen maps.stubgen
 
 func clone0(vm *vm.VM, m *vm.Map) (*vm.Map, error) {
 	return m.Clone(), nil

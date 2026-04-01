@@ -68,6 +68,16 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 	return output, nil
 }
 
+// Run compiles and executes a bag3l program, returning its stdout output.
+func Run(t *testing.T, prog string) string {
+	t.Helper()
+	output, err := run(prog, nil)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	return output
+}
+
 func RunO(t *testing.T, prog string, expectedOutput string) {
 	t.Helper()
 

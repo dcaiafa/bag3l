@@ -3,7 +3,6 @@ package "global"
 func args() Any
 func batch(iter Iter, n Int) Iter
 func close(v Any)
-func color(attrs ...Str) Any
 func deep_equal(a Any, b Any) Bool
 func discard(v Any)
 func do(iter Iter, fn Callable)
@@ -11,3 +10,15 @@ func dont_close(iter Iter) Iter
 func enumerate(iter Iter) Iter
 func env(name Str = `""`) Any
 func filter(iter Iter, test Callable) Iter
+func print(args ...Any)
+func probe(args ...Any) Any
+
+struct PrintTableOptions {
+  alignright Bool
+  minwidth Int
+  padding Int
+  padchar Int
+}
+
+func print_table(iter Iter, opts PrintTableOptions = `nil`)
+func log(args ...Any)

@@ -1,3 +1,3 @@
 package global
 
-//go:generate stubgen global.stubgen
+//go:generate go run ../../internal/stub/stubgen global.stubgen

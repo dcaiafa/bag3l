@@ -36,7 +36,7 @@ func TestExec(t *testing.T) {
     { name: "Deedee", alive: false },
     { name: "Ollie", alive: true },
   ]
-`+"e`go run ./testexec/testexec.go -print-args {1} {[\"hello\", \"world\"] | join(\" \")} {pets | filter(&p->not p.alive) | map(&p->p.name)...}` |\n"+`
+`+"e`go run ./testexec/testexec.go -print-args {1} {[\"hello\", \"world\"] | str.join(\" \")} {pets | filter(&p->not p.alive) | map(&p->p.name)...}` |\n"+`
 			io.out
 	`, `
 [1]
@@ -86,19 +86,19 @@ func TestExec(t *testing.T) {
 
 	RunSubO(t, `no_input`, `
 		exec.exec(["go", "run", "./testexec/testexec.go", "-range", "1024", "-range-stdout"]) |
-			lines() |
-			map(&e -> parse_int(e)) |
+			str.lines() |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `523776`)
 
 	RunSubO(t, `input`, `
 		range(100000) | 
-			map(to_string) |
+			map(str.into) |
 			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 				read() |
-				lines() |
+				str.lines() |
 				count() |
 				print()
   `, `100000`)
@@ -106,18 +106,18 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `pipe`, `
 		exec.exec(["go", "run", "./testexec/testexec.go", "-range", "100000", "-range-stdout"]) |
 		exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
-		lines() |
+		str.lines() |
 		count() |
 		print() 
 	`, `100000`)
 
 	RunSubO(t, `input2`, `
 		range(100001) |
-			map(to_string) |
+			map(str.into) |
 			stream |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
-			lines() |
-			map(&e -> parse_int(e)) |
+			str.lines() |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `5000050000`)
@@ -125,12 +125,12 @@ func TestExec(t *testing.T) {
 	RunSubO(t, `capture_stderr`, `
 			var err_buf = buf.new()
 			var out = range(2049) |
-				map(to_string) |
+				map(str.into) |
 				stream |
 				exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-range", "11", "-range-stdout"]) |
         exec.with_stderr(err_buf)
-	    var out_sum = out | lines() | map(&l -> parse_int(l)) | reduce(sum)
-			var err_sum = err_buf | lines() | map(&l -> parse_int(l)) | reduce(sum)
+	    var out_sum = out | str.lines() | map(&l -> int.parse(l)) | reduce(sum)
+			var err_sum = err_buf | str.lines() | map(&l -> int.parse(l)) | reduce(sum)
 			print(out_sum, err_sum)
 		`, `55 2098176`)
 
@@ -150,9 +150,9 @@ exit status 128
 
 	RunSubO(t, `abort`, `
 		exec.exec(["go", "run", "./testexec/testexec.go", "-range", "1024", "-range-stdout"]) |
-			lines() |
+			str.lines() |
 			take(10) |
-			map(&e -> parse_int(e)) |
+			map(&e -> int.parse(e)) |
 			reduce(sum) |
 			print()
 	`, `45`)
@@ -161,14 +161,14 @@ exit status 128
 		var tmp = file.create_temp()
 		defer file.remove(tmp)
 		range(100000) | 
-			map(to_string) |
+			map(str.into) |
 			stream |
 			tmp
 		file.seek(tmp, 0)
 		tmp |
 			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
 		  read |
-			lines |
+			str.lines |
 			count |
 			print
 `, `100000`)
@@ -177,14 +177,14 @@ exit status 128
       var tmp = file.create_temp()
       defer file.remove(tmp)
       range(100000) |
-        map(to_string) |
+        map(str.into) |
 				stream |
         exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr"]) |
         exec.with_stderr(tmp) |
         discard
       file.seek(tmp, 0)
       read(tmp) |
-        lines() |
+        str.lines() |
         count() |
         print()
    `, `100000`)

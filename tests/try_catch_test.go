@@ -7,7 +7,7 @@ func TestTryCatch(t *testing.T) {
 	print(1)
 	try {
 		print(2)
-		to_int("x")
+		int.into("x")
 		print(3)
 	} catch {
 		print(4)
@@ -23,7 +23,7 @@ func TestTryCatch(t *testing.T) {
 	RunSubO(t, "diff_frame", `
 	func g() {
 		print("g1")
-		to_int("x")
+		int.into("x")
 		print("g2")
 	}
 	func f() {
