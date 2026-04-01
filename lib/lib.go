@@ -22,6 +22,7 @@ import (
 	"github.com/dcaiafa/bag3l/lib/maps"
 	ospkg "github.com/dcaiafa/bag3l/lib/os"
 	"github.com/dcaiafa/bag3l/lib/path/filepath"
+	libruntime "github.com/dcaiafa/bag3l/lib/runtime"
 	"github.com/dcaiafa/bag3l/lib/str"
 	libtime "github.com/dcaiafa/bag3l/lib/time"
 )
@@ -127,6 +128,7 @@ func RegisterAll(registry BuiltinRegistry) {
 	registry.RegisterBuiltins("math", MathPackage)
 	registry.RegisterBuiltins("os", ospkg.Exports)
 	registry.RegisterBuiltins("path/filepath", filepath.Exports)
+	registry.RegisterBuiltins("runtime", libruntime.Exports)
 	registry.RegisterBuiltins("str", str.Exports)
 	registry.RegisterBuiltins("time", libtime.Exports)
 }
