@@ -4,6 +4,66 @@ import _p0 "github.com/dcaiafa/bag3l/internal/export"
 import _p1 "github.com/dcaiafa/bag3l/internal/stub"
 import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 
+type PrintTableOptions struct {
+	Alignright bool
+	Minwidth   int64
+	Padding    int64
+	Padchar    int64
+}
+
+func (m *PrintTableOptions) FromMap(v *_p2.Map) error {
+	var err error
+	_ = err
+	v.ForEach(func(k, v _p2.Value) bool {
+		n, ok := k.(_p2.String)
+		if !ok {
+			err = _p1.ErrMapKeyMustBeStr
+			return false
+		}
+		switch n.String() {
+		case "alignright":
+			cv, ok := v.(_p2.Bool)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Bool()
+			m.Alignright = tv
+		case "minwidth":
+			cv, ok := v.(_p2.Int)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Int64()
+			m.Minwidth = tv
+		case "padding":
+			cv, ok := v.(_p2.Int)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Int64()
+			m.Padding = tv
+		case "padchar":
+			cv, ok := v.(_p2.Int)
+			if !ok {
+				err = _p1.ErrInvalidFieldType
+				return false
+			}
+			tv := (cv).Int64()
+			m.Padchar = tv
+		default:
+			err = _p1.StructDoesNotHaveField("PrintTableOptions", n.String())
+			return false
+		}
+		return true
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func _args(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -257,6 +317,93 @@ func _filter(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _print(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	var _a0 []_p2.Value = args[0:]
+	{
+		_ta0 := _a0
+		err := print0(vm, _ta0)
+		if err != nil {
+			return nil, err
+		}
+		return []_p2.Value{}, nil
+	}
+}
+func _print_table(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case _p2.Iterable, _p2.Iterator:
+		if len(args) == 1 {
+			var _a1 *_p2.Map = nil
+			{
+				_ta0 := _p1.MustMakeIter(vm, _a0)
+				var _ta1 *PrintTableOptions
+				if _a1 != nil {
+					_ta1 = new(PrintTableOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 1, err)
+					}
+				}
+				err := print_table0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{}, nil
+			}
+		}
+		switch _a1 := args[1].(type) {
+		case *_p2.Map:
+			if len(args) > 2 {
+				return nil, _p1.ErrTooManyArgs
+			}
+			{
+				_ta0 := _p1.MustMakeIter(vm, _a0)
+				var _ta1 *PrintTableOptions
+				if _a1 != nil {
+					_ta1 = new(PrintTableOptions)
+					err = _ta1.FromMap(_a1)
+					if err != nil {
+						return nil, _p1.InvalidArgErr(args, 2, err)
+					}
+				}
+				err := print_table0(vm, _ta0, _ta1)
+				if err != nil {
+					return nil, err
+				}
+				return []_p2.Value{}, nil
+			}
+		default:
+			return nil, _p1.InvalidArg(args, 1)
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
+func _probe(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	var _a0 []_p2.Value = args[0:]
+	{
+		_ta0 := _a0
+		_r0, err := probe0(vm, _ta0)
+		if err != nil {
+			return nil, err
+		}
+		return []_p2.Value{_r0}, nil
+	}
+}
 
 var Exports = _p0.Exports{
 	{N: "args", T: _p0.Func, F: _args},
@@ -269,4 +416,7 @@ var Exports = _p0.Exports{
 	{N: "enumerate", T: _p0.Func, F: _enumerate},
 	{N: "env", T: _p0.Func, F: _env},
 	{N: "filter", T: _p0.Func, F: _filter},
+	{N: "print", T: _p0.Func, F: _print},
+	{N: "print_table", T: _p0.Func, F: _print_table},
+	{N: "probe", T: _p0.Func, F: _probe},
 }
