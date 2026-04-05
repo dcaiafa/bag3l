@@ -48,21 +48,19 @@ func (r *iterReader) Read(b []byte) (int, error) {
 		return 0, nil
 	}
 
-	if !r.e.IsClosed() {
-		for len(r.buf.Peek()) < len(b) {
-			v, err := r.m.IterNext(r.e, 1)
+	if len(r.buf.Peek()) < len(b) && !r.e.IsClosed() {
+		v, err := r.m.IterNext(r.e, 1)
+		if err != nil {
+			return 0, err
+		}
+		if v != nil {
+			r.buf.Write([]byte(v[0].String()))
+			r.buf.Write([]byte{'\n'})
+		} else {
+			err := r.m.IterClose(r.e)
 			if err != nil {
 				return 0, err
 			}
-			if v == nil {
-				err := r.m.IterClose(r.e)
-				if err != nil {
-					return 0, err
-				}
-				break
-			}
-			r.buf.Write([]byte(v[0].String()))
-			r.buf.Write([]byte{'\n'})
 		}
 	}
 

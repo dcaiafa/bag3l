@@ -50,7 +50,7 @@ var GlobalPackage = export.Exports{
 	{N: "mod", T: export.Func, F: mod},
 	{N: "narg", T: export.Func, F: narg},
 	{N: "next", T: export.Func, F: next},
-{N: "prompt", T: export.Func, F: prompt},
+	{N: "prompt", T: export.Func, F: prompt},
 	{N: "range", T: export.Func, F: range_},
 	{N: "read", T: export.Func, F: read},
 	{N: "reduce", T: export.Func, F: reduce},
@@ -89,6 +89,9 @@ var CoPackage = export.Exports{
 
 var ExecPackage = export.Exports{
 	{N: "exec", T: export.Func, F: execExec},
+	{N: "with_dir", T: export.Func, F: execWithDir},
+	{N: "with_env", T: export.Func, F: execWithEnv},
+	{N: "with_partial_env", T: export.Func, F: execWithPartialEnv},
 	{N: "with_stderr", T: export.Func, F: execWithStderr},
 }
 

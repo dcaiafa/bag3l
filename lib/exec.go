@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"slices"
 
 	osexec "os/exec"
 	"sync"
@@ -72,6 +74,22 @@ func (p *process) SetStderr(w io.Writer) error {
 		return ErrProcessAlreadyStarted
 	}
 	p.stderr = w
+	return nil
+}
+
+func (p *process) SetEnv(env []string) error {
+	if p.started {
+		return ErrProcessAlreadyStarted
+	}
+	p.cmd.Env = slices.Clone(env)
+	return nil
+}
+
+func (p *process) SetDir(dir string) error {
+	if p.started {
+		return ErrProcessAlreadyStarted
+	}
+	p.cmd.Dir = dir
 	return nil
 }
 
@@ -471,6 +489,73 @@ func execWithStderr(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 	}
 
 	err = p.SetStderr(w)
+	if err != nil {
+		return nil, err
+	}
+
+	return []nitro.Value{p}, nil
+}
+
+func execWithEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+	p, err := getProcessArg(args, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	args = args[1:]
+
+	envSlice := make([]string, 0, len(args))
+	for _, arg := range args {
+		envVarStr, ok := arg.(nitro.String)
+		if !ok {
+			return nil, fmt.Errorf("environment list contains non-string values")
+		}
+		envSlice = append(envSlice, envVarStr.String())
+	}
+
+	p.SetEnv(envSlice)
+
+	return []nitro.Value{p}, nil
+}
+
+func execWithPartialEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+	p, err := getProcessArg(args, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	args = args[1:]
+
+	processEnv := os.Environ()
+
+	envSlice := make([]string, 0, len(args)+len(processEnv))
+	envSlice = append(envSlice, processEnv...)
+
+	for _, arg := range args {
+		envVarStr, ok := arg.(nitro.String)
+		if !ok {
+			return nil, fmt.Errorf("environment list contains non-string values")
+		}
+		envSlice = append(envSlice, envVarStr.String())
+	}
+
+	p.SetEnv(envSlice)
+
+	return []nitro.Value{p}, nil
+}
+
+func execWithDir(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+	p, err := getProcessArg(args, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	dir, err := getStringArg(args, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.SetDir(dir)
 	if err != nil {
 		return nil, err
 	}
