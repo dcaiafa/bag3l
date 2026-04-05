@@ -156,6 +156,29 @@ func _create_temp(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _name(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case *File:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _a0
+			_r0, err := name0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_p2.NewString(_r0)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _open(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -385,6 +408,7 @@ func _write_to(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 var Exports = _p0.Exports{
 	{N: "create", T: _p0.Func, F: _create},
 	{N: "create_temp", T: _p0.Func, F: _create_temp},
+	{N: "name", T: _p0.Func, F: _name},
 	{N: "open", T: _p0.Func, F: _open},
 	{N: "read_all", T: _p0.Func, F: _read_all},
 	{N: "remove", T: _p0.Func, F: _remove},

@@ -19,7 +19,6 @@ type File struct {
 	*os.File
 }
 
-var _ /* implements */ nitro.Indexable = (*File)(nil)
 var _ /* implements */ nitro.Callable = (*File)(nil)
 var _ /* implements */ core.NativeReader = (*File)(nil)
 var _ /* implements */ core.NativeWriter = (*File)(nil)
@@ -52,25 +51,6 @@ func (f *File) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 	}
 
 	return []nitro.Value{nitro.NewInt(n)}, nil
-}
-
-func (f *File) Index(key nitro.Value) (nitro.Value, bool, error) {
-	keyStr, ok := key.(nitro.String)
-	if !ok {
-		return nil, false, fmt.Errorf(
-			"file cannot be indexed by %q",
-			nitro.TypeName(key))
-	}
-
-	switch keyStr.String() {
-	case "name":
-		return nitro.NewString(f.Name()), true, nil
-
-	default:
-		return nil, false, fmt.Errorf(
-			"file does not have method %q",
-			keyStr.String())
-	}
 }
 
 func (f *File) IndexRef(key nitro.Value) (nitro.ValueRef, error) {
@@ -245,4 +225,8 @@ func remove0(vm *vm.VM, f *File) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func name0(vm *vm.VM, f *File) (string, error) {
+	return f.Name(), nil
 }
