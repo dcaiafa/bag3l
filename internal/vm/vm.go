@@ -488,18 +488,17 @@ func (m *VM) resume() (err error) {
 		err = rerr
 
 		if !rerr.Recoverable || len(m.co.frame.tryCatches) == 0 {
-			if rerr.Recoverable {
-				derr := m.runDefers()
-				if derr != nil {
-					err = fmt.Errorf(
-						"defer threw error:\n%v\n"+
-							"while handling error:\n%w",
-						derr, err)
-				}
+			derr := m.runDefers()
+			if derr != nil {
+				err = fmt.Errorf(
+					"defer threw error:\n%v\n"+
+						"while handling error:\n%w",
+					derr, err)
 			}
 			if iter := m.co.frame.iter; iter != nil {
 				iter.ip = -1
 				iter.closed = true
+				iter.defers = nil
 			}
 			m.co.PopFrame()
 			return err

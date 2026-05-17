@@ -305,9 +305,10 @@ On every `Next()`, the VM:
 sets `ip = -1` to mark the generator finished. Calling a finished iterator
 returns `False` plus nils for the remaining slots.
 
-`Close` only marks the iterator closed; it does *not* run any pending
-`defer`s in the iterator body. There is no way for an iterator-local defer to
-run a single time at end-of-life (see "Bugs and quirks").
+`Close` marks the iterator closed and runs any pending `defer`s registered
+in the iterator body in LIFO order. It is idempotent — calling `Close` again
+is a no-op. Defers are cleared once they run, and a defer that errors aborts
+the LIFO sweep (remaining defers do not run).
 
 ### `*NativeIterator`
 
@@ -368,9 +369,14 @@ an undefined state, so `try`/`catch` deliberately cannot catch them.
 Missing-data conditions that are *not* bugs have their own non-throwing
 syntax (`?.`, `?[]`) so users do not reach for `try` as a substitute.
 
-Defers, however, **should still run on the panic path** to release
-resources cleanly (file handles, locks, etc.); the current implementation
-skips them. See "Bugs and quirks".
+Defers run on the panic path as well: when a non-recoverable runtime error
+escapes a frame, the frame's `defers` are invoked LIFO before propagation
+continues. This preserves the "bugs can't be caught by `try`/`catch`"
+stance — only the cleanup side runs, not user error-handling logic. If a
+deferred closure itself errors, the new error is wrapped onto the
+propagating one (`defer threw error: … while handling error: …`), though
+this wrap is currently only visible at the immediately-enclosing frame —
+any further wrap-cycle collapses back to the original `*RuntimeError`.
 
 ## Defer
 
@@ -379,10 +385,11 @@ to `*Closure` without an `ok` check**; deferring a `*Fn` or `*NativeFn`
 panics.
 
 On normal frame return (`OpRet`), `resume` invokes `runDefers`, which calls
-each deferred closure in LIFO order. On a *recoverable* error that escapes
-the frame, `runDefers` also runs (and any error from a defer is wrapped into
-the propagating error message). On a non-recoverable error, defers are
-skipped.
+each deferred closure in LIFO order. On any error that escapes the frame —
+recoverable or non-recoverable — `runDefers` also runs, and a defer-side
+error is wrapped onto the propagating error message. On the catch path
+(recoverable error with an active `tryCatch`), defers do *not* run; they
+remain on the frame and run when it later returns or unwinds.
 
 ## Coroutines and the fiber scheduler
 
@@ -480,16 +487,6 @@ candidates for fixing rather than as contracts to rely on.
   division operator). `errors.Is(err, vm.ErrDivByZero)` will not match
   integer division-by-zero errors.
 
-- **Defers do not run on non-recoverable errors.** `resume` only invokes
-  `runDefers` on the normal-return path and on the recoverable-error
-  propagation path; a non-recoverable error pops the frame without
-  running defers. Since runtime errors (divide-by-zero, indexing nil,
-  etc.) are intentionally non-recoverable — see "Try / catch / throw" —
-  any `defer file.close()` / `defer lock.release()` in the affected
-  frame is silently skipped on the way out. The intentional "bugs can't
-  be caught" stance is fine, but defers should still unwind for resource
-  cleanup (Go's panic+defer model).
-
 - **`OpDefer` panics on non-`*Closure` operands.** The handler does a bare
   type assertion (`.(*Closure)`) with no `ok` check. `defer somefn` where
   `somefn` resolves to `*Fn` or `*NativeFn` panics the Go process instead
@@ -555,10 +552,13 @@ candidates for fixing rather than as contracts to rely on.
 
 ### Things that are not obvious from the code
 
-- The exact contract between `runDefers` and `Recoverable` — defers run on
-  `OpRet` and on recoverable propagation, but are skipped on
-  non-recoverable propagation, and as noted above also (incorrectly) run
-  on every `OpIterYield`. None of this is documented in code comments.
+- The exact contract between `runDefers` and the frame error path: defers
+  run on `OpRet`, on propagation regardless of recoverability, and at
+  iterator end-of-life via `Close`. They do *not* run when an iterator
+  yields (`OpIterYield` migrates the defers list from frame to iterator
+  instead), nor on the catch path itself (defers stay on the frame and run
+  when it later returns or unwinds). None of this is documented in code
+  comments.
 
 - Both `Fn.Call` and `Closure.Call` panic ("not called") because real
   dispatch is special-cased in `call()`. They exist purely to satisfy

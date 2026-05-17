@@ -1,6 +1,10 @@
 package tests
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dcaiafa/bag3l/internal/vm"
+)
 
 func TestDefer(t *testing.T) {
 	RunSubO(t, "from_main", `
@@ -176,4 +180,78 @@ caught boom
 cleanup
 after
 `)
+}
+
+func TestDeferOnRuntimeError(t *testing.T) {
+	RunSubErrO(t, "divide_by_zero", `
+		func f() {
+			defer print("cleanup")
+			var x = 1 / 0
+			print("unreachable")
+		}
+		f()
+	`, `cleanup`, vm.ErrDivideByZero)
+
+	RunSubErrO(t, "lifo_order", `
+		func f() {
+			defer print("a")
+			defer print("b")
+			defer print("c")
+			var x = 1 / 0
+		}
+		f()
+	`, `
+c
+b
+a
+`, vm.ErrDivideByZero)
+
+	RunSubErrO(t, "propagates_across_frames", `
+		func inner() {
+			defer print("inner-cleanup")
+			var x = 1 / 0
+		}
+		func outer() {
+			defer print("outer-cleanup")
+			inner()
+			print("unreachable")
+		}
+		outer()
+	`, `
+inner-cleanup
+outer-cleanup
+`, vm.ErrDivideByZero)
+
+	RunSubErrO(t, "iterator_body", `
+		func it() {
+			defer print("iter-cleanup")
+			yield 1
+			yield 2
+			var x = 1 / 0
+			yield 3
+		}
+		func consumer() {
+			defer print("consumer-cleanup")
+			for v in it() {
+				print(v)
+			}
+		}
+		consumer()
+	`, `
+1
+2
+iter-cleanup
+consumer-cleanup
+`, vm.ErrDivideByZero)
+
+	RunSubErrO(t, "defer_itself_errors", `
+		func f() {
+			defer func() {
+				print("defer-ran")
+				var y = 7 / 0
+			}()
+			var x = 1 / 0
+		}
+		f()
+	`, `defer-ran`, vm.ErrDivideByZero)
 }

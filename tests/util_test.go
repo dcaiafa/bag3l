@@ -66,12 +66,8 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 	}
 
 	err = vm.Run(nil)
-	if err != nil {
-		return "", err
-	}
-
 	output = strings.Trim(outBuilder.String(), "\r\n\t ")
-	return output, nil
+	return output, err
 }
 
 func RunO(t *testing.T, prog string, expectedOutput string) {
@@ -135,6 +131,32 @@ func RunSubErr(t *testing.T, name string, prog string, expectedErr error) {
 	t.Run(name, func(t *testing.T) {
 		t.Helper()
 		RunErr(t, prog, expectedErr)
+	})
+}
+
+func RunErrO(t *testing.T, prog, expectedOutput string, expectedErr error) {
+	t.Helper()
+
+	expectedOutput = strings.Trim(expectedOutput, "\r\n\t ")
+
+	output, err := run(prog, nil)
+	if err == nil {
+		t.Fatalf("Error expected but operation succeeded")
+	}
+
+	if expectedErr != nil && !errors.Is(err, expectedErr) {
+		t.Fatalf("Expected error %v, but received %v", expectedErr, err)
+	}
+
+	if output != expectedOutput {
+		t.Fatalf("Expected output:\n%v\nActual:\n%v", expectedOutput, output)
+	}
+}
+
+func RunSubErrO(t *testing.T, name, prog, expectedOutput string, expectedErr error) {
+	t.Run(name, func(t *testing.T) {
+		t.Helper()
+		RunErrO(t, prog, expectedOutput, expectedErr)
 	})
 }
 
