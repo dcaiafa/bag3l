@@ -487,11 +487,6 @@ candidates for fixing rather than as contracts to rely on.
   division operator). `errors.Is(err, vm.ErrDivByZero)` will not match
   integer division-by-zero errors.
 
-- **`OpDefer` panics on non-`*Closure` operands.** The handler does a bare
-  type assertion (`.(*Closure)`) with no `ok` check. `defer somefn` where
-  `somefn` resolves to `*Fn` or `*NativeFn` panics the Go process instead
-  of erroring at the Bag3l level.
-
 ### Sub-optimal / fragile patterns
 
 - **No operand-stack overflow check.** `preAllocStack` is a fixed

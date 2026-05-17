@@ -942,7 +942,10 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			return err
 
 		case OpDefer:
-			deferClosure := m.co.stack[m.co.sp-1].(*Closure)
+			deferClosure, ok := m.co.stack[m.co.sp-1].(*Closure)
+			if !ok {
+				return fmt.Errorf("cannot defer %q", TypeName(m.co.stack[m.co.sp-1]))
+			}
 			m.co.sp--
 			m.co.frame.defers = append(m.co.frame.defers, deferClosure)
 
