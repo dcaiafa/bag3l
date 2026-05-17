@@ -67,7 +67,19 @@ func (i *ILIterator) IterNRet() int  { return i.iterNRet }
 func (i *ILIterator) IsClosed() bool { return i.closed }
 
 func (i *ILIterator) Close(vm *VM) error {
+	if i.closed {
+		return nil
+	}
 	i.closed = true
+	i.ip = -1
+
+	defers := i.defers
+	i.defers = nil
+	for j := len(defers) - 1; j >= 0; j-- {
+		if _, err := vm.Call(defers[j], nil, 0); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

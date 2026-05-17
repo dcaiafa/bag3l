@@ -466,7 +466,17 @@ func (m *VM) resume() (err error) {
 	for {
 		err := m.resumeWithoutRecovery()
 		if err == nil {
+			iter := m.co.frame.iter
+			if iter != nil && iter.ip != -1 {
+				// Iterator yielded; defers persist on the iterator and run
+				// only at end-of-life (OpIterRet, error escape, or Close).
+				m.co.PopFrame()
+				return nil
+			}
 			err = m.runDefers()
+			if iter != nil {
+				iter.closed = true
+			}
 			m.co.PopFrame()
 			return err
 		}
@@ -486,6 +496,10 @@ func (m *VM) resume() (err error) {
 							"while handling error:\n%w",
 						derr, err)
 				}
+			}
+			if iter := m.co.frame.iter; iter != nil {
+				iter.ip = -1
+				iter.closed = true
 			}
 			m.co.PopFrame()
 			return err

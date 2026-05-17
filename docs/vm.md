@@ -474,14 +474,6 @@ candidates for fixing rather than as contracts to rely on.
 
 ### Confirmed bugs
 
-- **`defer` in iterator bodies runs on every `yield`.** `OpIterYield` saves
-  `frame.defers` onto the `ILIterator` and returns `nil` from the inner
-  loop. The outer `resume` treats that as a normal return and calls
-  `runDefers` before `PopFrame`. Verified with a script that yields three
-  times and prints `"defer ran"` four times. `Close` on the iterator also
-  does not run defers, so there is no way for an iterator-local `defer` to
-  execute exactly once at end-of-life.
-
 - **Two divide-by-zero sentinel errors exist.** `int.go` defines
   `ErrDivByZero` (used by `lib/time` and its tests); `runtime_error.go`
   defines `ErrDivideByZero` (used by `int.go` and `float.go` for the
