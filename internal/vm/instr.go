@@ -64,9 +64,8 @@ const (
 )
 
 const (
-	CallArgCountMask uint32 = 0x3FFFFFFF
+	CallArgCountMask uint32 = 0x7FFFFFFF
 	CallExpandFlag   uint32 = 0x80000000
-	CallPipelineFlag uint32 = 0x40000000
 
 	OptionalIndexFlag uint16 = 0x0001
 )

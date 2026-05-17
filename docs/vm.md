@@ -196,9 +196,8 @@ type Instr struct {
 A fixed 8-byte triple. Most opcodes use only `op1`; a few pack additional
 fields:
 
-- `OpCall`: `op1` packs `(narg | expandFlag | pipelineFlag)`; `op2` is `nret`.
-  Flags: `CallExpandFlag = 0x80000000`, `CallPipelineFlag = 0x40000000`,
-  `CallArgCountMask = 0x3FFFFFFF`.
+- `OpCall`: `op1` packs `(narg | expandFlag)`; `op2` is `nret`.
+  Flags: `CallExpandFlag = 0x80000000`, `CallArgCountMask = 0x7FFFFFFF`.
 - `OpNewIter`: `op1` packs `fnIndex (24 bits low) | iterNRet (8 bits high)`;
   `op2` is the capture count.
 - `OpNewClosure`: `op1` is the function literal index; `op2` is the capture
@@ -210,12 +209,12 @@ fields:
 
 ## Calling convention
 
-`call(callable, narg, nret, pipeline)` handles all call shapes:
+`call(callable, narg, nret)` handles all call shapes:
 
 | Callable type | Behavior |
 | --- | --- |
 | `*Closure` | New frame with `fn = callable.fn`, `caps = callable.caps`; `runFrame` |
-| `*Fn` | New frame with `fn = callable`; **`pipeline` is hardcoded to `true`** |
+| `*Fn` | New frame with `fn = callable` |
 | `*NativeIterator` | Treated as an external call with no captures |
 | `*ILIterator` | Resumes the generator (see Iterators) |
 | `Callable` | Dispatched through `callExtFn` |
@@ -224,7 +223,7 @@ fields:
 
 `OpCall` sets up the call from the caller's stack:
 
-1. Decode `narg`/`nret`/`expand`/`pipeline`.
+1. Decode `narg`/`nret`/`expand`.
 2. If `expand` is set, the top-of-stack value is replaced with its contents:
    `nil` is dropped (narg decremented), `*List` is spread, anything else is
    an error.
@@ -385,18 +384,6 @@ the frame, `runDefers` also runs (and any error from a defer is wrapped into
 the propagating error message). On a non-recoverable error, defers are
 skipped.
 
-## Pipelines
-
-Pipelines are signaled with the `CallPipelineFlag` bit set on `OpCall`'s
-`op1`, which propagates to `frame.pipeline`. The VM does not itself
-interpret pipelines — it just exposes them so native functions can ask:
-
-- `vm.IsPipeline()` — is the current frame a pipeline call?
-- `vm.IsCallerPipeline()` — was the caller invoked as a pipeline?
-
-Native I/O builtins (`io`, `file`, `exec`) use these to decide whether to
-chain `Reader`/`Writer`s together vs. produce a one-shot value.
-
 ## Coroutines and the fiber scheduler
 
 `VM` is backed by a `fiber.Scheduler`. Each Bag3l coroutine corresponds to
@@ -511,11 +498,6 @@ candidates for fixing rather than as contracts to rely on.
   be caught" stance is fine, but defers should still unwind for resource
   cleanup (Go's panic+defer model).
 
-- **`OpCall` hardcodes `pipeline=true` for `*Fn`.** The `*Closure` arm of
-  `call` honors the `pipeline` parameter; the `*Fn` arm forces it to
-  `true`. Bare `*Fn` calls (cross-package function-literal calls) therefore
-  always report `pipeline=true` to `IsPipeline` / `IsCallerPipeline`.
-
 - **`OpDefer` panics on non-`*Closure` operands.** The handler does a bare
   type assertion (`.(*Closure)`) with no `ok` check. `defer somefn` where
   `somefn` resolves to `*Fn` or `*NativeFn` panics the Go process instead
@@ -585,9 +567,6 @@ candidates for fixing rather than as contracts to rely on.
   `OpRet` and on recoverable propagation, but are skipped on
   non-recoverable propagation, and as noted above also (incorrectly) run
   on every `OpIterYield`. None of this is documented in code comments.
-
-- `frame.pipeline` semantics are only inferable from the native builtins
-  that read `IsPipeline` / `IsCallerPipeline`.
 
 - Both `Fn.Call` and `Closure.Call` panic ("not called") because real
   dispatch is special-cased in `call()`. They exist purely to satisfy

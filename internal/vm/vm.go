@@ -72,7 +72,6 @@ type frame struct {
 	caps       []ValueRef
 	tryCatches []tryCatch
 	defers     []*Closure
-	pipeline   bool
 	ip         int
 	bp         int
 }
@@ -212,7 +211,7 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 	sp := m.co.sp
 	copy(m.co.stack[m.co.sp:], args)
 	m.co.sp += len(args)
-	err := m.call(callable, len(args), nret, false)
+	err := m.call(callable, len(args), nret)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +237,6 @@ func (m *VM) callExtFn(
 	caps []ValueRef,
 	narg int,
 	nret int,
-	pipeline bool,
 ) (err error) {
 	f := m.co.NewFrame()
 	f.nRet = nret
@@ -246,7 +244,6 @@ func (m *VM) callExtFn(
 	f.extFn = extFn
 	f.caps = caps
 	f.bp = m.co.sp
-	f.pipeline = pipeline
 
 	m.co.PushFrame(f)
 
@@ -278,7 +275,7 @@ func (m *VM) callExtFn(
 	return nil
 }
 
-func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
+func (m *VM) call(callable Value, narg int, nret int) error {
 	switch callable := callable.(type) {
 	case *Closure:
 		f := m.co.NewFrame()
@@ -286,11 +283,10 @@ func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
 		f.caps = callable.caps
 		f.nArg = narg
 		f.nRet = nret
-		f.pipeline = pipeline
 		return m.runFrame(f)
 
 	case *NativeIterator:
-		return m.callExtFn(callable.extFn, nil, narg, nret, false)
+		return m.callExtFn(callable.extFn, nil, narg, nret)
 
 	case *ILIterator:
 		if callable.ip == -1 {
@@ -336,11 +332,10 @@ func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
 		f.fn = callable
 		f.nArg = narg
 		f.nRet = nret
-		f.pipeline = true
 		return m.runFrame(f)
 
 	case Callable:
-		return m.callExtFn(callable, nil, narg, nret, pipeline)
+		return m.callExtFn(callable, nil, narg, nret)
 
 	default:
 		if callable == nil {
@@ -588,7 +583,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			nret := int(instr.op2)
 			narg := int(instr.op1 & CallArgCountMask)
 			expand := (instr.op1 & CallExpandFlag) != 0
-			pipeline := (instr.op1 & CallPipelineFlag) != 0
 
 			if expand {
 				if narg == 0 {
@@ -611,7 +605,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 
 			callable := m.co.stack[m.co.sp-narg-1]
 			rsp := m.co.sp - narg - 1 + nret
-			err = m.call(callable, narg, nret, pipeline)
+			err = m.call(callable, narg, nret)
 			if err != nil {
 				return err
 			}
@@ -1064,20 +1058,6 @@ func (m *VM) GetCallerArgs() []Value {
 	f := m.co.callStack[len(m.co.callStack)-2]
 	args := m.co.stack[f.bp-f.nArg : f.bp]
 	return args
-}
-
-func (m *VM) IsPipeline() bool {
-	if len(m.co.callStack) < 1 {
-		return false
-	}
-	return m.co.callStack[len(m.co.callStack)-1].pipeline
-}
-
-func (m *VM) IsCallerPipeline() bool {
-	if len(m.co.callStack) < 2 {
-		return false
-	}
-	return m.co.callStack[len(m.co.callStack)-2].pipeline
 }
 
 func (m *VM) GetStackInfo() []FrameInfo {
