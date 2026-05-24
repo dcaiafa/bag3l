@@ -27,7 +27,9 @@ func (e *IndexLValue) RunPass(ctx *Context, pass Pass) {
 
 	switch pass {
 	case Emit:
+		// The value to store was pushed by AssignStmt before this lvalue's
+		// Target and Index, so it sits directly beneath them on the stack.
 		emitter := ctx.Emitter()
-		emitter.Emit(e.Pos(), vm.OpObjectGetRef, 0, 0)
+		emitter.Emit(e.Pos(), vm.OpStoreIndex, 0, 0)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/dcaiafa/bag3l/internal/scope"
 	"github.com/dcaiafa/bag3l/internal/symbol"
 	"github.com/dcaiafa/bag3l/internal/token"
-	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type VarDeclStmt struct {
@@ -94,20 +93,15 @@ func (v *VarDeclInit) RunPass(ctx *Context, pass Pass) {
 		for _, sym := range v.Syms {
 			emitVariableInit(ctx, v.Pos(), sym)
 		}
-
-		if v.InitValues != nil {
-			for _, sym := range v.Syms {
-				emitSymbolRefPush(v.Pos(), emitter, sym)
-			}
-		}
 	}
 
 	ctx.RunPassChild(v, v.InitValues, pass)
 
-	if pass == Emit {
-		if v.InitValues != nil {
-			emitter := ctx.Emitter()
-			emitter.Emit(v.Pos(), vm.OpStore, uint32(len(v.Syms)), 0)
+	if pass == Emit && v.InitValues != nil {
+		// InitValues left v1..vN on the stack; store them into the symbols
+		// right-to-left so each value is popped off the top into its symbol.
+		for i := len(v.Syms) - 1; i >= 0; i-- {
+			emitSymbolStore(v.Pos(), emitter, v.Syms[i])
 		}
 	}
 }

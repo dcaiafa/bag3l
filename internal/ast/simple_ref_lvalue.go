@@ -45,6 +45,6 @@ func (r *SimpleRefLValue) RunPass(ctx *Context, pass Pass) {
 		}
 
 	case Emit:
-		emitSymbolRefPush(r.Pos(), ctx.Emitter(), r.sym)
+		emitSymbolStore(r.Pos(), ctx.Emitter(), r.sym)
 	}
 }

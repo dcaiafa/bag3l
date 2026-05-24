@@ -97,14 +97,9 @@ func (o *Map) Index(k Value) (Value, bool, error) {
 	return n.value, true, nil
 }
 
-func (o *Map) IndexRef(k Value) (ValueRef, error) {
-	n := o.data[k]
-	if n == nil {
-		n = &mapNode{key: k}
-		n.InsertAfter(o.list.prev)
-		o.data[k] = n
-	}
-	return NewValueRef(&n.value), nil
+func (o *Map) SetIndex(k, value Value) error {
+	o.Put(k, value)
+	return nil
 }
 
 func (o *Map) GetFirst() (key Value, val Value) {

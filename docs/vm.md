@@ -87,8 +87,11 @@ type coroutine struct {
 }
 ```
 
-The operand stack is unified: arguments, locals, captures-references, and
-temporaries all live on it. The hot fields (`frame`, `pkg`, `globals`,
+The operand stack is unified: arguments, locals, captures, and
+temporaries all live on it. No instruction takes a pointer *into* the operand
+stack; assignment writes into stack slots by index (see the store opcodes
+below), so the backing array could in principle be grown/reallocated without
+invalidating live references. The hot fields (`frame`, `pkg`, `globals`,
 `instrs`) are cached out of `frame.fn.pkg` and `frame.fn.instrs` whenever a
 frame becomes current, so the interpreter loop only touches `co.*` and not
 deeper pointer chains.
@@ -135,11 +138,29 @@ slots. Subsequent loads use `bp` as the anchor:
 
 | Opcode | Slot |
 | --- | --- |
-| `OpLoadArg n` / `OpLoadArgRef n` / `OpLoadArgDeref n` | `bp - nArg + n` |
-| `OpLoadLocal n` / `OpLoadLocalRef n` / `OpLoadLocalDeref n` | `bp + n` |
-| `OpLoadGlobal n` / `OpLoadGlobalRef n` | `globals[n]` |
-| `OpLoadCapture n` / `OpLoadCaptureRef n` | `frame.caps[n]` |
+| `OpLoadArg n` / `OpLoadArgDeref n` | `bp - nArg + n` |
+| `OpLoadLocal n` / `OpLoadLocalDeref n` | `bp + n` |
+| `OpLoadGlobal n` | `globals[n]` |
+| `OpLoadCapture n` / `OpLoadCaptureBox n` | `frame.caps[n]` |
 | `OpLoadLiteral lit, dep` | `pkg.Deps[dep].Literals[lit]` |
+
+The `*Deref` loads read through a lifted variable's box; `OpLoadCaptureBox`
+pushes the raw `ValueRef` box (used to build a nested closure's capture list),
+whereas `OpLoadCapture` auto-dereferences it.
+
+Assignment is the mirror image — direct stores by index, each popping the value
+on top of the stack:
+
+| Opcode | Effect |
+| --- | --- |
+| `OpStoreLocal n` / `OpStoreLocalDeref n` | `bp + n` (direct / through box) |
+| `OpStoreArg n` / `OpStoreArgDeref n` | `bp - nArg + n` (direct / through box) |
+| `OpStoreGlobal n` | `globals[n]` |
+| `OpStoreCapture n` | `*frame.caps[n].Ref` |
+| `OpStoreIndex` | `container.SetIndex(key, value)`; pops `value, container, key` |
+
+`OpStoreArg` errors ("cannot assign to arg because it was not provided by
+caller") when `n >= nArg`.
 
 ## Values
 
@@ -164,24 +185,34 @@ binary operators. Types without `TraitEq` fall back to Go interface equality
 `OpEq`, calls the operand, and inverts the resulting `Bool`. There is no
 separate `EvalOp(OpNE, …)` entry point.
 
-`ValueRef` is `struct{ Ref *Value }`. It is itself a `Value`, which means
-references are first-class values that flow through the stack like any other.
-A function argument or local is "lifted" by storing a `ValueRef` into its
-slot whenever something needs a stable reference to it (assignment via
-`OpStore`, capture into a closure via `OpCaptureLocal`/`OpCaptureArg`, an
-inner iterator's view of an outer variable).
+`ValueRef` is `struct{ Ref *Value }`. It is a heap-allocated box used to give a
+variable a stable storage location independent of the operand stack. A function
+argument or local is "lifted" — boxed in a `ValueRef` stored in its slot — when
+an inner closure or iterator captures it (so the closure and the outer frame
+share one cell). The box is created by `OpInitLiftedLocal` (locals) or
+`OpLiftArg` (args); lifted slots are read with `OpLoad*Deref`, written with
+`OpStore*Deref`, and shared into a closure's `caps` via `OpLoadCaptureBox`.
+Non-lifted variables live directly in their stack slot and are read/written
+without boxing.
+
+Assignment statements never push a pointer into the stack. The right-hand side
+is fully evaluated first (leaving `v1..vN` on the stack); the lvalues are then
+stored **right-to-left** so that each value is exposed on top of the stack just
+as its target's container/key prefix is pushed above it, letting `OpStoreIndex`
+find the value directly beneath the `container, key` pair. As a consequence, an
+lvalue's container/index subexpressions are evaluated *after* the right-hand
+side, and in reverse order.
 
 The container/collection types:
 
 - `*List` — backed by `[]Value`. Negative indices are supported by `Index`
-  and `Slice`. `IndexRef` requires the index to be in range.
+  and `Slice`. `SetIndex` requires a non-negative in-range `Int` index.
 - `*Map` — `map[Value]*mapNode` plus a doubly linked list of `mapNode`s, so
-  iteration is in insertion order. `Put` and `IndexRef` insert at the tail
+  iteration is in insertion order. `Put`/`SetIndex` insert at the tail
   if the key is new. `mapIter` walks the list using `GetNext`, which silently
   ends iteration if the current key was deleted mid-loop.
-- `String` — immutable value type wrapping `string`. `IndexRef` returns
-  an error and a zero `ValueRef`; the caller must inspect the error before
-  dereferencing.
+- `String` — immutable value type wrapping `string`. `SetIndex` always
+  returns an error ("cannot modify str").
 
 ## Instruction format
 
@@ -315,21 +346,6 @@ the LIFO sweep (remaining defers do not run).
 Wraps a Go-side `*NativeFn` plus an optional `CloseFn`. Each call to `Next`
 invokes the native function; returning an empty slice (`nil, nil`) signals
 end-of-iteration and triggers `Close`.
-
-### `OpNext`
-
-The bytecode for `for ... in iter { ... }` looks like:
-
-```
-... <ref1> <ref2> ... <refN> <iter>      // sp top
-OpNext jumpEndAddr, N
-```
-
-`OpNext` calls `iterNext` for `N` return values. On success it stores the
-yielded values into the `N` ValueRefs sitting below the iterator on the
-stack; on end-of-iteration it jumps to `jumpEndAddr`. Either way it pops back
-to `sp - N - 1` (it leaves the iterator on the stack for the next round, or
-the jump path pops it implicitly via `sp = rsp`).
 
 ### `OpMakeIter`
 
@@ -516,9 +532,10 @@ candidates for fixing rather than as contracts to rely on.
   allocation costs per fiber.
 
 - **`Fn.minArgs` is wired up but not enforced.** `Emitter.SetFuncMinArgs`
-  stores it on the function, but no opcode validates it. `OpLoadArgRef`
+  stores it on the function, but no opcode validates it. `OpStoreArg`
   even carries a `// TODO: min arg count` comment. Calls that omit
-  required arguments silently observe `nil` for the missing slots.
+  required arguments silently observe `nil` for the missing slots (and
+  `OpStoreArg` to a missing slot errors at runtime rather than at the call).
 
 - **`ILIterator` resume implicitly assumes `bp == 0`.** The first
   invocation runs `OpInitCallFrame` with `sp=0`, setting `bp=0`. On
@@ -540,11 +557,6 @@ candidates for fixing rather than as contracts to rely on.
   `(nil, false, nil)`. That means `err?.unknown` (optional access) still
   throws, defeating the point of the optional-index flag for this type.
 
-- **`String.IndexRef` returns `NewValueRef(nil)` plus an error.** Any
-  caller that dereferences the returned `ValueRef` before checking the
-  error nil-panics. The error is always returned, so callers that respect
-  it are safe — but the zero-value `ValueRef{}` would be a safer sentinel.
-
 ### Things that are not obvious from the code
 
 - The exact contract between `runDefers` and the frame error path: defers
@@ -559,9 +571,10 @@ candidates for fixing rather than as contracts to rely on.
   dispatch is special-cased in `call()`. They exist purely to satisfy
   `Callable`; the dual role is easy to miss.
 
-- `OpLoadCapture` vs `OpLoadCaptureRef`: the difference (auto-deref vs.
-  raw `ValueRef`) is only clear from the compiler emit sites.
+- `OpLoadCapture` vs `OpLoadCaptureBox`: the difference (auto-deref vs.
+  raw `ValueRef` box) is only clear from the compiler emit sites —
+  `OpLoadCaptureBox` is used solely to build a nested closure's capture list.
 
-- `ILIterator.iterNRet` (declared yield arity) vs. the `nret` parameter
-  `OpNext` passes (requested arity at the call site) are tracked
-  separately and no opcode enforces consistency between them.
+- `ILIterator.iterNRet` (declared yield arity) vs. the `nret` requested by the
+  caller (passed into `iterNext` at the call site) are tracked separately and
+  no opcode enforces consistency between them.

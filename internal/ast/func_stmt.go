@@ -3,7 +3,6 @@ package ast
 import (
 	"github.com/dcaiafa/bag3l/internal/scope"
 	"github.com/dcaiafa/bag3l/internal/symbol"
-	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type FuncStmt struct {
@@ -47,7 +46,6 @@ func (s *FuncStmt) RunPass(ctx *Context, pass Pass) {
 	case Emit:
 		if localSym, ok := s.sym.(*symbol.LocalVarSymbol); ok {
 			emitVariableInit(ctx, s.Pos(), localSym)
-			emitSymbolRefPush(s.Pos(), ctx.Emitter(), localSym)
 		}
 	}
 
@@ -61,10 +59,10 @@ func (s *FuncStmt) RunPass(ctx *Context, pass Pass) {
 		}
 
 	case Emit:
-		if _, ok := s.sym.(*symbol.LocalVarSymbol); ok {
-			// The prefix emitted the PushLocalRef. `Func` emitted the closure. Now
-			// emit the `Store` to place the closure into the local var.
-			ctx.Emitter().Emit(s.Pos(), vm.OpStore, 1, 0)
+		if localSym, ok := s.sym.(*symbol.LocalVarSymbol); ok {
+			// `Func` emitted the closure, leaving it on top of the stack. Store
+			// it into the local var.
+			emitSymbolStore(s.Pos(), ctx.Emitter(), localSym)
 		}
 	}
 }

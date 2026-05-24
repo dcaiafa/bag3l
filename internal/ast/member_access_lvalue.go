@@ -48,10 +48,13 @@ func (a *MemberAccessLValue) RunPass(ctx *Context, pass Pass) {
 	case Emit:
 		emitter := ctx.Emitter()
 		if a.ModuleMember == nil {
+			// The value to store was pushed by AssignStmt before the Target;
+			// push the member name as the key so the value sits beneath the
+			// container/key pair expected by OpStoreIndex.
 			emitter.Emit(
 				a.Pos(), vm.OpLoadLiteral,
 				uint32(emitter.AddLiteral(vm.NewString(a.Member.Str))), 0)
-			emitter.Emit(a.Pos(), vm.OpObjectGetRef, 0, 0)
+			emitter.Emit(a.Pos(), vm.OpStoreIndex, 0, 0)
 		} else {
 			ctx.Failf(a.Pos(), "cannot assign to module")
 			return

@@ -83,6 +83,20 @@ are marked `// REVISIT`).
 - After modifying any `*.lox` grammar or `*.stubgen` spec, run
   `go generate ./...` and commit the regenerated `*.gen.go` / `*.stubgen.go`
   files alongside the source.
+- Editing `parser.lox` almost always requires matching changes to the
+  hand-written action methods in `parser.go` (lox separates grammar from Go
+  code and type-checks one against the other). Regenerate just the parser by
+  running `lox .` inside `internal/parser` — it reports grammar conflicts and
+  exits non-zero on error. Lox authoring rules worth knowing:
+  - Every production needs an action method named `on_<rule>` or
+    `on_<rule>__<suffix>`; all actions for a rule must return the same Go type.
+  - Lox infers each term's type from these action signatures, so changing a
+    rule's return type (or a production's terms) ripples into the callers'
+    parameter types — regenerate and fix the resulting compile errors.
+  - `@list(x, sep)` yields `[]T` where `T` is `x`'s action return type; a
+    bare-token rule whose action returns the token is matched by one method.
+  - `_onBounds` (defined on the parser type) auto-sets every AST node's
+    position from its boundary tokens, so actions usually don't `SetPos`.
 - The migration of global builtins into `lib/global` (see `lib/SPEC.md`) uses
   one commit per converted function/file; preserve that convention when
   continuing the migration.

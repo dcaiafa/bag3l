@@ -129,14 +129,13 @@ func (p *MetaParamInit) RunPass(ctx *Context, pass Pass) {
 		// This will print `true` even when running `nitro test.n --foo=false`
 		emitSymbolPush(p.Pos(), emitter, p.GlobalSym)
 		emitter.EmitJump(p.Pos(), vm.OpJumpIfTrue, skip, 0)
-		emitSymbolRefPush(p.Pos(), emitter, p.GlobalSym)
 	}
 
 	ctx.RunPassChild(p, p.Default, pass)
 
 	if pass == Emit {
 		emitter := ctx.Emitter()
-		emitter.Emit(p.Pos(), vm.OpStore, 1, 0)
+		emitSymbolStore(p.Pos(), emitter, p.GlobalSym)
 		emitter.ResolveLabel(skip)
 	}
 }

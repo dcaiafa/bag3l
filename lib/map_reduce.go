@@ -96,12 +96,11 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 		}
 
 		var accumList *nitro.Array
-		accumRef, _ := res.IndexRef(mapKey)
-		if *accumRef.Ref == nil {
-			accumList = nitro.NewArrayFromSlice(make([]nitro.Value, len(specs)))
-			*accumRef.Ref = accumList
+		if accum, ok := res.Get(mapKey); ok && accum != nil {
+			accumList = accum.(*nitro.Array)
 		} else {
-			accumList = (*accumRef.Ref).(*nitro.Array)
+			accumList = nitro.NewArrayFromSlice(make([]nitro.Value, len(specs)))
+			res.Put(mapKey, accumList)
 		}
 
 		for i, spec := range specs {

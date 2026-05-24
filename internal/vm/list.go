@@ -67,26 +67,27 @@ func (a *List) Index(key Value) (Value, bool, error) {
 	}
 }
 
-func (a *List) IndexRef(key Value) (ValueRef, error) {
+func (a *List) SetIndex(key, value Value) error {
 	index, ok := key.(Int)
 	if !ok {
-		return ValueRef{}, fmt.Errorf(
+		return fmt.Errorf(
 			"cannot index list: index must be Int, but it is %v",
 			TypeName(key))
 	}
 	if index.Int64() < 0 || index.Int64() > math.MaxInt32 {
-		return ValueRef{}, fmt.Errorf(
+		return fmt.Errorf(
 			"cannot index list: invalid index %v",
 			index.Int64())
 	}
 
 	i := int(index.Int64())
 	if i >= len(a.list) {
-		return ValueRef{}, fmt.Errorf(
+		return fmt.Errorf(
 			"cannot index list: index %v is greater than list size %v",
 			i, len(a.list))
 	}
-	return NewValueRef(&a.list[i]), nil
+	a.list[i] = value
+	return nil
 }
 
 func (a *List) Slice(b, e Value) (Value, error) {

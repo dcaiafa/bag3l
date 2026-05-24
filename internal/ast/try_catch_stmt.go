@@ -88,10 +88,10 @@ func (b *catchBlock) RunPass(ctx *Context, pass Pass) {
 
 	case Emit:
 		if b.catchSym != nil {
+			// The thrown error is already on top of the stack; store it directly
+			// into the catch variable.
 			emitVariableInit(ctx, b.stmts.Pos(), b.catchSym)
-			emitSymbolRefPush(b.stmts.Pos(), ctx.Emitter(), b.catchSym)
-			ctx.Emitter().Emit(b.stmts.Pos(), vm.OpSwap, 1, 0)
-			ctx.Emitter().Emit(b.stmts.Pos(), vm.OpStore, 1, 0)
+			emitSymbolStore(b.stmts.Pos(), ctx.Emitter(), b.catchSym)
 		} else {
 			ctx.Emitter().Emit(b.stmts.Pos(), vm.OpPop, 1, 0)
 		}

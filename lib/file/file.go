@@ -53,8 +53,8 @@ func (f *File) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 	return []nitro.Value{nitro.NewInt(n)}, nil
 }
 
-func (f *File) IndexRef(key nitro.Value) (nitro.ValueRef, error) {
-	return nitro.ValueRef{}, fmt.Errorf("file is not assignable")
+func (f *File) SetIndex(key, value nitro.Value) error {
+	return fmt.Errorf("file is not assignable")
 }
 
 func create0(vm *vm.VM, name string) (*File, error) {

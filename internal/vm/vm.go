@@ -696,31 +696,12 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.stack[m.co.sp] = m.co.globals[int(instr.op1)]
 			m.co.sp++
 
-		case OpLoadGlobalRef:
-			m.co.stack[m.co.sp] = ValueRef{&m.co.globals[int(instr.op1)]}
-			m.co.sp++
-
 		case OpLoadLocal:
 			m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp+int(instr.op1)]
 			m.co.sp++
 
-		case OpLoadLocalRef:
-			m.co.stack[m.co.sp] = ValueRef{&m.co.stack[m.co.frame.bp+int(instr.op1)]}
-			m.co.sp++
-
 		case OpLoadLocalDeref:
 			m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp+int(instr.op1)].(ValueRef).Ref
-			m.co.sp++
-
-		case OpCaptureLocal:
-			l := m.co.stack[m.co.frame.bp+int(instr.op1)]
-			if _, ok := l.(ValueRef); !ok {
-				ref := ValueRef{Ref: new(Value)}
-				*ref.Ref = l
-				m.co.stack[m.co.frame.bp+int(instr.op1)] = ref
-				l = ref
-			}
-			m.co.stack[m.co.sp] = l
 			m.co.sp++
 
 		case OpLoadArg:
@@ -732,16 +713,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			m.co.sp++
 
-		case OpLoadArgRef:
-			idx := int(instr.op1)
-			if idx >= m.co.frame.nArg {
-				// TODO: min arg count
-				return fmt.Errorf(
-					"cannot assign to arg because it was not provided by caller")
-			}
-			m.co.stack[m.co.sp] = ValueRef{&m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]}
-			m.co.sp++
-
 		case OpLoadArgDeref:
 			idx := int(instr.op1)
 			if idx < m.co.frame.nArg {
@@ -751,22 +722,11 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			m.co.sp++
 
-		case OpCaptureArg:
-			a := m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)]
-			if _, ok := a.(ValueRef); !ok {
-				ref := ValueRef{Ref: new(Value)}
-				*ref.Ref = a
-				m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)] = ref
-				a = ref
-			}
-			m.co.stack[m.co.sp] = a
-			m.co.sp++
-
 		case OpLoadCapture:
 			m.co.stack[m.co.sp] = *m.co.frame.caps[int(instr.op1)].Ref
 			m.co.sp++
 
-		case OpLoadCaptureRef:
+		case OpLoadCaptureBox:
 			m.co.stack[m.co.sp] = m.co.frame.caps[int(instr.op1)]
 			m.co.sp++
 
@@ -832,23 +792,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			m.co.sp--
 
-		case OpObjectGetRef:
-			objRaw := m.co.stack[m.co.sp-2]
-			key := m.co.stack[m.co.sp-1]
-			if objRaw == nil {
-				return fmt.Errorf("cannot assign: value is nil")
-			}
-			indexable, ok := objRaw.(Indexable)
-			if !ok {
-				return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
-			}
-			valueRef, err := indexable.IndexRef(key)
-			if err != nil {
-				return err
-			}
-			m.co.stack[m.co.sp-2] = valueRef
-			m.co.sp--
-
 		case OpArrayAppendNoPop:
 			array := m.co.stack[m.co.sp-2].(*List)
 			value := m.co.stack[m.co.sp-1]
@@ -882,14 +825,51 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			return nil
 
-		case OpStore:
-			count := int(instr.op1)
-			for i := 0; i < count; i++ {
-				rval := m.co.stack[m.co.sp-(count*2-i)].(ValueRef)
-				val := m.co.stack[m.co.sp-(count-i)]
-				*rval.Ref = val
+		case OpStoreLocal:
+			m.co.sp--
+			m.co.stack[m.co.frame.bp+int(instr.op1)] = m.co.stack[m.co.sp]
+
+		case OpStoreLocalDeref:
+			m.co.sp--
+			*m.co.stack[m.co.frame.bp+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
+
+		case OpStoreArg:
+			idx := int(instr.op1)
+			if idx >= m.co.frame.nArg {
+				// TODO: min arg count
+				return fmt.Errorf(
+					"cannot assign to arg because it was not provided by caller")
 			}
-			m.co.sp -= count * 2
+			m.co.sp--
+			m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx] = m.co.stack[m.co.sp]
+
+		case OpStoreArgDeref:
+			m.co.sp--
+			*m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
+
+		case OpStoreGlobal:
+			m.co.sp--
+			m.co.globals[int(instr.op1)] = m.co.stack[m.co.sp]
+
+		case OpStoreCapture:
+			m.co.sp--
+			*m.co.frame.caps[int(instr.op1)].Ref = m.co.stack[m.co.sp]
+
+		case OpStoreIndex:
+			value := m.co.stack[m.co.sp-3]
+			objRaw := m.co.stack[m.co.sp-2]
+			key := m.co.stack[m.co.sp-1]
+			if objRaw == nil {
+				return fmt.Errorf("cannot assign: value is nil")
+			}
+			indexable, ok := objRaw.(Indexable)
+			if !ok {
+				return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
+			}
+			if err := indexable.SetIndex(key, value); err != nil {
+				return err
+			}
+			m.co.sp -= 3
 
 		case OpInitCallFrame:
 			m.co.frame.nLocals = int(instr.op1)
@@ -948,39 +928,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			m.co.sp--
 			m.co.frame.defers = append(m.co.frame.defers, deferClosure)
-
-		case OpNext:
-			iter, ok := m.co.stack[m.co.sp-1].(Iterator)
-			if !ok {
-				return fmt.Errorf("%q is not an iterator", TypeName(m.co.stack[m.co.sp-1]))
-			}
-
-			jumpTo := int(instr.op1)
-			n := int(instr.op2)
-
-			rsp := m.co.sp - n - 1
-
-			// With n = 3:
-			// rsp  +0  +1  +2  +3  +4  +5  +6
-			//      r1  r2  r3  it               before iterNext
-			//      r1  r2  r3  v1  v2  v3       after iterNext
-
-			ok, err := m.iterNext(iter, n)
-			if err != nil {
-				return err
-			}
-
-			if ok {
-				for i := 0; i < n; i++ {
-					rval := m.co.stack[rsp+i].(ValueRef)
-					val := m.co.stack[rsp+n+1+i]
-					*rval.Ref = val
-				}
-			} else {
-				m.co.ip = jumpTo - 1
-			}
-
-			m.co.sp = rsp
 
 		case OpSlice:
 			target := m.co.stack[m.co.sp-3]
