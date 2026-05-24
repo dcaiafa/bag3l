@@ -528,10 +528,6 @@ candidates for fixing rather than as contracts to rely on.
   errors that will be caught by a nearby `try`. `GetStackInfo` allocates a
   `[]FrameInfo` proportional to `callStack` depth.
 
-- **`OpUnaryMinus` has a redundant nil check.** `EvalOp` already rejects
-  nil operands for any operation other than `OpEq`/`OpNE`; the manual
-  `if term == nil` in the opcode handler is dead.
-
 - **`RegisterCloser` / `UnregisterCloser` are not synchronized.** `VM.mu`
   exists but isn't taken. Works today because only the active fiber calls
   them, but a native function spawning its own goroutine that registers a

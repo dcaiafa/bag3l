@@ -747,9 +747,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 
 		case OpUnaryMinus:
 			term := m.co.stack[m.co.sp-1]
-			if term == nil {
-				return errors.New("value is nil")
-			}
 			res, err := EvalOp(OpUMinus, term, nil)
 			if err != nil {
 				return err
