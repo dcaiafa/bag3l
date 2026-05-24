@@ -1,7 +1,7 @@
 package "crypto"
 
-import nitro "github.com/dcaiafa/bag3l"
+import vm "github.com/dcaiafa/bag3l/internal/vm"
 
-const ALPHANUM Str = `#nitro.NewString("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")` 
+const ALPHANUM Str = `#vm.NewString("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")`
 
 func generate_secret(size Int, charset Str = `""`) Str

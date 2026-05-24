@@ -20,7 +20,7 @@ const (
 	OpNewClosure
 	OpNewInt
 	OpNewBool
-	OpNewObject
+	OpNewMap
 	OpNewArray
 	OpLoadGlobal
 	OpLoadLocal
@@ -33,8 +33,8 @@ const (
 	OpEvalBinOp
 	OpNot
 	OpUnaryMinus
-	OpObjectPutNoPop
-	OpObjectGet
+	OpMapPutNoPop
+	OpLoadIndex
 	OpArrayAppendNoPop
 	OpArrayExpandElemNoPop
 	OpRet

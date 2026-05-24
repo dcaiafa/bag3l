@@ -34,6 +34,6 @@ func (e *IndexExpr) RunPass(ctx *Context, pass Pass) {
 		if e.Optional {
 			flags |= vm.OptionalIndexFlag
 		}
-		emitter.Emit(e.Pos(), vm.OpObjectGet, 0, flags)
+		emitter.Emit(e.Pos(), vm.OpLoadIndex, 0, flags)
 	}
 }

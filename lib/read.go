@@ -4,11 +4,11 @@ import (
 	"io"
 	"io/ioutil"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
-func read(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func read(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	var err error
 
 	if len(args) > 2 {
@@ -46,5 +46,5 @@ func read(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		data = buf[:n]
 	}
 
-	return []nitro.Value{nitro.NewString(string(data))}, nil
+	return []vm.Value{vm.NewString(string(data))}, nil
 }

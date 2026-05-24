@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 	libio "github.com/dcaiafa/bag3l/lib/io"
@@ -73,12 +72,12 @@ func (i *csvIter) next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) 
 	return []vm.Value{vm.NewListWithSlice(res)}, nil
 }
 
-func (i *csvIter) close(vm *vm.VM) error {
+func (i *csvIter) close(m *vm.VM) error {
 	core.CloseReader(i.origReader)
 	return nil
 }
 
-func encode0(m *nitro.VM, iter vm.Iterator, out vm.Writer) error {
+func encode0(m *vm.VM, iter vm.Iterator, out vm.Writer) error {
 	var w io.Writer
 	if out == nil {
 		w = libio.Stdout(m)

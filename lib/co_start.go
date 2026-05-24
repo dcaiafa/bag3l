@@ -1,17 +1,15 @@
 package lib
 
-import (
-	nitro "github.com/dcaiafa/bag3l"
-)
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func start(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func start(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) > 1 {
 		return nil, errTooManyArgs
 	} else if len(args) < 1 {
 		return nil, errNotEnoughArgs
 	}
 
-	err := vm.StartCoroutine(args[0])
+	err := m.StartCoroutine(args[0])
 	if err != nil {
 		return nil, err
 	}

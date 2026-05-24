@@ -694,7 +694,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.stack[m.co.sp] = NewBool(instr.op1 != 0)
 			m.co.sp++
 
-		case OpNewObject:
+		case OpNewMap:
 			m.co.stack[m.co.sp] = NewMap()
 			m.co.sp++
 
@@ -758,25 +758,25 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			m.co.stack[m.co.sp-1] = res
 
-		case OpObjectPutNoPop:
-			obj := m.co.stack[m.co.sp-3].(*Map)
+		case OpMapPutNoPop:
+			mp := m.co.stack[m.co.sp-3].(*Map)
 			key := m.co.stack[m.co.sp-2]
 			val := m.co.stack[m.co.sp-1]
-			obj.Put(key, val)
+			mp.Put(key, val)
 			m.co.sp -= 2
 
-		case OpObjectGet:
-			objRaw := m.co.stack[m.co.sp-2]
+		case OpLoadIndex:
+			container := m.co.stack[m.co.sp-2]
 			key := m.co.stack[m.co.sp-1]
-			if objRaw == nil {
+			if container == nil {
 				if instr.op2&OptionalIndexFlag == 0 {
 					return fmt.Errorf("cannot index nil value")
 				}
 				m.co.stack[m.co.sp-2] = nil
 			} else {
-				indexable, ok := objRaw.(Indexable)
+				indexable, ok := container.(Indexable)
 				if !ok {
-					return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
+					return fmt.Errorf("type %v is not indexable", TypeName(container))
 				}
 				value, ok, err := indexable.Index(key)
 				if err != nil {

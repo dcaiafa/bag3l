@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
@@ -33,12 +32,12 @@ func (b *WriterBase) Traits() vm.Traits { return vm.TraitNone }
 var ErrWriterCallUsage = errors.New(
 	`invalid usage. Expected <writer>(reader)`)
 
-func (b *WriterBase) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (b *WriterBase) Call(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, ErrWriterCallUsage
 	}
 
-	reader, err := nitro.MakeReader(m, args[0])
+	reader, err := vm.MakeReader(m, args[0])
 	if err != nil {
 		return nil, ErrWriterCallUsage
 	}
@@ -50,7 +49,7 @@ func (b *WriterBase) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Va
 
 	CloseReader(reader)
 
-	return []nitro.Value{nitro.NewInt(n)}, nil
+	return []vm.Value{vm.NewInt(n)}, nil
 }
 
 func CloseReader(r io.Reader) {
@@ -62,7 +61,7 @@ func CloseReader(r io.Reader) {
 var ErrNotEnoughArgs = errors.New("not enough arguments")
 var ErrTooManyArgs = errors.New("too many arguments")
 
-func CheckArgCount(args []nitro.Value, min, max int) error {
+func CheckArgCount(args []vm.Value, min, max int) error {
 	if len(args) < min {
 		return ErrNotEnoughArgs
 	} else if len(args) > max {
@@ -71,38 +70,38 @@ func CheckArgCount(args []nitro.Value, min, max int) error {
 	return nil
 }
 
-func GetString(args []nitro.Value, n int) (nitro.String, error) {
-	arg, ok := args[n].(nitro.String)
+func GetString(args []vm.Value, n int) (vm.String, error) {
+	arg, ok := args[n].(vm.String)
 	if !ok {
-		return nitro.String{}, fmt.Errorf(
+		return vm.String{}, fmt.Errorf(
 			"arg %v: expected string, got %v",
-			n, nitro.TypeName(args[n]))
+			n, vm.TypeName(args[n]))
 	}
 	return arg, nil
 }
 
-func GetInt(args []nitro.Value, n int) (nitro.Int, error) {
-	arg, ok := args[n].(nitro.Int)
+func GetInt(args []vm.Value, n int) (vm.Int, error) {
+	arg, ok := args[n].(vm.Int)
 	if !ok {
-		return nitro.Int{}, fmt.Errorf(
+		return vm.Int{}, fmt.Errorf(
 			"arg %v: expected int, got %v",
-			n, nitro.TypeName(args[n]))
+			n, vm.TypeName(args[n]))
 	}
 	return arg, nil
 }
 
-func GetFloat(args []nitro.Value, n int) (nitro.Float, error) {
-	arg, ok := args[n].(nitro.Float)
+func GetFloat(args []vm.Value, n int) (vm.Float, error) {
+	arg, ok := args[n].(vm.Float)
 	if !ok {
-		return nitro.Float{}, fmt.Errorf(
+		return vm.Float{}, fmt.Errorf(
 			"arg %v: expected float, got %v",
-			n, nitro.TypeName(args[n]))
+			n, vm.TypeName(args[n]))
 	}
 	return arg, nil
 }
 
-func GetReader(vm *nitro.VM, args []nitro.Value, n int) (nitro.Reader, error) {
-	arg, err := nitro.MakeReader(vm, args[n])
+func GetReader(m *vm.VM, args []vm.Value, n int) (vm.Reader, error) {
+	arg, err := vm.MakeReader(m, args[n])
 	if err != nil {
 		return nil, fmt.Errorf("arg %v: %w", n, err)
 	}

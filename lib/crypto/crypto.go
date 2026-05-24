@@ -4,12 +4,12 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 var defaultCharset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func generate_secret0(vm *nitro.VM, size int64, charset string) (string, error) {
+func generate_secret0(m *vm.VM, size int64, charset string) (string, error) {
 	buf := make([]byte, size)
 	_, err := rand.Read(buf)
 	if err != nil {

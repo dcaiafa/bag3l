@@ -3,12 +3,11 @@ package lib
 import (
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/bytequeue"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func stream(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func stream(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, errInvalidNumberOfArgs
 	}
@@ -23,7 +22,7 @@ func stream(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		e: iter,
 	}
 
-	return []nitro.Value{reader}, nil
+	return []vm.Value{reader}, nil
 }
 
 type iterReader struct {
@@ -32,9 +31,9 @@ type iterReader struct {
 	buf bytequeue.ByteQueue
 }
 
-func newIterReader(vm *vm.VM, iter vm.Iterator) *iterReader {
+func newIterReader(m *vm.VM, iter vm.Iterator) *iterReader {
 	return &iterReader{
-		m: vm,
+		m: m,
 		e: iter,
 	}
 }

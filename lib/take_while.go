@@ -76,6 +76,6 @@ func (i *takeWhileIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Valu
 	return v, nil
 }
 
-func (i *takeWhileIterator) Close(vm *vm.VM) error {
-	return vm.IterClose(i.inIter)
+func (i *takeWhileIterator) Close(m *vm.VM) error {
+	return m.IterClose(i.inIter)
 }

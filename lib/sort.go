@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	gosort "sort"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type sortExpr struct {
@@ -14,10 +14,10 @@ type sortExpr struct {
 }
 
 type sorter struct {
-	m     *nitro.VM
-	arr   *nitro.Array
+	m     *vm.VM
+	arr   *vm.List
 	err   error
-	less  nitro.Callable
+	less  vm.Callable
 	exprs []*sortExpr
 }
 
@@ -53,7 +53,7 @@ func (s *sorter) Less(i, j int) bool {
 			}
 
 			if i < len(s.exprs)-1 {
-				areEq, err := evalCmpOp(nitro.OpEq, a, b)
+				areEq, err := evalCmpOp(vm.OpEq, a, b)
 				if err != nil {
 					s.err = err
 					return false
@@ -63,9 +63,9 @@ func (s *sorter) Less(i, j int) bool {
 				}
 			}
 
-			op := nitro.OpLT
+			op := vm.OpLT
 			if expr.desc {
-				op = nitro.OpGT
+				op = vm.OpGT
 			}
 			res, err := evalCmpOp(op, a, b)
 			if err != nil {
@@ -77,12 +77,12 @@ func (s *sorter) Less(i, j int) bool {
 	}
 
 	if s.less != nil {
-		res, err := s.m.Call(s.less, []nitro.Value{a, b}, 1)
+		res, err := s.m.Call(s.less, []vm.Value{a, b}, 1)
 		if err != nil {
 			s.err = err
 			return false
 		}
-		return res[0].(nitro.Bool).Bool()
+		return res[0].(vm.Bool).Bool()
 	}
 
 	if a == nil {
@@ -92,13 +92,13 @@ func (s *sorter) Less(i, j int) bool {
 		return false
 	}
 
-	res, err := nitro.EvalOp(nitro.OpLT, a, b)
+	res, err := vm.EvalOp(vm.OpLT, a, b)
 	if err != nil {
 		s.err = err
 		return false
 	}
 
-	return res.(nitro.Bool).Bool()
+	return res.(vm.Bool).Bool()
 }
 
 func (s *sorter) Swap(i, j int) {
@@ -107,7 +107,7 @@ func (s *sorter) Swap(i, j int) {
 	s.arr.Put(j, t)
 }
 
-func sort(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func sort(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) < 1 {
 		return nil, errNotEnoughArgs
 	}
@@ -124,13 +124,13 @@ func sort(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	if len(args) >= 2 {
 		switch arg2 := args[1].(type) {
-		case nitro.Callable:
+		case vm.Callable:
 			s.less = arg2
 			if len(args) != 2 {
 				return nil, errTooManyArgs
 			}
 
-		case nitro.String:
+		case vm.String:
 			s.exprs = make([]*sortExpr, 0, len(args)-1)
 			for _, arg := range args[1:] {
 				sortExpr := new(sortExpr)
@@ -157,24 +157,24 @@ func sort(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, s.err
 	}
 
-	return []nitro.Value{arr}, nil
+	return []vm.Value{arr}, nil
 }
 
-func evalCmpOp(op nitro.Op, operand1, operand2 nitro.Value) (bool, error) {
-	res, err := nitro.EvalOp(op, operand1, operand2)
+func evalCmpOp(op vm.Op, operand1, operand2 vm.Value) (bool, error) {
+	res, err := vm.EvalOp(op, operand1, operand2)
 	if err != nil {
 		return false, err
 	}
-	boolRes, ok := res.(nitro.Bool)
+	boolRes, ok := res.(vm.Bool)
 	if !ok {
 		return false, fmt.Errorf(
 			"expected operation to return bool; returned %v instead",
-			nitro.TypeName(res))
+			vm.TypeName(res))
 	}
 	return boolRes.Bool(), nil
 }
 
-func shuffle(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func shuffle(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) < 1 {
 		return nil, errNotEnoughArgs
 	}
@@ -190,5 +190,5 @@ func shuffle(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		arr.Put(j, t)
 	})
 
-	return []nitro.Value{arr}, nil
+	return []vm.Value{arr}, nil
 }

@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"sync"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-var typeValue = reflect.Indirect(reflect.ValueOf(new(nitro.Value))).Type()
+var typeValue = reflect.Indirect(reflect.ValueOf(new(vm.Value))).Type()
 
 type fieldMapping struct {
 	fieldIndex int
@@ -21,18 +21,18 @@ type Value2Structer struct {
 	fields map[string]*fieldMapping
 }
 
-func (s *Value2Structer) Convert(from nitro.Value, to interface{}) error {
+func (s *Value2Structer) Convert(from vm.Value, to interface{}) error {
 	s.once.Do(func() { s.init(to) })
 
 	rv := reflect.Indirect(reflect.ValueOf(to))
-	fromObj, ok := from.(*nitro.Object)
+	fromObj, ok := from.(*vm.Map)
 	if !ok {
-		return fmt.Errorf("expected object; received %v", nitro.TypeName(from))
+		return fmt.Errorf("expected object; received %v", vm.TypeName(from))
 	}
 
 	var err error
-	fromObj.ForEach(func(k, v nitro.Value) bool {
-		kstr, ok := k.(nitro.String)
+	fromObj.ForEach(func(k, v vm.Value) bool {
+		kstr, ok := k.(vm.String)
 		if !ok {
 			err = fmt.Errorf("invalid option %v", k.String())
 			return false
@@ -53,37 +53,37 @@ func (s *Value2Structer) Convert(from nitro.Value, to interface{}) error {
 
 		switch rfield.Type().Kind() {
 		case reflect.Bool:
-			vb, ok := v.(nitro.Bool)
+			vb, ok := v.(vm.Bool)
 			if !ok {
 				err = fmt.Errorf("option %v expected bool; received %v",
-					kstr.String(), nitro.TypeName(v))
+					kstr.String(), vm.TypeName(v))
 				return false
 			}
 			rfield.SetBool(vb.Bool())
 
 		case reflect.String:
-			vstr, ok := v.(nitro.String)
+			vstr, ok := v.(vm.String)
 			if !ok {
 				err = fmt.Errorf("option %v expected string; received %v",
-					kstr.String(), nitro.TypeName(v))
+					kstr.String(), vm.TypeName(v))
 				return false
 			}
 			rfield.SetString(vstr.String())
 
 		case reflect.Int64, reflect.Int:
-			vint, ok := v.(nitro.Int)
+			vint, ok := v.(vm.Int)
 			if !ok {
 				err = fmt.Errorf("option %v expected int; received %v",
-					kstr.String(), nitro.TypeName(v))
+					kstr.String(), vm.TypeName(v))
 				return false
 			}
 			rfield.SetInt(vint.Int64())
 
 		case reflect.Slice:
-			va, ok := v.(*nitro.Array)
+			va, ok := v.(*vm.List)
 			if !ok {
 				err = fmt.Errorf("option %v expected array; received %v",
-					kstr.String(), nitro.TypeName(v))
+					kstr.String(), vm.TypeName(v))
 				return false
 			}
 
@@ -93,21 +93,21 @@ func (s *Value2Structer) Convert(from nitro.Value, to interface{}) error {
 
 				switch rfield.Type().Elem().Kind() {
 				case reflect.String:
-					entryStr, ok := entry.(nitro.String)
+					entryStr, ok := entry.(vm.String)
 					if !ok {
 						err = fmt.Errorf(
 							"option %v expected array of string; but entry %d was %v",
-							kstr.String(), i, nitro.TypeName(entry))
+							kstr.String(), i, vm.TypeName(entry))
 						return false
 					}
 					newSlice = reflect.Append(rfield, reflect.ValueOf(entryStr.String()))
 
 				case reflect.Int64:
-					entryInt, ok := entry.(nitro.Int)
+					entryInt, ok := entry.(vm.Int)
 					if !ok {
 						err = fmt.Errorf(
 							"option %v expected array of int; but entry %d was %v",
-							kstr.String(), i, nitro.TypeName(entry))
+							kstr.String(), i, vm.TypeName(entry))
 						return false
 					}
 					newSlice = reflect.Append(rfield, reflect.ValueOf(entryInt.Int64()))

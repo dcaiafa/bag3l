@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 func TestFn(t *testing.T) {
@@ -259,7 +259,7 @@ func main() {
 	RunSubErr(t, "err_call_nil", `
 			var a
 			a(2)
-		`, nitro.ErrCannotCallNil)
+		`, vm.ErrCannotCallNil)
 
 	RunSubO(t, "call_expand", `
 			print(1, [2, 3, 4]...)

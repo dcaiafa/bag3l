@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	libio "github.com/dcaiafa/bag3l/lib/io"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +32,7 @@ func TestInterrupt(t *testing.T) {
 
 	outBuilder := &strings.Builder{}
 
-	vm := nitro.NewVM(prog)
+	vm := vm.NewVM(prog)
 	libio.SetStdout(vm, outBuilder)
 
 	go func() {

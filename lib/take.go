@@ -3,22 +3,21 @@ package lib
 import (
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func take(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func take(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
-	if nitro.IsIterable(args[0]) {
+	if vm.IsIterable(args[0]) {
 		return takeIter(m, args, nRet)
 	} else {
 		return takeReader(m, args, nRet)
 	}
 }
 
-func takeIter(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func takeIter(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
@@ -34,15 +33,15 @@ func takeIter(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) 
 	}
 
 	takeIter := &takeIterator{inIter: inIter, count: int(count)}
-	return []nitro.Value{nitro.NewIterator(takeIter.Next, takeIter.Close, inIter.IterNRet())}, nil
+	return []vm.Value{vm.NewIterator(takeIter.Next, takeIter.Close, inIter.IterNRet())}, nil
 }
 
 type takeIterator struct {
-	inIter nitro.Iterator
+	inIter vm.Iterator
 	count  int
 }
 
-func (i *takeIterator) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *takeIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if i.count == 0 {
 		i.Close(m)
 		return nil, nil
@@ -61,12 +60,12 @@ func (i *takeIterator) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.
 	return v, nil
 }
 
-func (i *takeIterator) Close(m *nitro.VM) error {
+func (i *takeIterator) Close(m *vm.VM) error {
 	m.IterClose(i.inIter)
 	return nil
 }
 
-func takeReader(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func takeReader(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
@@ -81,7 +80,7 @@ func takeReader(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error
 		return nil, err
 	}
 
-	return []nitro.Value{NewLimitedReader(inReader, count)}, nil
+	return []vm.Value{NewLimitedReader(inReader, count)}, nil
 }
 
 type LimitedReader struct {

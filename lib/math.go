@@ -3,10 +3,10 @@ package lib
 import (
 	"math"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func mathTrunc(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func mathTrunc(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -15,5 +15,5 @@ func mathTrunc(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 		return nil, err
 	}
 	res := math.Trunc(v)
-	return []nitro.Value{nitro.NewFloat(res)}, nil
+	return []vm.Value{vm.NewFloat(res)}, nil
 }

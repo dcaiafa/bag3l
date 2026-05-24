@@ -25,9 +25,10 @@ under `lib/` and is largely generated from `.stubgen` specs.
 
 ## Architecture
 
-The top-level package `github.com/dcaiafa/bag3l` (`nitro.go`) is a thin public
-facade re-exporting types from `internal/vm`, `internal/compiler`, etc., so
-embedders import a single package.
+The runtime, compiler, and standard library live under `internal/` and `lib/`;
+code depends on those packages directly (e.g. `internal/vm`, `internal/compiler`).
+The `vm` package conventionally names the VM-instance value `m` (e.g.
+`func f(m *vm.VM, ...)`) to avoid colliding with the `vm` package selector.
 
 Pipeline from source to execution:
 

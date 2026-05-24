@@ -39,7 +39,7 @@ func (s *ObjectLiteral) RunPass(ctx *Context, pass Pass) {
 		// For completeness. Nothing can reference the $arr symbol, thus it cannot
 		// be lifted, hence does not require initialization.
 		emitVariableInit(ctx, s.Pos(), s.obj)
-		ctx.Emitter().Emit(s.Pos(), vm.OpNewObject, 0, 0)
+		ctx.Emitter().Emit(s.Pos(), vm.OpNewMap, 0, 0)
 		emitSymbolStore(s.Pos(), ctx.Emitter(), s.obj)
 	}
 

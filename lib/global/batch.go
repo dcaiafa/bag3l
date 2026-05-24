@@ -1,7 +1,6 @@
 package global
 
 import (
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
@@ -11,25 +10,25 @@ func batch0(m *vm.VM, inIter vm.Iterator, n int64) (vm.Iterator, error) {
 		n:      int(n),
 	}
 
-	outIter := nitro.NewIterator(
+	outIter := vm.NewIterator(
 		batchIter.Next, batchIter.Close, 1)
 
 	return outIter, nil
 }
 
 type batchIter struct {
-	inIter nitro.Iterator
+	inIter vm.Iterator
 	n      int
 }
 
-func (i *batchIter) Next(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *batchIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if i.inIter.IsClosed() {
 		return nil, nil
 	}
 
-	var b = make([]nitro.Value, 0, i.n)
+	var b = make([]vm.Value, 0, i.n)
 	for len(b) < i.n {
-		v, err := vm.IterNext(i.inIter, 1)
+		v, err := m.IterNext(i.inIter, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -43,10 +42,10 @@ func (i *batchIter) Next(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Va
 		return nil, nil
 	}
 
-	return []nitro.Value{nitro.NewArrayFromSlice(b)}, nil
+	return []vm.Value{vm.NewListWithSlice(b)}, nil
 }
 
-func (i *batchIter) Close(vm *nitro.VM) error {
-	vm.IterClose(i.inIter)
+func (i *batchIter) Close(m *vm.VM) error {
+	m.IterClose(i.inIter)
 	return nil
 }

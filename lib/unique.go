@@ -1,10 +1,8 @@
 package lib
 
-import (
-	nitro "github.com/dcaiafa/bag3l"
-)
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func unique(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func unique(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 2); err != nil {
 		return nil, err
 	}
@@ -23,7 +21,7 @@ func unique(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		}
 	}
 
-	set := make(map[nitro.Value]nitro.Value)
+	set := make(map[vm.Value]vm.Value)
 
 	for {
 		v, err := m.IterNext(e, 1)
@@ -44,10 +42,10 @@ func unique(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		set[key] = v[0]
 	}
 
-	arr := nitro.NewArrayFromSlice(make([]nitro.Value, 0, len(set)))
+	arr := vm.NewListWithSlice(make([]vm.Value, 0, len(set)))
 	for _, v := range set {
 		arr.Add(v)
 	}
 
-	return []nitro.Value{arr}, nil
+	return []vm.Value{arr}, nil
 }

@@ -1,26 +1,26 @@
 package lib
 
-import nitro "github.com/dcaiafa/bag3l"
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func first(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func first(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) > 1 {
 		return nil, errTooManyArgs
 	}
 
-	iter, err := getIterArg(vm, args, 0)
+	iter, err := getIterArg(m, args, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	defer vm.IterClose(iter)
+	defer m.IterClose(iter)
 
-	v, err := vm.IterNext(iter, iter.IterNRet())
+	v, err := m.IterNext(iter, iter.IterNRet())
 	if err != nil {
 		return nil, err
 	}
 
 	if v == nil {
-		return make([]nitro.Value, nRet), nil
+		return make([]vm.Value, nRet), nil
 	}
 
 	return v, nil

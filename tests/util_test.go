@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/compiler"
 	"github.com/dcaiafa/bag3l/internal/export"
 	"github.com/dcaiafa/bag3l/internal/fs"
@@ -14,14 +13,14 @@ import (
 	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 
-func harnessCall(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	callable := args[0].(nitro.Callable)
+func harnessCall(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	callable := args[0].(vm.Callable)
 	return m.Call(callable, args, nRet)
 }
 
-func isIterClosed(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	iter := args[0].(nitro.Iterator)
-	return []nitro.Value{nitro.NewBool(iter.IsClosed())}, nil
+func isIterClosed(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	iter := args[0].(vm.Iterator)
+	return []vm.Value{vm.NewBool(iter.IsClosed())}, nil
 }
 
 func compile(prog string) (*vm.Program, error) {
@@ -47,7 +46,7 @@ func compile(prog string) (*vm.Program, error) {
 	return program, nil
 }
 
-func run(prog string, params map[string]nitro.Value) (output string, err error) {
+func run(prog string, params map[string]vm.Value) (output string, err error) {
 	compiled, err := compile(prog)
 	if err != nil {
 		return "", err
@@ -55,7 +54,7 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 
 	outBuilder := &strings.Builder{}
 
-	vm := nitro.NewVM(compiled)
+	vm := vm.NewVM(compiled)
 	libio.SetStdout(vm, outBuilder)
 
 	for n, v := range params {

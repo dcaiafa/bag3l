@@ -57,7 +57,7 @@ func (a *MemberAccess) RunPass(ctx *Context, pass Pass) {
 			if a.Optional {
 				flags |= vm.OptionalIndexFlag
 			}
-			emitter.Emit(a.Pos(), vm.OpObjectGet, 0, flags)
+			emitter.Emit(a.Pos(), vm.OpLoadIndex, 0, flags)
 		} else {
 			emitSymbolPush(a.Pos(), ctx.Emitter(), a.ModuleMember)
 		}

@@ -4,18 +4,18 @@ import (
 	"errors"
 	"regexp"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 var errRegexUsage = errors.New(
 	`invalid usage. Expected regex(string)`)
 
-func regex(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func regex(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, errRegexUsage
 	}
 
-	reStr, ok := args[0].(nitro.String)
+	reStr, ok := args[0].(vm.String)
 	if !ok {
 		return nil, errRegexUsage
 	}
@@ -25,5 +25,5 @@ func regex(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, errRegexUsage
 	}
 
-	return []nitro.Value{nitro.NewRegex(re)}, nil
+	return []vm.Value{vm.NewRegex(re)}, nil
 }

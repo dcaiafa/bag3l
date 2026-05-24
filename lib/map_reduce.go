@@ -3,16 +3,16 @@ package lib
 import (
 	"fmt"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type mapReduceSpec struct {
-	Reduce nitro.Callable
+	Reduce vm.Callable
 	Pick   *PathExpr
 }
 
-func (s *mapReduceSpec) Convert(v nitro.Value) error {
-	mapv, ok := v.(*nitro.Object)
+func (s *mapReduceSpec) Convert(v vm.Value) error {
+	mapv, ok := v.(*vm.Map)
 	if !ok {
 		return fmt.Errorf("reduce spec must be a map")
 	}
@@ -21,17 +21,17 @@ func (s *mapReduceSpec) Convert(v nitro.Value) error {
 		return fmt.Errorf("invalid spec")
 	}
 
-	reduce, ok := mapv.Get(nitro.NewString("reduce"))
+	reduce, ok := mapv.Get(vm.NewString("reduce"))
 	if !ok {
 		return fmt.Errorf("spec must specify a reduce function")
 	}
-	s.Reduce, ok = reduce.(nitro.Callable)
+	s.Reduce, ok = reduce.(vm.Callable)
 	if !ok {
 		return fmt.Errorf("spec field reduce must be a function")
 	}
 
 	if mapv.Len() == 2 {
-		pick, ok := mapv.Get(nitro.NewString("pick"))
+		pick, ok := mapv.Get(vm.NewString("pick"))
 		if !ok {
 			return fmt.Errorf("invalid spec")
 		}
@@ -48,12 +48,12 @@ func (s *mapReduceSpec) Convert(v nitro.Value) error {
 
 // map_reduce(iter, map_expr, []{ reduce: func, pick: func })
 
-func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func mapReduce(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 3 {
 		return nil, errInvalidNumberOfArgs
 	}
 
-	iter, err := nitro.MakeIterator(m, args[0])
+	iter, err := vm.MakeIterator(m, args[0])
 	if err != nil {
 		return nil, fmt.Errorf("invalid argument 1: %w", err)
 	}
@@ -80,7 +80,7 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 		specs[i] = spec
 	}
 
-	res := nitro.NewObject()
+	res := vm.NewMap()
 	for {
 		cur, err := m.IterNext(iter, 1)
 		if err != nil {
@@ -95,11 +95,11 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 			return nil, err
 		}
 
-		var accumList *nitro.Array
+		var accumList *vm.List
 		if accum, ok := res.Get(mapKey); ok && accum != nil {
-			accumList = accum.(*nitro.Array)
+			accumList = accum.(*vm.List)
 		} else {
-			accumList = nitro.NewArrayFromSlice(make([]nitro.Value, len(specs)))
+			accumList = vm.NewListWithSlice(make([]vm.Value, len(specs)))
 			res.Put(mapKey, accumList)
 		}
 
@@ -113,7 +113,7 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 			}
 
 			partialRes, err := m.Call(
-				spec.Reduce, []nitro.Value{accumList.Get(i), val}, 1)
+				spec.Reduce, []vm.Value{accumList.Get(i), val}, 1)
 			if err != nil {
 				return nil, err
 			}
@@ -122,10 +122,10 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 	}
 
 	err = nil
-	res.ForEach(func(k, accum nitro.Value) bool {
-		accumList := accum.(*nitro.Array)
+	res.ForEach(func(k, accum vm.Value) bool {
+		accumList := accum.(*vm.List)
 		for i, spec := range specs {
-			finalRes, callErr := m.Call(spec.Reduce, []nitro.Value{accumList.Get(i), nil}, 1)
+			finalRes, callErr := m.Call(spec.Reduce, []vm.Value{accumList.Get(i), nil}, 1)
 			if callErr != nil {
 				err = callErr
 				return false
@@ -139,5 +139,5 @@ func mapReduce(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error)
 		return nil, fmt.Errorf("final reduce failed: %w", err)
 	}
 
-	return []nitro.Value{res}, nil
+	return []vm.Value{res}, nil
 }

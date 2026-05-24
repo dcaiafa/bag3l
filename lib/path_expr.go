@@ -5,22 +5,22 @@ import (
 	"strconv"
 	"strings"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type pathOp struct {
-	index  nitro.Int
-	member nitro.String
+	index  vm.Int
+	member vm.String
 }
 
 type PathExpr struct {
-	fn  nitro.Callable
+	fn  vm.Callable
 	ops []pathOp
 }
 
-func (e *PathExpr) Eval(m *nitro.VM, v nitro.Value) (nitro.Value, error) {
+func (e *PathExpr) Eval(m *vm.VM, v vm.Value) (vm.Value, error) {
 	if e.fn != nil {
-		res, err := m.Call(e.fn, []nitro.Value{v}, 1)
+		res, err := m.Call(e.fn, []vm.Value{v}, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -29,18 +29,18 @@ func (e *PathExpr) Eval(m *nitro.VM, v nitro.Value) (nitro.Value, error) {
 	return evalPathOp(v, e.ops)
 }
 
-func evalPathOp(v nitro.Value, ops []pathOp) (nitro.Value, error) {
+func evalPathOp(v vm.Value, ops []pathOp) (vm.Value, error) {
 	if len(ops) == 0 {
 		return v, nil
 	}
 
-	indexable, ok := v.(nitro.Indexable)
+	indexable, ok := v.(vm.Indexable)
 	if !ok {
 		return nil, nil
 	}
 
 	var err error
-	var child nitro.Value
+	var child vm.Value
 	if ops[0].member.String() != "" {
 		child, _, err = indexable.Index(ops[0].member)
 		if err != nil {
@@ -56,13 +56,13 @@ func evalPathOp(v nitro.Value, ops []pathOp) (nitro.Value, error) {
 	return evalPathOp(child, ops[1:])
 }
 
-func ParsePathExpr(v nitro.Value) (*PathExpr, string, error) {
-	callable, ok := v.(nitro.Callable)
+func ParsePathExpr(v vm.Value) (*PathExpr, string, error) {
+	callable, ok := v.(vm.Callable)
 	if ok {
 		return &PathExpr{fn: callable}, "", nil
 	}
 
-	exprValue, ok := v.(nitro.String)
+	exprValue, ok := v.(vm.String)
 	if !ok {
 		return nil, "", fmt.Errorf(
 			"path expression must be a string or a function")
@@ -94,7 +94,7 @@ func ParsePathExpr(v nitro.Value) (*PathExpr, string, error) {
 			if err != nil {
 				return nil, "", fmt.Errorf("invalid array index")
 			}
-			ops = append(ops, pathOp{index: nitro.NewInt(index)})
+			ops = append(ops, pathOp{index: vm.NewInt(index)})
 		} else if expr[0] == '.' {
 			expr = expr[1:]
 			var member string
@@ -110,7 +110,7 @@ func ParsePathExpr(v nitro.Value) (*PathExpr, string, error) {
 					return nil, "", fmt.Errorf("member cannot be empty")
 				}
 			}
-			ops = append(ops, pathOp{member: nitro.NewString(member)})
+			ops = append(ops, pathOp{member: vm.NewString(member)})
 		} else if expr[0] == ',' {
 			extra = expr[1:]
 			break

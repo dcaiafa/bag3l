@@ -243,7 +243,7 @@ fields:
   `op2` is the capture count.
 - `OpNewClosure`: `op1` is the function literal index; `op2` is the capture
   count.
-- `OpObjectGet`: `op2 & OptionalIndexFlag` (`0x0001`) marks an optional
+- `OpLoadIndex`: `op2 & OptionalIndexFlag` (`0x0001`) marks an optional
   index (`?.` / `?[]`) so a missing key yields nil instead of an error.
 - `OpLoadLiteral`: `op1` is the literal index; `op2` is the dependency index
   into `pkg.Deps` (allowing cross-package access to constants/functions).
@@ -534,10 +534,6 @@ candidates for fixing rather than as contracts to rely on.
 - **`coroutine.framePool` is per-coroutine.** Each spawned coroutine
   allocates its own pool, so coroutine-heavy workloads re-pay frame
   allocation costs per fiber.
-
-- **Naming inconsistency: `OpNewObject` for the map type.** The type was
-  renamed from `Object` to `Map` (commit `Rename object => map`), but the
-  opcode and several internal identifiers still use the old name.
 
 - **`Bool.EvalOp` does not return `ErrOperationNotSupported`.** It returns
   a plain `fmt.Errorf("bool does not support this operation")`, so the

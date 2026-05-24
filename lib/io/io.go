@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 )
@@ -57,7 +56,7 @@ type stdoutStack struct {
 	stack []vm.Writer
 }
 
-func Stdout(m *nitro.VM) vm.Writer {
+func Stdout(m *vm.VM) vm.Writer {
 	stdout, ok := m.GetUserData(stdoutUserDataKey{}).(vm.Writer)
 	if !ok {
 		panic("stdout is not set")
@@ -69,16 +68,16 @@ func SetStdout(m *vm.VM, w io.Writer) {
 	m.SetUserData(stdoutUserDataKey{}, wrapWriter(w))
 }
 
-func Stderr(m *nitro.VM) vm.Writer {
+func Stderr(m *vm.VM) vm.Writer {
 	return DefaultErr
 }
 
-func in0(vm *vm.VM) (vm.Reader, error) {
+func in0(m *vm.VM) (vm.Reader, error) {
 	return DefaultStdin, nil
 }
 
-func out0(vm *nitro.VM, r vm.Reader) (vm.Writer, error) {
-	out := Stdout(vm)
+func out0(m *vm.VM, r vm.Reader) (vm.Writer, error) {
+	out := Stdout(m)
 	if r == nil {
 		return out, nil
 	}
@@ -90,8 +89,8 @@ func out0(vm *nitro.VM, r vm.Reader) (vm.Writer, error) {
 	return out, nil
 }
 
-func err0(vm *nitro.VM, r vm.Reader) (vm.Writer, error) {
-	out := Stderr(vm)
+func err0(m *vm.VM, r vm.Reader) (vm.Writer, error) {
+	out := Stderr(m)
 	if r == nil {
 		return out, nil
 	}

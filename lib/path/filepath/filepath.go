@@ -9,13 +9,12 @@ import (
 	"sync"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 //go:generate go run ../../../internal/stub/stubgen filepath.stubgen
 
-func abs0(vm *vm.VM, path string) (string, error) {
+func abs0(m *vm.VM, path string) (string, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -23,19 +22,19 @@ func abs0(vm *vm.VM, path string) (string, error) {
 	return abs, nil
 }
 
-func base0(vm *vm.VM, path string) (string, error) {
+func base0(m *vm.VM, path string) (string, error) {
 	return filepath.Base(path), nil
 }
 
-func clean0(vm *vm.VM, path string) (string, error) {
+func clean0(m *vm.VM, path string) (string, error) {
 	return filepath.Clean(path), nil
 }
 
-func dir0(vm *vm.VM, path string) (string, error) {
+func dir0(m *vm.VM, path string) (string, error) {
 	return filepath.Dir(path), nil
 }
 
-func eval_symlinks0(vm *vm.VM, path string) (string, error) {
+func eval_symlinks0(m *vm.VM, path string) (string, error) {
 	res, err := filepath.EvalSymlinks(path)
 	if err != nil {
 		return "", err
@@ -43,23 +42,23 @@ func eval_symlinks0(vm *vm.VM, path string) (string, error) {
 	return res, nil
 }
 
-func ext0(vm *vm.VM, path string) (string, error) {
+func ext0(m *vm.VM, path string) (string, error) {
 	return filepath.Ext(path), nil
 }
 
-func from_slash0(vm *vm.VM, path string) (string, error) {
+func from_slash0(m *vm.VM, path string) (string, error) {
 	return filepath.FromSlash(path), nil
 }
 
-func is_abs0(vm *vm.VM, path string) (bool, error) {
+func is_abs0(m *vm.VM, path string) (bool, error) {
 	return filepath.IsAbs(path), nil
 }
 
-func join0(vm *vm.VM, elems []string) (string, error) {
+func join0(m *vm.VM, elems []string) (string, error) {
 	return filepath.Join(elems...), nil
 }
 
-func match0(vm *vm.VM, path, pattern string) (bool, error) {
+func match0(m *vm.VM, path, pattern string) (bool, error) {
 	res, err := doublestar.PathMatch(pattern, path)
 	if err != nil {
 		return false, err
@@ -67,7 +66,7 @@ func match0(vm *vm.VM, path, pattern string) (bool, error) {
 	return res, nil
 }
 
-func rel0(vm *vm.VM, targPath, basePath string) (string, error) {
+func rel0(m *vm.VM, targPath, basePath string) (string, error) {
 	res, err := filepath.Rel(basePath, targPath)
 	if err != nil {
 		return "", err
@@ -77,22 +76,22 @@ func rel0(vm *vm.VM, targPath, basePath string) (string, error) {
 
 func split_list0(_ *vm.VM, path string) (*vm.List, error) {
 	list := filepath.SplitList(path)
-	res := make([]bag3l.Value, len(list))
+	res := make([]vm.Value, len(list))
 	for i, elem := range list {
-		res[i] = bag3l.NewString(elem)
+		res[i] = vm.NewString(elem)
 	}
 	return vm.NewListWithSlice(res), nil
 }
 
-func to_slash0(vm *vm.VM, path string) (string, error) {
+func to_slash0(m *vm.VM, path string) (string, error) {
 	return filepath.ToSlash(path), nil
 }
 
-func volume_name0(vm *vm.VM, path string) (string, error) {
+func volume_name0(m *vm.VM, path string) (string, error) {
 	return filepath.VolumeName(path), nil
 }
 
-func is_dir0(vm *vm.VM, path string) (bool, error) {
+func is_dir0(m *vm.VM, path string) (bool, error) {
 	fi, err := os.Lstat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -103,11 +102,11 @@ func is_dir0(vm *vm.VM, path string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func rename0(vm *vm.VM, oldPath, newPath string) error {
+func rename0(m *vm.VM, oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
-func exists0(vm *vm.VM, path string) (bool, error) {
+func exists0(m *vm.VM, path string) (bool, error) {
 	_, err := os.Lstat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -165,19 +164,19 @@ func (i *lsDoubleStarIter) run(ctx context.Context) {
 	})
 }
 
-func (i *lsDoubleStarIter) Next(m *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
+func (i *lsDoubleStarIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	entry, ok := <-i.outChan
 	if !ok {
 		i.cancel()
 		return nil, nil
 	}
 
-	return []bag3l.Value{
-		bag3l.NewString(filepath.FromSlash(filepath.Join(i.base, entry.path))),
-		bag3l.NewBool(entry.dirEntry.IsDir())}, nil
+	return []vm.Value{
+		vm.NewString(filepath.FromSlash(filepath.Join(i.base, entry.path))),
+		vm.NewBool(entry.dirEntry.IsDir())}, nil
 }
 
-func (i *lsDoubleStarIter) Close(vm *bag3l.VM) error {
+func (i *lsDoubleStarIter) Close(m *vm.VM) error {
 	i.cancel()
 	return nil
 }
@@ -187,20 +186,20 @@ type lsSimpleIter struct {
 	entries []fs.DirEntry
 }
 
-func (i *lsSimpleIter) Next(m *bag3l.VM, args []bag3l.Value, nRet int) ([]bag3l.Value, error) {
+func (i *lsSimpleIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(i.entries) == 0 {
 		return nil, nil
 	}
 
-	res := []bag3l.Value{
-		bag3l.NewString(filepath.Join(i.root, i.entries[0].Name())),
-		bag3l.NewBool(i.entries[0].IsDir())}
+	res := []vm.Value{
+		vm.NewString(filepath.Join(i.root, i.entries[0].Name())),
+		vm.NewBool(i.entries[0].IsDir())}
 
 	i.entries = i.entries[1:]
 	return res, nil
 }
 
-func ls0(vm *vm.VM, path string) (vm.Iterator, error) {
+func ls0(m *vm.VM, path string) (vm.Iterator, error) {
 	base, pattern := doublestar.SplitPattern(filepath.ToSlash(path))
 	if pattern == "" || pattern == "." {
 		// This is a simple path. I.e. it does not include a pattern. Using
@@ -215,14 +214,14 @@ func ls0(vm *vm.VM, path string) (vm.Iterator, error) {
 			entries: entries,
 		}
 
-		return bag3l.NewIterator(iter.Next, nil, 2), nil
+		return vm.NewIterator(iter.Next, nil, 2), nil
 	}
 
 	iter := newLSDoubleStarIter(base, pattern)
-	return bag3l.NewIterator(iter.Next, iter.Close, 2), nil
+	return vm.NewIterator(iter.Next, iter.Close, 2), nil
 }
 
-func remove0(vm *vm.VM, path string) (bool, error) {
+func remove0(m *vm.VM, path string) (bool, error) {
 	err := os.Remove(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -233,19 +232,19 @@ func remove0(vm *vm.VM, path string) (bool, error) {
 	return true, nil
 }
 
-func remove_all0(vm *vm.VM, path string) error {
+func remove_all0(m *vm.VM, path string) error {
 	return os.RemoveAll(path)
 }
 
-func mkdir0(vm *vm.VM, path string) error {
+func mkdir0(m *vm.VM, path string) error {
 	return os.Mkdir(path, 0777)
 }
 
-func mkdir_all0(vm *vm.VM, path string) error {
+func mkdir_all0(m *vm.VM, path string) error {
 	return os.MkdirAll(path, 0777)
 }
 
-func mkdir_temp0(vm *vm.VM, pattern, dir string) (string, error) {
+func mkdir_temp0(m *vm.VM, pattern, dir string) (string, error) {
 	tempDir, err := os.MkdirTemp(dir, pattern)
 	if err != nil {
 		return "", err

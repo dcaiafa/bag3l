@@ -3,10 +3,10 @@ package lib
 import (
 	"context"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func runWithTimeout(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func runWithTimeout(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) > 2 {
 		return nil, errTooManyArgs
 	}
@@ -16,13 +16,13 @@ func runWithTimeout(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, 
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(vm.Context(), dur.Duration())
+	ctx, cancel := context.WithTimeout(m.Context(), dur.Duration())
 	defer cancel()
 
-	vm.PushContext(ctx)
-	defer vm.PopContext()
+	m.PushContext(ctx)
+	defer m.PopContext()
 
-	_, err = vm.Call(args[0], nil, 0)
+	_, err = m.Call(args[0], nil, 0)
 	if err != nil {
 		return nil, err
 	}
