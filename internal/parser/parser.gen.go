@@ -1196,7 +1196,7 @@ func (p *parser) _act(prod int32) any {
 		)
 	case 43:
 		return p.on_assignment_stmt(
-			_cast[[]*_i0.LValue](p._stack.Peek(2).Sym),
+			_cast[[]_i0.LValue](p._stack.Peek(2).Sym),
 			_cast[Token](p._stack.Peek(1).Sym),
 			_cast[[]_i0.Expr](p._stack.Peek(0).Sym),
 		)
@@ -1922,12 +1922,12 @@ func (p *parser) _act(prod int32) any {
 		}
 	case 190: // List
 		return append(
-			_cast[[]*_i0.LValue](p._stack.Peek(2).Sym),
-			_cast[*_i0.LValue](p._stack.Peek(0).Sym),
+			_cast[[]_i0.LValue](p._stack.Peek(2).Sym),
+			_cast[_i0.LValue](p._stack.Peek(0).Sym),
 		)
 	case 191: // List
-		return []*_i0.LValue{
-			_cast[*_i0.LValue](p._stack.Peek(0).Sym),
+		return []_i0.LValue{
+			_cast[_i0.LValue](p._stack.Peek(0).Sym),
 		}
 	case 192: // List
 		return append(

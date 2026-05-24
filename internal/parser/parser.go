@@ -158,40 +158,30 @@ func (p *parser) on_expr_stmt(expr ast.Expr) ast.AST {
 	return &ast.ExprStmt{Expr: expr}
 }
 
-func (p *parser) on_lvalue__simple_ref(id Token) *ast.LValue {
-	ref := &ast.SimpleRef{
+func (p *parser) on_lvalue__simple_ref(id Token) ast.LValue {
+	return &ast.SimpleRefLValue{
 		ID: p.tokenToNitro(id),
 	}
-	ref.SetPos(p.tokenPos(id))
-	return p.lvalue(ref)
 }
 
-func (p *parser) on_lvalue__member_access(target ast.Expr, _ Token, member Token) *ast.LValue {
-	access := &ast.MemberAccess{
+func (p *parser) on_lvalue__member_access(target ast.Expr, _ Token, member Token) ast.LValue {
+	return &ast.MemberAccessLValue{
 		Target: target,
 		Member: p.tokenToNitro(member),
 	}
-	access.SetPos(target.Pos())
-	return p.lvalue(access)
 }
 
-func (p *parser) on_lvalue__index(target ast.Expr, _ Token, index ast.Expr, _ Token) *ast.LValue {
-	idx := &ast.IndexExpr{
+func (p *parser) on_lvalue__index(target ast.Expr, _ Token, index ast.Expr, _ Token) ast.LValue {
+	return &ast.IndexLValue{
 		Target: target,
 		Index:  index,
 	}
-	idx.SetPos(target.Pos())
-	return p.lvalue(idx)
 }
 
-func (p *parser) on_assignment_stmt(lvalues []*ast.LValue, op Token, rvalues []ast.Expr) ast.AST {
+func (p *parser) on_assignment_stmt(lvalues []ast.LValue, op Token, rvalues []ast.Expr) ast.AST {
 	if op.Type == ASSIGN {
-		asts := make(ast.ASTs, len(lvalues))
-		for i, lvalue := range lvalues {
-			asts[i] = lvalue
-		}
 		return &ast.AssignStmt{
-			Lvalues: asts,
+			Lvalues: lvalues,
 			Rvalues: ast.Exprs(rvalues),
 		}
 	}
@@ -849,17 +839,21 @@ func (p *parser) tokens(ts []Token) []token.Token {
 	return tokens
 }
 
-func (p *parser) lvalue(expr ast.Expr) *ast.LValue {
-	switch expr.(type) {
+// lvalue converts an already-parsed expression into the corresponding lvalue
+// node. It is used by statements whose grammar accepts a full expression that
+// must be assignable, such as `expr '++'`.
+func (p *parser) lvalue(expr ast.Expr) ast.LValue {
+	var lv ast.LValue
+	switch e := expr.(type) {
 	case *ast.SimpleRef:
+		lv = &ast.SimpleRefLValue{ID: e.ID}
 	case *ast.MemberAccess:
+		lv = &ast.MemberAccessLValue{Target: e.Target, Member: e.Member}
 	case *ast.IndexExpr:
+		lv = &ast.IndexLValue{Target: e.Target, Index: e.Index}
 	default:
 		p.errLogger.Failf(expr.Pos(), "Expression is not lvalue")
 		return nil
-	}
-	lv := &ast.LValue{
-		Expr: expr,
 	}
 	lv.SetPos(expr.Pos())
 	return lv

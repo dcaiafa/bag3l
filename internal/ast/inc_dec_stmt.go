@@ -12,7 +12,7 @@ const (
 
 type IncDecStmt struct {
 	PosImpl
-	LValue *LValue
+	LValue LValue
 	Op     IncDecOp
 
 	rewritten AST
@@ -32,10 +32,10 @@ func (s *IncDecStmt) RunPass(ctx *Context, pass Pass) {
 		}
 
 		s.rewritten = &AssignStmt{
-			Lvalues: ASTs{s.LValue},
+			Lvalues: []LValue{s.LValue},
 			Rvalues: Exprs{
 				&BinaryExpr{
-					Left: s.LValue.Expr,
+					Left: lvalueReadExpr(s.LValue),
 					Op:   binOp,
 					Right: &LiteralExpr{
 						Val: token.Token{

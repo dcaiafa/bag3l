@@ -59,11 +59,6 @@ func (c *Context) Imports() []*vm.CompiledPackage {
 	return c.deps
 }
 
-func (c *Context) IsLValue() bool {
-	_, isLValue := c.Parent().(*LValue)
-	return isLValue
-}
-
 func (c *Context) RunPassChild(parent AST, child AST, pass Pass) {
 	if child == nil {
 		return

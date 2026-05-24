@@ -4,7 +4,7 @@ import "github.com/dcaiafa/bag3l/internal/vm"
 
 type AssignStmt struct {
 	PosImpl
-	Lvalues ASTs
+	Lvalues []LValue
 	Rvalues Exprs
 }
 
@@ -24,7 +24,7 @@ func (s *AssignStmt) RunPass(ctx *Context, pass Pass) {
 		}
 	}
 
-	ctx.RunPassChild(s, s.Lvalues, pass)
+	RunPassChildren(ctx, s, s.Lvalues, pass)
 	ctx.RunPassChild(s, s.Rvalues, pass)
 
 	switch pass {
