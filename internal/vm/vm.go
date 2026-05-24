@@ -435,6 +435,7 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 		f.nRet = nret
 		f.nLocals = iter.nlocals
 		f.ip = iter.ip
+		f.bp = iter.bp
 
 		m.co.stack = iter.stack
 		m.co.sp = iter.sp
@@ -960,6 +961,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			iter.tryCatches = m.co.frame.tryCatches
 			iter.defers = m.co.frame.defers
 			iter.nlocals = m.co.frame.nLocals
+			iter.bp = m.co.frame.bp
 			iter.ip = m.co.ip + 1
 
 			if nret > m.co.frame.nRet {

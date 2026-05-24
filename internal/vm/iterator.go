@@ -52,6 +52,7 @@ type ILIterator struct {
 	nlocals    int
 	ip         int
 	sp         int
+	bp         int
 	closed     bool
 
 	preAllocStack [stackSize]Value

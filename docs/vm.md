@@ -326,6 +326,7 @@ type ILIterator struct {
     nlocals    int
     ip         int                 // -1 means finished
     sp         int
+    bp         int                 // base pointer, carried across yields
     closed     bool
 
     preAllocStack [stackSize]Value
@@ -336,13 +337,13 @@ On every `Next()`, the VM:
 
 1. Saves the host coroutine's `stack`/`sp` (`rstack`, `rsp`).
 2. Swaps in the iterator's `stack`/`sp` and pushes a frame whose `ip`,
-   `tryCatches`, `defers`, `nlocals`, and `caps` come from the iterator.
+   `bp`, `tryCatches`, `defers`, `nlocals`, and `caps` come from the iterator.
 3. Runs `runFrame` until `OpIterYield` (yield) or `OpIterRet`/`OpRet` (done).
 4. Copies the yielded values back to the host stack and restores the host
    `stack`/`sp`.
 
-`OpIterYield` saves `ip`, `tryCatches`, `defers`, `nlocals` back onto the
-`ILIterator` and returns `nil` from the inner interpreter loop. `OpIterRet`
+`OpIterYield` saves `ip`, `bp`, `tryCatches`, `defers`, `nlocals` back onto
+the `ILIterator` and returns `nil` from the inner interpreter loop. `OpIterRet`
 sets `ip = -1` to mark the generator finished. Calling a finished iterator
 returns `False` plus nils for the remaining slots.
 
@@ -533,13 +534,6 @@ candidates for fixing rather than as contracts to rely on.
 - **`coroutine.framePool` is per-coroutine.** Each spawned coroutine
   allocates its own pool, so coroutine-heavy workloads re-pay frame
   allocation costs per fiber.
-
-- **`ILIterator` resume implicitly assumes `bp == 0`.** The first
-  invocation runs `OpInitCallFrame` with `sp=0`, setting `bp=0`. On
-  subsequent resumes the resume frame's `bp` defaults to zero (from the
-  pooled `frame{}`), and "happens to work" because the original value was
-  also zero. Storing `bp` on the iterator (alongside `sp`/`ip`/`nlocals`)
-  would make this explicit rather than incidental.
 
 - **Naming inconsistency: `OpNewObject` for the map type.** The type was
   renamed from `Object` to `Map` (commit `Rename object => map`), but the
