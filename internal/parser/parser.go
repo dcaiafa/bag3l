@@ -158,21 +158,56 @@ func (p *parser) on_expr_stmt(expr ast.Expr) ast.AST {
 	return &ast.ExprStmt{Expr: expr}
 }
 
-func (p *parser) on_assignment_stmt(lvalueExprs []ast.Expr, _ Token, rvalues []ast.Expr) ast.AST {
-	lvalues := make(ast.ASTs, len(lvalueExprs))
-	for i, lvalueExpr := range lvalueExprs {
-		lvalues[i] = p.lvalue(lvalueExpr)
+func (p *parser) on_lvalue__simple_ref(id Token) *ast.LValue {
+	ref := &ast.SimpleRef{
+		ID: p.tokenToNitro(id),
 	}
-	return &ast.AssignStmt{
-		Lvalues: lvalues,
-		Rvalues: ast.Exprs(rvalues),
-	}
+	ref.SetPos(p.tokenPos(id))
+	return p.lvalue(ref)
 }
 
-func (p *parser) on_assignment_op_stmt(lvalueExpr ast.Expr, op Token, rvalue ast.Expr) ast.AST {
+func (p *parser) on_lvalue__member_access(target ast.Expr, _ Token, member Token) *ast.LValue {
+	access := &ast.MemberAccess{
+		Target: target,
+		Member: p.tokenToNitro(member),
+	}
+	access.SetPos(target.Pos())
+	return p.lvalue(access)
+}
+
+func (p *parser) on_lvalue__index(target ast.Expr, _ Token, index ast.Expr, _ Token) *ast.LValue {
+	idx := &ast.IndexExpr{
+		Target: target,
+		Index:  index,
+	}
+	idx.SetPos(target.Pos())
+	return p.lvalue(idx)
+}
+
+func (p *parser) on_assignment_stmt(lvalues []*ast.LValue, op Token, rvalues []ast.Expr) ast.AST {
+	if op.Type == ASSIGN {
+		asts := make(ast.ASTs, len(lvalues))
+		for i, lvalue := range lvalues {
+			asts[i] = lvalue
+		}
+		return &ast.AssignStmt{
+			Lvalues: asts,
+			Rvalues: ast.Exprs(rvalues),
+		}
+	}
+
+	// Compound-assignment operators (+=, -=, *=, /=) operate on a single
+	// target and value; multiple targets are only valid for plain '='.
+	if len(lvalues) != 1 || len(rvalues) != 1 {
+		p.errLogger.Failf(
+			p.tokenPos(op),
+			"Compound assignment requires a single target and value")
+		return nil
+	}
+
 	opAssign := &ast.AssignOpStmt{
-		LValue: p.lvalue(lvalueExpr),
-		RValue: rvalue,
+		LValue: lvalues[0],
+		RValue: rvalues[0],
 	}
 
 	switch op.Type {
