@@ -227,10 +227,14 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 }
 
 func (m *VM) RegisterCloser(c Closer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.closers[c] = struct{}{}
 }
 
 func (m *VM) UnregisterCloser(c Closer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	delete(m.closers, c)
 }
 
@@ -1084,8 +1088,17 @@ func (m *VM) getLocation(fn *Fn, ip int) *Location {
 }
 
 func (m *VM) shutdown() {
+	m.mu.Lock()
 	m.shuttingDown = true
+	closers := make([]Closer, 0, len(m.closers))
 	for c := range m.closers {
+		closers = append(closers, c)
+	}
+	m.mu.Unlock()
+
+	// Close outside the lock so a Close that calls back into
+	// UnregisterCloser does not deadlock.
+	for _, c := range closers {
 		c.Close()
 	}
 }

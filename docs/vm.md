@@ -462,9 +462,11 @@ next surfaces it.
 
 `VM.shutdown` runs once after `Run` returns. It sets `shuttingDown = true`
 (visible via `VM.ShuttingDown()`) and calls `Close()` on every
-`Closer` that registered itself via `RegisterCloser`. `RegisterCloser` /
-`UnregisterCloser` are **not synchronized** — they must only be called from
-the active fiber.
+`Closer` that registered itself via `RegisterCloser`. `RegisterCloser`,
+`UnregisterCloser`, and `shutdown`'s iteration over the closer set are all
+guarded by `VM.mu`; `shutdown` snapshots the set under the lock and calls
+`Close()` outside it, so a `Close` that re-enters `UnregisterCloser` does not
+deadlock.
 
 ## Stack traces
 
@@ -527,11 +529,6 @@ candidates for fixing rather than as contracts to rely on.
 - **`wrapRuntimeError` allocates a stack trace on every error**, including
   errors that will be caught by a nearby `try`. `GetStackInfo` allocates a
   `[]FrameInfo` proportional to `callStack` depth.
-
-- **`RegisterCloser` / `UnregisterCloser` are not synchronized.** `VM.mu`
-  exists but isn't taken. Works today because only the active fiber calls
-  them, but a native function spawning its own goroutine that registers a
-  closer would race silently.
 
 - **`coroutine.framePool` is per-coroutine.** Each spawned coroutine
   allocates its own pool, so coroutine-heavy workloads re-pay frame
