@@ -185,6 +185,43 @@ func TestFn(t *testing.T) {
     f(1)
 		`, `1 <nil>`)
 
+	RunSubO(t, "assign_omitted_arg", `
+		func f(a) {
+			a = 1
+			print(a)
+		}
+		f()
+		`, `1`)
+
+	RunSubO(t, "assign_omitted_arg_partial", `
+		func f(a, b, c) {
+			b = 20
+			print(a, b, c)
+		}
+		f(1)
+		`, `1 20 <nil>`)
+
+	RunSubO(t, "narg_with_declared_params", `
+		func f(a, b) {
+			a = 99
+			return narg()
+		}
+		print(f(1, 2), f(1), f(), f(1, 2, 3))
+		`, `2 1 0 3`)
+
+	RunSubO(t, "assign_omitted_arg_captured", `
+		func outer(a) {
+			func inc() {
+				a = a + 1
+				return a
+			}
+			a = 0
+			return inc
+		}
+		var f = outer()
+		print(f(), f(), f())
+		`, `1 2 3`)
+
 	RunSubO(t, "main", `
 var x = 5
 func main() {

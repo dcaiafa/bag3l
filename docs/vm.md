@@ -28,7 +28,6 @@ calling convention, the instruction set, and how the moving parts fit together.
 | `reader.go` / `writer.go` | `Reader`/`Writer` interfaces used by I/O builtins |
 | `runtime_error.go` | `RuntimeError`, sentinel errors, recoverability flag |
 | `location.go` | Line-table entry (`Location`) for stack-trace mapping |
-| `util.go` | Small helpers |
 | `nil.go` | Empty placeholder file |
 
 ## Program model
@@ -60,8 +59,9 @@ A `Fn` holds:
   onward, source line is X in file Y". Used by `getLocation` to build stack
   traces (binary search would be more apt; the current code does a linear
   scan).
-- `minArgs` — the declared minimum-arg count. **Currently never enforced by
-  the VM** (see "Bugs and quirks" below).
+- `minArgs` — the declared parameter count. `OpInitCallFrame` uses it to pad
+  any parameters the caller omitted with `nil` so every parameter owns a
+  stack slot (see "Calling convention" below).
 
 A `Closure` is just `{fn, caps}` — an `Fn` plus a list of `ValueRef` captures.
 
@@ -105,7 +105,8 @@ out-of-bounds index.
 ```go
 type frame struct {
     nRet       int
-    nArg       int
+    nArg       int             // arguments the caller actually provided
+    argSlots   int             // parameter slots (>= nArg; omitted params padded)
     nLocals    int
     iter       *ILIterator     // non-nil if this frame is an iterator body
     fn         *Fn             // nil if this frame is an external call
@@ -129,16 +130,19 @@ The operand stack layout for a Bag3l function frame at steady state:
 ```
 ... | argN-1 | argN-2 | ... | arg0 | local0 | local1 | ... | <temporaries>
     ^                              ^                                       ^
-    bp - nArg                      bp                                      sp
+    bp - argSlots                  bp                                      sp
 ```
 
 `OpInitCallFrame` is emitted as the first instruction of every Bag3l
-function. It sets `bp = sp`, advances `sp` by `nLocals`, and zeros the local
-slots. Subsequent loads use `bp` as the anchor:
+function. It first **pads omitted parameters**: if the caller provided fewer
+arguments than the function declares (`fn.minArgs`), it pushes `nil` for each
+missing parameter so every parameter owns a slot, and bumps `argSlots` to the
+declared count. It then sets `bp = sp`, advances `sp` by `nLocals`, and zeros
+the local slots. Subsequent loads use `bp` as the anchor:
 
 | Opcode | Slot |
 | --- | --- |
-| `OpLoadArg n` / `OpLoadArgDeref n` | `bp - nArg + n` |
+| `OpLoadArg n` / `OpLoadArgDeref n` | `bp - argSlots + n` |
 | `OpLoadLocal n` / `OpLoadLocalDeref n` | `bp + n` |
 | `OpLoadGlobal n` | `globals[n]` |
 | `OpLoadCapture n` / `OpLoadCaptureBox n` | `frame.caps[n]` |
@@ -154,13 +158,19 @@ on top of the stack:
 | Opcode | Effect |
 | --- | --- |
 | `OpStoreLocal n` / `OpStoreLocalDeref n` | `bp + n` (direct / through box) |
-| `OpStoreArg n` / `OpStoreArgDeref n` | `bp - nArg + n` (direct / through box) |
+| `OpStoreArg n` / `OpStoreArgDeref n` | `bp - argSlots + n` (direct / through box) |
 | `OpStoreGlobal n` | `globals[n]` |
 | `OpStoreCapture n` | `*frame.caps[n].Ref` |
 | `OpStoreIndex` | `container.SetIndex(key, value)`; pops `value, container, key` |
 
-`OpStoreArg` errors ("cannot assign to arg because it was not provided by
-caller") when `n >= nArg`.
+Because omitted parameters are padded to `nil`, a parameter is just a local
+that happens to be pre-initialized from the caller's argument: it can always
+be read or assigned, whether or not the caller provided it. `nArg` (the count
+the caller actually passed) is kept distinct from `argSlots` (the padded width
+used for addressing) so that `narg()` / `args()` still report the real
+argument count. When the caller passes *more* arguments than the function
+declares, `argSlots == nArg` and the extra arguments are reachable only via
+`args()`.
 
 ## Values
 
@@ -530,12 +540,6 @@ candidates for fixing rather than as contracts to rely on.
 - **`coroutine.framePool` is per-coroutine.** Each spawned coroutine
   allocates its own pool, so coroutine-heavy workloads re-pay frame
   allocation costs per fiber.
-
-- **`Fn.minArgs` is wired up but not enforced.** `Emitter.SetFuncMinArgs`
-  stores it on the function, but no opcode validates it. `OpStoreArg`
-  even carries a `// TODO: min arg count` comment. Calls that omit
-  required arguments silently observe `nil` for the missing slots (and
-  `OpStoreArg` to a missing slot errors at runtime rather than at the call).
 
 - **`ILIterator` resume implicitly assumes `bp == 0`.** The first
   invocation runs `OpInitCallFrame` with `sp=0`, setting `bp=0`. On

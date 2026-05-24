@@ -64,7 +64,8 @@ type tryCatch struct {
 
 type frame struct {
 	nRet       int
-	nArg       int
+	nArg       int // arguments the caller actually provided.
+	argSlots   int // parameter slots in the frame (>= nArg; padded for omitted params).
 	nLocals    int
 	iter       *ILIterator
 	fn         *Fn
@@ -134,6 +135,7 @@ func (m *VM) Run(args []Value) error {
 	f := co.NewFrame()
 	f.fn = mainPkg.Literals[mainPkg.MainFnNdx].(*Fn)
 	f.nArg = len(args)
+	f.argSlots = len(args)
 	f.bp = len(args)
 
 	co.PushFrame(f)
@@ -241,6 +243,7 @@ func (m *VM) callExtFn(
 	f := m.co.NewFrame()
 	f.nRet = nret
 	f.nArg = narg
+	f.argSlots = narg
 	f.extFn = extFn
 	f.caps = caps
 	f.bp = m.co.sp
@@ -282,6 +285,7 @@ func (m *VM) call(callable Value, narg int, nret int) error {
 		f.fn = callable.fn
 		f.caps = callable.caps
 		f.nArg = narg
+		f.argSlots = narg
 		f.nRet = nret
 		return m.runFrame(f)
 
@@ -331,6 +335,7 @@ func (m *VM) call(callable Value, narg int, nret int) error {
 		f := m.co.NewFrame()
 		f.fn = callable
 		f.nArg = narg
+		f.argSlots = narg
 		f.nRet = nret
 		return m.runFrame(f)
 
@@ -705,21 +710,11 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.sp++
 
 		case OpLoadArg:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]
-			} else {
-				m.co.stack[m.co.sp] = nil
-			}
+			m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)]
 			m.co.sp++
 
 		case OpLoadArgDeref:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx].(ValueRef).Ref
-			} else {
-				m.co.stack[m.co.sp] = nil
-			}
+			m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)].(ValueRef).Ref
 			m.co.sp++
 
 		case OpLoadCapture:
@@ -834,18 +829,12 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			*m.co.stack[m.co.frame.bp+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
 
 		case OpStoreArg:
-			idx := int(instr.op1)
-			if idx >= m.co.frame.nArg {
-				// TODO: min arg count
-				return fmt.Errorf(
-					"cannot assign to arg because it was not provided by caller")
-			}
 			m.co.sp--
-			m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx] = m.co.stack[m.co.sp]
+			m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)] = m.co.stack[m.co.sp]
 
 		case OpStoreArgDeref:
 			m.co.sp--
-			*m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
+			*m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
 
 		case OpStoreGlobal:
 			m.co.sp--
@@ -872,6 +861,15 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.sp -= 3
 
 		case OpInitCallFrame:
+			// Pad declared parameters the caller omitted with nil so every
+			// parameter owns a stack slot and behaves like a local that
+			// defaults to nil and can be assigned freely. nArg keeps the
+			// caller-provided count (reported by narg()/args()); argSlots is
+			// the padded width used to address parameters relative to bp.
+			for nParams := m.co.frame.fn.minArgs; m.co.frame.argSlots < nParams; m.co.frame.argSlots++ {
+				m.co.stack[m.co.sp] = nil
+				m.co.sp++
+			}
 			m.co.frame.nLocals = int(instr.op1)
 			m.co.frame.bp = m.co.sp
 			m.co.sp += m.co.frame.nLocals
@@ -974,12 +972,10 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			return nil
 
 		case OpLiftArg:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				lifted := ValueRef{new(Value)}
-				*lifted.Ref = m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]
-				m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx] = lifted
-			}
+			slot := m.co.frame.bp - m.co.frame.argSlots + int(instr.op1)
+			lifted := ValueRef{new(Value)}
+			*lifted.Ref = m.co.stack[slot]
+			m.co.stack[slot] = lifted
 
 		case OpInitLocal:
 			m.co.stack[m.co.frame.bp+int(instr.op1)] = nil
@@ -1019,7 +1015,8 @@ func (m *VM) GetCallerArgs() []Value {
 		return nil
 	}
 	f := m.co.callStack[len(m.co.callStack)-2]
-	args := m.co.stack[f.bp-f.nArg : f.bp]
+	base := f.bp - f.argSlots
+	args := m.co.stack[base : base+f.nArg]
 	return args
 }
 
