@@ -21,6 +21,13 @@ func (r *SimpleRef) RunPass(ctx *Context, pass Pass) {
 	case Check:
 		symName := r.ID.Str
 
+		// The blank identifier is only valid as an assignment target, never as a
+		// value to read.
+		if symName == "_" {
+			ctx.Failf(r.Pos(), "_ cannot be used as a value")
+			return
+		}
+
 		r.sym = ctx.FindSymbol(symName)
 		if r.sym == nil {
 			ctx.Failf(r.Pos(), "Symbol %q not found.", symName)

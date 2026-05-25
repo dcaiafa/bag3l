@@ -303,6 +303,7 @@ func (p *parser) on_param_list(params []Token) []*ast.FuncParam {
 		fparams[i] = &ast.FuncParam{
 			Name: string(param.Str),
 		}
+		fparams[i].SetPos(p.tokenPos(param))
 	}
 	return fparams
 }
