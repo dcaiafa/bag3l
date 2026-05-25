@@ -3,22 +3,22 @@ package lib
 import (
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func skip(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func skip(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
 
-	if nitro.IsIterable(args[0]) {
+	if vm.IsIterable(args[0]) {
 		return skipIter(m, args, nRet)
 	} else {
 		return skipReader(m, args, nRet)
 	}
 }
 
-func skipIter(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func skipIter(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
@@ -35,10 +35,10 @@ func skipIter(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) 
 
 	skipIter := &skipIterator{inIter: inIter, skip: int(skip)}
 
-	return []nitro.Value{nitro.NewIterator(skipIter.Next, skipIter.Close, inIter.IterNRet())}, nil
+	return []vm.Value{vm.NewIterator(skipIter.Next, skipIter.Close, inIter.IterNRet())}, nil
 }
 
-func skipReader(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func skipReader(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
@@ -58,15 +58,15 @@ func skipReader(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error
 		return nil, err
 	}
 
-	return []nitro.Value{inReader}, nil
+	return []vm.Value{inReader}, nil
 }
 
 type skipIterator struct {
-	inIter nitro.Iterator
+	inIter vm.Iterator
 	skip   int
 }
 
-func (i *skipIterator) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *skipIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	for {
 		v, err := m.IterNext(i.inIter, i.inIter.IterNRet())
 		if err != nil {
@@ -83,6 +83,6 @@ func (i *skipIterator) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.
 	}
 }
 
-func (i *skipIterator) Close(vm *nitro.VM) error {
-	return vm.IterClose(i.inIter)
+func (i *skipIterator) Close(m *vm.VM) error {
+	return m.IterClose(i.inIter)
 }

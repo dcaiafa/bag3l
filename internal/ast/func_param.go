@@ -16,6 +16,11 @@ type FuncParam struct {
 func (p *FuncParam) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Check:
+		if p.Name == "_" {
+			ctx.Failf(p.Pos(), "_ cannot be used as a parameter name")
+			return
+		}
+
 		parentFn := ctx.CurrentFunc()
 
 		p.sym = parentFn.NewParam()

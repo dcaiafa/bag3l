@@ -14,7 +14,7 @@ const (
 type Export struct {
 	N string
 	T Type
-	F func(vm *vm.VM, args []vm.Value, nret int) ([]vm.Value, error)
+	F func(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error)
 	V vm.Value
 }
 

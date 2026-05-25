@@ -51,7 +51,7 @@ type Callable interface {
 type Indexable interface {
 	Value
 	Index(key Value) (Value, bool, error)
-	IndexRef(key Value) (ValueRef, error)
+	SetIndex(key, value Value) error
 }
 
 type ValueRef struct {

@@ -3,18 +3,18 @@ package lib
 import (
 	"errors"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 var errTypeUsage = errors.New(
 	`invalid usage. Expected type(any)`)
 
-func typep(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func typep(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, errTypeUsage
 	}
 
-	res := nitro.TypeName(args[0])
+	res := vm.TypeName(args[0])
 
-	return []nitro.Value{nitro.NewString(res)}, nil
+	return []vm.Value{vm.NewString(res)}, nil
 }

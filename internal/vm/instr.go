@@ -20,31 +20,31 @@ const (
 	OpNewClosure
 	OpNewInt
 	OpNewBool
-	OpNewObject
+	OpNewMap
 	OpNewArray
 	OpLoadGlobal
-	OpLoadGlobalRef
 	OpLoadLocal
-	OpLoadLocalRef
 	OpLoadLocalDeref
-	OpCaptureLocal
 	OpLoadArg
-	OpLoadArgRef
 	OpLoadArgDeref
-	OpCaptureArg
 	OpLoadCapture
-	OpLoadCaptureRef
+	OpLoadCaptureBox
 	OpLoadLiteral
 	OpEvalBinOp
 	OpNot
 	OpUnaryMinus
-	OpObjectPutNoPop
-	OpObjectGet
-	OpObjectGetRef
+	OpMapPutNoPop
+	OpLoadIndex
 	OpArrayAppendNoPop
 	OpArrayExpandElemNoPop
 	OpRet
-	OpStore
+	OpStoreLocal
+	OpStoreLocalDeref
+	OpStoreArg
+	OpStoreArgDeref
+	OpStoreGlobal
+	OpStoreCapture
+	OpStoreIndex
 	OpInitCallFrame
 	OpMakeIter
 	OpBeginTry
@@ -52,7 +52,6 @@ const (
 	OpSwap
 	OpThrow
 	OpDefer
-	OpNext
 	OpSlice
 	OpIterYield
 	OpIterRet
@@ -64,9 +63,8 @@ const (
 )
 
 const (
-	CallArgCountMask uint32 = 0x3FFFFFFF
+	CallArgCountMask uint32 = 0x7FFFFFFF
 	CallExpandFlag   uint32 = 0x80000000
-	CallPipelineFlag uint32 = 0x40000000
 
 	OptionalIndexFlag uint16 = 0x0001
 )

@@ -9,7 +9,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/meta"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 type Flag struct {
@@ -119,7 +120,7 @@ func (f *Flags) AddFlag(flag *Flag) *Flag {
 	return flag
 }
 
-func (f *Flags) AddFlagsFromMetadata(md *bag3l.Metadata) error {
+func (f *Flags) AddFlagsFromMetadata(md *meta.Metadata) error {
 	posIndex := 0
 	for _, param := range md.Params {
 		flag := &Flag{
@@ -158,27 +159,27 @@ func (f *Flags) AddFlagsFromMetadata(md *bag3l.Metadata) error {
 	return nil
 }
 
-func (f *Flags) GetNitroValues() map[string]bag3l.Value {
-	values := make(map[string]bag3l.Value, len(f.flags))
+func (f *Flags) GetNitroValues() map[string]vm.Value {
+	values := make(map[string]vm.Value, len(f.flags))
 	processFlag := func(flag *Flag) {
 		if !flag.Set {
 			return
 		}
 		switch v := flag.Value.(type) {
 		case *bool:
-			values[flag.Name] = bag3l.NewBool(*v)
+			values[flag.Name] = vm.NewBool(*v)
 		case *string:
-			values[flag.Name] = bag3l.NewString(*v)
+			values[flag.Name] = vm.NewString(*v)
 		case *[]string:
-			a := bag3l.NewArray()
+			a := vm.NewList()
 			for _, s := range *v {
-				a.Add(bag3l.NewString(s))
+				a.Add(vm.NewString(s))
 			}
 			values[flag.Name] = a
 		case *int64:
-			values[flag.Name] = bag3l.NewInt(*v)
+			values[flag.Name] = vm.NewInt(*v)
 		case *float64:
-			values[flag.Name] = bag3l.NewFloat(*v)
+			values[flag.Name] = vm.NewFloat(*v)
 		default:
 			panic("unreachable")
 		}

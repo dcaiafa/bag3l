@@ -30,14 +30,10 @@ func (e *IndexExpr) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Emit:
 		emitter := ctx.Emitter()
-		if _, isLValue := ctx.Parent().(*LValue); isLValue {
-			emitter.Emit(e.Pos(), vm.OpObjectGetRef, 0, 0)
-		} else {
-			var flags uint16
-			if e.Optional {
-				flags |= vm.OptionalIndexFlag
-			}
-			emitter.Emit(e.Pos(), vm.OpObjectGet, 0, flags)
+		var flags uint16
+		if e.Optional {
+			flags |= vm.OptionalIndexFlag
 		}
+		emitter.Emit(e.Pos(), vm.OpLoadIndex, 0, flags)
 	}
 }

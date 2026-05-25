@@ -73,8 +73,8 @@ func (e *RuntimeError) Index(k Value) (Value, bool, error) {
 	}
 }
 
-func (e *RuntimeError) IndexRef(k Value) (ValueRef, error) {
-	return ValueRef{}, fmt.Errorf("RuntimeError is read-only")
+func (e *RuntimeError) SetIndex(k, value Value) error {
+	return fmt.Errorf("RuntimeError is read-only")
 }
 
 func (e *RuntimeError) String() string { return e.Error() }

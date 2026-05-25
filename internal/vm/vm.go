@@ -64,7 +64,8 @@ type tryCatch struct {
 
 type frame struct {
 	nRet       int
-	nArg       int
+	nArg       int // arguments the caller actually provided.
+	argSlots   int // parameter slots in the frame (>= nArg; padded for omitted params).
 	nLocals    int
 	iter       *ILIterator
 	fn         *Fn
@@ -72,7 +73,6 @@ type frame struct {
 	caps       []ValueRef
 	tryCatches []tryCatch
 	defers     []*Closure
-	pipeline   bool
 	ip         int
 	bp         int
 }
@@ -135,6 +135,7 @@ func (m *VM) Run(args []Value) error {
 	f := co.NewFrame()
 	f.fn = mainPkg.Literals[mainPkg.MainFnNdx].(*Fn)
 	f.nArg = len(args)
+	f.argSlots = len(args)
 	f.bp = len(args)
 
 	co.PushFrame(f)
@@ -212,7 +213,7 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 	sp := m.co.sp
 	copy(m.co.stack[m.co.sp:], args)
 	m.co.sp += len(args)
-	err := m.call(callable, len(args), nret, false)
+	err := m.call(callable, len(args), nret)
 	if err != nil {
 		return nil, err
 	}
@@ -226,10 +227,14 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 }
 
 func (m *VM) RegisterCloser(c Closer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.closers[c] = struct{}{}
 }
 
 func (m *VM) UnregisterCloser(c Closer) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	delete(m.closers, c)
 }
 
@@ -238,15 +243,14 @@ func (m *VM) callExtFn(
 	caps []ValueRef,
 	narg int,
 	nret int,
-	pipeline bool,
 ) (err error) {
 	f := m.co.NewFrame()
 	f.nRet = nret
 	f.nArg = narg
+	f.argSlots = narg
 	f.extFn = extFn
 	f.caps = caps
 	f.bp = m.co.sp
-	f.pipeline = pipeline
 
 	m.co.PushFrame(f)
 
@@ -278,19 +282,19 @@ func (m *VM) callExtFn(
 	return nil
 }
 
-func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
+func (m *VM) call(callable Value, narg int, nret int) error {
 	switch callable := callable.(type) {
 	case *Closure:
 		f := m.co.NewFrame()
 		f.fn = callable.fn
 		f.caps = callable.caps
 		f.nArg = narg
+		f.argSlots = narg
 		f.nRet = nret
-		f.pipeline = pipeline
 		return m.runFrame(f)
 
 	case *NativeIterator:
-		return m.callExtFn(callable.extFn, nil, narg, nret, false)
+		return m.callExtFn(callable.extFn, nil, narg, nret)
 
 	case *ILIterator:
 		if callable.ip == -1 {
@@ -335,12 +339,12 @@ func (m *VM) call(callable Value, narg int, nret int, pipeline bool) error {
 		f := m.co.NewFrame()
 		f.fn = callable
 		f.nArg = narg
+		f.argSlots = narg
 		f.nRet = nret
-		f.pipeline = true
 		return m.runFrame(f)
 
 	case Callable:
-		return m.callExtFn(callable, nil, narg, nret, pipeline)
+		return m.callExtFn(callable, nil, narg, nret)
 
 	default:
 		if callable == nil {
@@ -431,6 +435,7 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 		f.nRet = nret
 		f.nLocals = iter.nlocals
 		f.ip = iter.ip
+		f.bp = iter.bp
 
 		m.co.stack = iter.stack
 		m.co.sp = iter.sp
@@ -471,7 +476,17 @@ func (m *VM) resume() (err error) {
 	for {
 		err := m.resumeWithoutRecovery()
 		if err == nil {
+			iter := m.co.frame.iter
+			if iter != nil && iter.ip != -1 {
+				// Iterator yielded; defers persist on the iterator and run
+				// only at end-of-life (OpIterRet, error escape, or Close).
+				m.co.PopFrame()
+				return nil
+			}
 			err = m.runDefers()
+			if iter != nil {
+				iter.closed = true
+			}
 			m.co.PopFrame()
 			return err
 		}
@@ -483,14 +498,17 @@ func (m *VM) resume() (err error) {
 		err = rerr
 
 		if !rerr.Recoverable || len(m.co.frame.tryCatches) == 0 {
-			if rerr.Recoverable {
-				derr := m.runDefers()
-				if derr != nil {
-					err = fmt.Errorf(
-						"defer threw error:\n%v\n"+
-							"while handling error:\n%w",
-						derr, err)
-				}
+			derr := m.runDefers()
+			if derr != nil {
+				err = fmt.Errorf(
+					"defer threw error:\n%v\n"+
+						"while handling error:\n%w",
+					derr, err)
+			}
+			if iter := m.co.frame.iter; iter != nil {
+				iter.ip = -1
+				iter.closed = true
+				iter.defers = nil
 			}
 			m.co.PopFrame()
 			return err
@@ -588,7 +606,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			nret := int(instr.op2)
 			narg := int(instr.op1 & CallArgCountMask)
 			expand := (instr.op1 & CallExpandFlag) != 0
-			pipeline := (instr.op1 & CallPipelineFlag) != 0
 
 			if expand {
 				if narg == 0 {
@@ -611,7 +628,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 
 			callable := m.co.stack[m.co.sp-narg-1]
 			rsp := m.co.sp - narg - 1 + nret
-			err = m.call(callable, narg, nret, pipeline)
+			err = m.call(callable, narg, nret)
 			if err != nil {
 				return err
 			}
@@ -677,7 +694,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.stack[m.co.sp] = NewBool(instr.op1 != 0)
 			m.co.sp++
 
-		case OpNewObject:
+		case OpNewMap:
 			m.co.stack[m.co.sp] = NewMap()
 			m.co.sp++
 
@@ -689,77 +706,27 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			m.co.stack[m.co.sp] = m.co.globals[int(instr.op1)]
 			m.co.sp++
 
-		case OpLoadGlobalRef:
-			m.co.stack[m.co.sp] = ValueRef{&m.co.globals[int(instr.op1)]}
-			m.co.sp++
-
 		case OpLoadLocal:
 			m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp+int(instr.op1)]
-			m.co.sp++
-
-		case OpLoadLocalRef:
-			m.co.stack[m.co.sp] = ValueRef{&m.co.stack[m.co.frame.bp+int(instr.op1)]}
 			m.co.sp++
 
 		case OpLoadLocalDeref:
 			m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp+int(instr.op1)].(ValueRef).Ref
 			m.co.sp++
 
-		case OpCaptureLocal:
-			l := m.co.stack[m.co.frame.bp+int(instr.op1)]
-			if _, ok := l.(ValueRef); !ok {
-				ref := ValueRef{Ref: new(Value)}
-				*ref.Ref = l
-				m.co.stack[m.co.frame.bp+int(instr.op1)] = ref
-				l = ref
-			}
-			m.co.stack[m.co.sp] = l
-			m.co.sp++
-
 		case OpLoadArg:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]
-			} else {
-				m.co.stack[m.co.sp] = nil
-			}
-			m.co.sp++
-
-		case OpLoadArgRef:
-			idx := int(instr.op1)
-			if idx >= m.co.frame.nArg {
-				// TODO: min arg count
-				return fmt.Errorf(
-					"cannot assign to arg because it was not provided by caller")
-			}
-			m.co.stack[m.co.sp] = ValueRef{&m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]}
+			m.co.stack[m.co.sp] = m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)]
 			m.co.sp++
 
 		case OpLoadArgDeref:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx].(ValueRef).Ref
-			} else {
-				m.co.stack[m.co.sp] = nil
-			}
-			m.co.sp++
-
-		case OpCaptureArg:
-			a := m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)]
-			if _, ok := a.(ValueRef); !ok {
-				ref := ValueRef{Ref: new(Value)}
-				*ref.Ref = a
-				m.co.stack[m.co.frame.bp-m.co.frame.nArg+int(instr.op1)] = ref
-				a = ref
-			}
-			m.co.stack[m.co.sp] = a
+			m.co.stack[m.co.sp] = *m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)].(ValueRef).Ref
 			m.co.sp++
 
 		case OpLoadCapture:
 			m.co.stack[m.co.sp] = *m.co.frame.caps[int(instr.op1)].Ref
 			m.co.sp++
 
-		case OpLoadCaptureRef:
+		case OpLoadCaptureBox:
 			m.co.stack[m.co.sp] = m.co.frame.caps[int(instr.op1)]
 			m.co.sp++
 
@@ -785,34 +752,31 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 
 		case OpUnaryMinus:
 			term := m.co.stack[m.co.sp-1]
-			if term == nil {
-				return errors.New("value is nil")
-			}
 			res, err := EvalOp(OpUMinus, term, nil)
 			if err != nil {
 				return err
 			}
 			m.co.stack[m.co.sp-1] = res
 
-		case OpObjectPutNoPop:
-			obj := m.co.stack[m.co.sp-3].(*Map)
+		case OpMapPutNoPop:
+			mp := m.co.stack[m.co.sp-3].(*Map)
 			key := m.co.stack[m.co.sp-2]
 			val := m.co.stack[m.co.sp-1]
-			obj.Put(key, val)
+			mp.Put(key, val)
 			m.co.sp -= 2
 
-		case OpObjectGet:
-			objRaw := m.co.stack[m.co.sp-2]
+		case OpLoadIndex:
+			container := m.co.stack[m.co.sp-2]
 			key := m.co.stack[m.co.sp-1]
-			if objRaw == nil {
+			if container == nil {
 				if instr.op2&OptionalIndexFlag == 0 {
 					return fmt.Errorf("cannot index nil value")
 				}
 				m.co.stack[m.co.sp-2] = nil
 			} else {
-				indexable, ok := objRaw.(Indexable)
+				indexable, ok := container.(Indexable)
 				if !ok {
-					return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
+					return fmt.Errorf("type %v is not indexable", TypeName(container))
 				}
 				value, ok, err := indexable.Index(key)
 				if err != nil {
@@ -823,23 +787,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 				}
 				m.co.stack[m.co.sp-2] = value
 			}
-			m.co.sp--
-
-		case OpObjectGetRef:
-			objRaw := m.co.stack[m.co.sp-2]
-			key := m.co.stack[m.co.sp-1]
-			if objRaw == nil {
-				return fmt.Errorf("cannot assign: value is nil")
-			}
-			indexable, ok := objRaw.(Indexable)
-			if !ok {
-				return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
-			}
-			valueRef, err := indexable.IndexRef(key)
-			if err != nil {
-				return err
-			}
-			m.co.stack[m.co.sp-2] = valueRef
 			m.co.sp--
 
 		case OpArrayAppendNoPop:
@@ -875,16 +822,56 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			}
 			return nil
 
-		case OpStore:
-			count := int(instr.op1)
-			for i := 0; i < count; i++ {
-				rval := m.co.stack[m.co.sp-(count*2-i)].(ValueRef)
-				val := m.co.stack[m.co.sp-(count-i)]
-				*rval.Ref = val
+		case OpStoreLocal:
+			m.co.sp--
+			m.co.stack[m.co.frame.bp+int(instr.op1)] = m.co.stack[m.co.sp]
+
+		case OpStoreLocalDeref:
+			m.co.sp--
+			*m.co.stack[m.co.frame.bp+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
+
+		case OpStoreArg:
+			m.co.sp--
+			m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)] = m.co.stack[m.co.sp]
+
+		case OpStoreArgDeref:
+			m.co.sp--
+			*m.co.stack[m.co.frame.bp-m.co.frame.argSlots+int(instr.op1)].(ValueRef).Ref = m.co.stack[m.co.sp]
+
+		case OpStoreGlobal:
+			m.co.sp--
+			m.co.globals[int(instr.op1)] = m.co.stack[m.co.sp]
+
+		case OpStoreCapture:
+			m.co.sp--
+			*m.co.frame.caps[int(instr.op1)].Ref = m.co.stack[m.co.sp]
+
+		case OpStoreIndex:
+			value := m.co.stack[m.co.sp-3]
+			objRaw := m.co.stack[m.co.sp-2]
+			key := m.co.stack[m.co.sp-1]
+			if objRaw == nil {
+				return fmt.Errorf("cannot assign: value is nil")
 			}
-			m.co.sp -= count * 2
+			indexable, ok := objRaw.(Indexable)
+			if !ok {
+				return fmt.Errorf("type %v is not indexable", TypeName(objRaw))
+			}
+			if err := indexable.SetIndex(key, value); err != nil {
+				return err
+			}
+			m.co.sp -= 3
 
 		case OpInitCallFrame:
+			// Pad declared parameters the caller omitted with nil so every
+			// parameter owns a stack slot and behaves like a local that
+			// defaults to nil and can be assigned freely. nArg keeps the
+			// caller-provided count (reported by narg()/args()); argSlots is
+			// the padded width used to address parameters relative to bp.
+			for nParams := m.co.frame.fn.minArgs; m.co.frame.argSlots < nParams; m.co.frame.argSlots++ {
+				m.co.stack[m.co.sp] = nil
+				m.co.sp++
+			}
 			m.co.frame.nLocals = int(instr.op1)
 			m.co.frame.bp = m.co.sp
 			m.co.sp += m.co.frame.nLocals
@@ -935,42 +922,12 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			return err
 
 		case OpDefer:
-			deferClosure := m.co.stack[m.co.sp-1].(*Closure)
+			deferClosure, ok := m.co.stack[m.co.sp-1].(*Closure)
+			if !ok {
+				return fmt.Errorf("cannot defer %q", TypeName(m.co.stack[m.co.sp-1]))
+			}
 			m.co.sp--
 			m.co.frame.defers = append(m.co.frame.defers, deferClosure)
-
-		case OpNext:
-			iter, ok := m.co.stack[m.co.sp-1].(Iterator)
-			if !ok {
-				return fmt.Errorf("%q is not an iterator", TypeName(m.co.stack[m.co.sp-1]))
-			}
-
-			jumpTo := int(instr.op1)
-			n := int(instr.op2)
-
-			rsp := m.co.sp - n - 1
-
-			// With n = 3:
-			// rsp  +0  +1  +2  +3  +4  +5  +6
-			//      r1  r2  r3  it               before iterNext
-			//      r1  r2  r3  v1  v2  v3       after iterNext
-
-			ok, err := m.iterNext(iter, n)
-			if err != nil {
-				return err
-			}
-
-			if ok {
-				for i := 0; i < n; i++ {
-					rval := m.co.stack[rsp+i].(ValueRef)
-					val := m.co.stack[rsp+n+1+i]
-					*rval.Ref = val
-				}
-			} else {
-				m.co.ip = jumpTo - 1
-			}
-
-			m.co.sp = rsp
 
 		case OpSlice:
 			target := m.co.stack[m.co.sp-3]
@@ -1004,6 +961,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			iter.tryCatches = m.co.frame.tryCatches
 			iter.defers = m.co.frame.defers
 			iter.nlocals = m.co.frame.nLocals
+			iter.bp = m.co.frame.bp
 			iter.ip = m.co.ip + 1
 
 			if nret > m.co.frame.nRet {
@@ -1017,12 +975,10 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			return nil
 
 		case OpLiftArg:
-			idx := int(instr.op1)
-			if idx < m.co.frame.nArg {
-				lifted := ValueRef{new(Value)}
-				*lifted.Ref = m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx]
-				m.co.stack[m.co.frame.bp-m.co.frame.nArg+idx] = lifted
-			}
+			slot := m.co.frame.bp - m.co.frame.argSlots + int(instr.op1)
+			lifted := ValueRef{new(Value)}
+			*lifted.Ref = m.co.stack[slot]
+			m.co.stack[slot] = lifted
 
 		case OpInitLocal:
 			m.co.stack[m.co.frame.bp+int(instr.op1)] = nil
@@ -1062,22 +1018,9 @@ func (m *VM) GetCallerArgs() []Value {
 		return nil
 	}
 	f := m.co.callStack[len(m.co.callStack)-2]
-	args := m.co.stack[f.bp-f.nArg : f.bp]
+	base := f.bp - f.argSlots
+	args := m.co.stack[base : base+f.nArg]
 	return args
-}
-
-func (m *VM) IsPipeline() bool {
-	if len(m.co.callStack) < 1 {
-		return false
-	}
-	return m.co.callStack[len(m.co.callStack)-1].pipeline
-}
-
-func (m *VM) IsCallerPipeline() bool {
-	if len(m.co.callStack) < 2 {
-		return false
-	}
-	return m.co.callStack[len(m.co.callStack)-2].pipeline
 }
 
 func (m *VM) GetStackInfo() []FrameInfo {
@@ -1147,8 +1090,17 @@ func (m *VM) getLocation(fn *Fn, ip int) *Location {
 }
 
 func (m *VM) shutdown() {
+	m.mu.Lock()
 	m.shuttingDown = true
+	closers := make([]Closer, 0, len(m.closers))
 	for c := range m.closers {
+		closers = append(closers, c)
+	}
+	m.mu.Unlock()
+
+	// Close outside the lock so a Close that calls back into
+	// UnregisterCloser does not deadlock.
+	for _, c := range closers {
 		c.Close()
 	}
 }

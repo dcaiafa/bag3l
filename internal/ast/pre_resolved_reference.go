@@ -17,10 +17,6 @@ func (r *PreResolvedReference) isExpr() {}
 
 func (r *PreResolvedReference) RunPass(ctx *Context, pass Pass) {
 	switch pass {
-	case Check:
-		if ctx.IsLValue() {
-			panic("PreResolvedReference cannot be LValue")
-		}
 	case Emit:
 		emitSymbolPush(token.Pos{}, ctx.Emitter(), r.Symbol)
 	}

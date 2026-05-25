@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
@@ -14,7 +13,7 @@ type Time struct {
 	time time.Time
 }
 
-var _ /* implements */ nitro.Value = Time{}
+var _ /* implements */ vm.Value = Time{}
 
 func NewTime(t time.Time) Time {
 	return Time{time: t}
@@ -26,44 +25,44 @@ func (t Time) String() string    { return t.time.String() }
 func (t Time) Type() string      { return "time" }
 func (t Time) Traits() vm.Traits { return vm.TraitEq }
 
-func (t Time) EvalOp(op nitro.Op, operand nitro.Value) (nitro.Value, error) {
+func (t Time) EvalOp(op vm.Op, operand vm.Value) (vm.Value, error) {
 	switch op {
-	case nitro.OpEq, nitro.OpSub, nitro.OpLT, nitro.OpLE, nitro.OpGT, nitro.OpGE:
+	case vm.OpEq, vm.OpSub, vm.OpLT, vm.OpLE, vm.OpGT, vm.OpGE:
 		operandTime, ok := operand.(Time)
 		if !ok {
-			if op == nitro.OpEq {
-				return nitro.NewBool(false), nil
+			if op == vm.OpEq {
+				return vm.NewBool(false), nil
 			}
 			return nil, fmt.Errorf(
 				"invalid operation between time and %v",
-				nitro.TypeName(operand))
+				vm.TypeName(operand))
 		}
 
 		switch op {
-		case nitro.OpEq:
-			return nitro.NewBool(t.time.Equal(operandTime.time)), nil
-		case nitro.OpSub:
+		case vm.OpEq:
+			return vm.NewBool(t.time.Equal(operandTime.time)), nil
+		case vm.OpSub:
 			return Duration{t.time.Sub(operandTime.time)}, nil
-		case nitro.OpLT:
-			return nitro.NewBool(t.time.Before(operandTime.time)), nil
-		case nitro.OpLE:
-			return nitro.NewBool(t.time.Before(operandTime.time) ||
+		case vm.OpLT:
+			return vm.NewBool(t.time.Before(operandTime.time)), nil
+		case vm.OpLE:
+			return vm.NewBool(t.time.Before(operandTime.time) ||
 				t.time.Equal(operandTime.time)), nil
-		case nitro.OpGT:
-			return nitro.NewBool(t.time.After(operandTime.time)), nil
-		case nitro.OpGE:
-			return nitro.NewBool(t.time.After(operandTime.time) ||
+		case vm.OpGT:
+			return vm.NewBool(t.time.After(operandTime.time)), nil
+		case vm.OpGE:
+			return vm.NewBool(t.time.After(operandTime.time) ||
 				t.time.Equal(operandTime.time)), nil
 		default:
 			panic("unreachable")
 		}
 
-	case nitro.OpAdd:
+	case vm.OpAdd:
 		operandDur, ok := operand.(Duration)
 		if !ok {
 			return nil, fmt.Errorf(
 				"invalid operation between time and %v",
-				nitro.TypeName(operand))
+				vm.TypeName(operand))
 		}
 		return Time{t.time.Add(operandDur.dur)}, nil
 
@@ -124,16 +123,16 @@ func from_unix0(m *vm.VM, sec, nano int64) (Time, error) {
 	return NewTime(t), nil
 }
 
-func to_map0(vm *vm.VM, t Time) (*vm.Map, error) {
-	m := nitro.NewObject()
-	m.Put(nitro.NewString("year"), nitro.NewInt(int64(t.time.Year())))
-	m.Put(nitro.NewString("month"), nitro.NewInt(int64(t.time.Month())))
-	m.Put(nitro.NewString("day"), nitro.NewInt(int64(t.time.Day())))
-	m.Put(nitro.NewString("hour"), nitro.NewInt(int64(t.time.Hour())))
-	m.Put(nitro.NewString("minute"), nitro.NewInt(int64(t.time.Minute())))
-	m.Put(nitro.NewString("second"), nitro.NewInt(int64(t.time.Second())))
-	m.Put(nitro.NewString("nanosecond"), nitro.NewInt(int64(t.time.Nanosecond())))
-	return m, nil
+func to_map0(m *vm.VM, t Time) (*vm.Map, error) {
+	mp := vm.NewMap()
+	mp.Put(vm.NewString("year"), vm.NewInt(int64(t.time.Year())))
+	mp.Put(vm.NewString("month"), vm.NewInt(int64(t.time.Month())))
+	mp.Put(vm.NewString("day"), vm.NewInt(int64(t.time.Day())))
+	mp.Put(vm.NewString("hour"), vm.NewInt(int64(t.time.Hour())))
+	mp.Put(vm.NewString("minute"), vm.NewInt(int64(t.time.Minute())))
+	mp.Put(vm.NewString("second"), vm.NewInt(int64(t.time.Second())))
+	mp.Put(vm.NewString("nanosecond"), vm.NewInt(int64(t.time.Nanosecond())))
+	return mp, nil
 }
 
 type Duration struct {
@@ -148,67 +147,67 @@ func (d Duration) String() string    { return d.dur.String() }
 func (d Duration) Type() string      { return "duration" }
 func (d Duration) Traits() vm.Traits { return vm.TraitEq }
 
-func (d Duration) EvalOp(op nitro.Op, operand nitro.Value) (nitro.Value, error) {
-	if op == nitro.OpUMinus {
+func (d Duration) EvalOp(op vm.Op, operand vm.Value) (vm.Value, error) {
+	if op == vm.OpUMinus {
 		return Duration{d.dur * -1}, nil
 	}
 
 	switch op {
-	case nitro.OpAdd, nitro.OpSub, nitro.OpLT, nitro.OpLE,
-		nitro.OpGT, nitro.OpGE, nitro.OpEq, nitro.OpMod:
+	case vm.OpAdd, vm.OpSub, vm.OpLT, vm.OpLE,
+		vm.OpGT, vm.OpGE, vm.OpEq, vm.OpMod:
 
 		otherDur := time.Duration(0)
 		operandDur, ok := operand.(Duration)
 		if ok {
 			otherDur = operandDur.dur
-		} else if operandInt, ok := operand.(nitro.Int); ok && operandInt.Int64() == 0 {
+		} else if operandInt, ok := operand.(vm.Int); ok && operandInt.Int64() == 0 {
 			// Zero is a special case. It is useful to express `dur < 0` without
 			// having to create a duration value for the right side.
 			otherDur = 0
-		} else if op == nitro.OpEq {
-			return nitro.NewBool(false), nil
+		} else if op == vm.OpEq {
+			return vm.NewBool(false), nil
 		} else {
 			return nil, vm.ErrOperationNotSupported
 		}
 
 		switch op {
-		case nitro.OpAdd:
+		case vm.OpAdd:
 			return Duration{d.dur + otherDur}, nil
-		case nitro.OpSub:
+		case vm.OpSub:
 			return Duration{d.dur - otherDur}, nil
-		case nitro.OpLT:
-			return nitro.NewBool(d.dur < otherDur), nil
-		case nitro.OpLE:
-			return nitro.NewBool(d.dur <= otherDur), nil
-		case nitro.OpGT:
-			return nitro.NewBool(d.dur > otherDur), nil
-		case nitro.OpGE:
-			return nitro.NewBool(d.dur >= otherDur), nil
-		case nitro.OpEq:
-			return nitro.NewBool(d == operand), nil
-		case nitro.OpMod:
+		case vm.OpLT:
+			return vm.NewBool(d.dur < otherDur), nil
+		case vm.OpLE:
+			return vm.NewBool(d.dur <= otherDur), nil
+		case vm.OpGT:
+			return vm.NewBool(d.dur > otherDur), nil
+		case vm.OpGE:
+			return vm.NewBool(d.dur >= otherDur), nil
+		case vm.OpEq:
+			return vm.NewBool(d == operand), nil
+		case vm.OpMod:
 			if otherDur == 0 {
 				return nil, vm.ErrDivByZero
 			}
 			return Duration{d.dur % otherDur}, nil
 		}
 
-	case nitro.OpMult:
-		operandInt, ok := operand.(nitro.Int)
+	case vm.OpMult:
+		operandInt, ok := operand.(vm.Int)
 		if !ok {
 			return nil, vm.ErrOperationNotSupported
 		}
 		return Duration{d.dur * time.Duration(operandInt.Int64())}, nil
 
-	case nitro.OpDiv:
+	case vm.OpDiv:
 		switch operand := operand.(type) {
 		case Duration:
 			if operand.dur == 0 {
 				return nil, vm.ErrDivByZero
 			}
-			return nitro.NewInt(int64(d.dur / operand.dur)), nil
+			return vm.NewInt(int64(d.dur / operand.dur)), nil
 
-		case nitro.Int:
+		case vm.Int:
 			if operand.Int64() == 0 {
 				return nil, vm.ErrDivByZero
 			}
@@ -222,9 +221,9 @@ func (d Duration) EvalOp(op nitro.Op, operand nitro.Value) (nitro.Value, error) 
 	return nil, vm.ErrOperationNotSupported
 }
 
-func (d Duration) FallbackEvalOp(op nitro.Op, left nitro.Value) (nitro.Value, error) {
-	if op == nitro.OpMult {
-		if left, ok := left.(nitro.Int); ok {
+func (d Duration) FallbackEvalOp(op vm.Op, left vm.Value) (vm.Value, error) {
+	if op == vm.OpMult {
+		if left, ok := left.(vm.Int); ok {
 			return NewDuration(time.Duration(left.Int64()) * d.dur), nil
 		}
 	}
@@ -235,8 +234,8 @@ func (d Duration) Duration() time.Duration {
 	return d.dur
 }
 
-func truncate0(vm *nitro.VM, d Duration, m Duration) (Duration, error) {
-	v := d.dur.Truncate(m.dur)
+func truncate0(m *vm.VM, d Duration, mod Duration) (Duration, error) {
+	v := d.dur.Truncate(mod.dur)
 	return NewDuration(v), nil
 }
 
@@ -248,7 +247,7 @@ func (l *Location) String() string    { return l.Location.String() }
 func (l *Location) Type() string      { return "location" }
 func (l *Location) Traits() vm.Traits { return vm.TraitNone }
 
-func fixed_zone0(vm *vm.VM, name string, offset int64) (*Location, error) {
+func fixed_zone0(m *vm.VM, name string, offset int64) (*Location, error) {
 	return &Location{
 		Location: time.FixedZone(name, int(offset)),
 	}, nil
@@ -291,8 +290,8 @@ func (c *locationCache) GetLocation(name string) (*Location, error) {
 	return location, nil
 }
 
-func load_location0(vm *vm.VM, name string) (*Location, error) {
-	loc, err := getLocationCache(vm).GetLocation(name)
+func load_location0(m *vm.VM, name string) (*Location, error) {
+	loc, err := getLocationCache(m).GetLocation(name)
 	if err != nil {
 		return nil, err
 	}

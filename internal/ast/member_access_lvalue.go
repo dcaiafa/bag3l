@@ -6,27 +6,25 @@ import (
 	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-type MemberAccess struct {
+// MemberAccessLValue is the assignable form of MemberAccess (e.g. `a.b = x`).
+// Unlike MemberAccess it is not an expression and always emits a reference to
+// the member. Its Target remains a regular (value) expression.
+type MemberAccessLValue struct {
 	PosImpl
 
-	Target   Expr
-	Member   token.Token
-	Optional bool
+	Target Expr
+	Member token.Token
 
 	ModuleMember symbol.Symbol
 }
 
-func (a *MemberAccess) isExpr() {}
+func (a *MemberAccessLValue) IsLValue() {}
 
-func (a *MemberAccess) RunPass(ctx *Context, pass Pass) {
+func (a *MemberAccessLValue) RunPass(ctx *Context, pass Pass) {
 	switch pass {
 	case Check:
 		if !CheckNoOptional(ctx, a.Target) {
 			return
-		}
-	case Emit:
-		if a.Optional {
-			PropagateOptional(a.Target)
 		}
 	}
 
@@ -50,16 +48,16 @@ func (a *MemberAccess) RunPass(ctx *Context, pass Pass) {
 	case Emit:
 		emitter := ctx.Emitter()
 		if a.ModuleMember == nil {
+			// The value to store was pushed by AssignStmt before the Target;
+			// push the member name as the key so the value sits beneath the
+			// container/key pair expected by OpStoreIndex.
 			emitter.Emit(
 				a.Pos(), vm.OpLoadLiteral,
 				uint32(emitter.AddLiteral(vm.NewString(a.Member.Str))), 0)
-			var flags uint16
-			if a.Optional {
-				flags |= vm.OptionalIndexFlag
-			}
-			emitter.Emit(a.Pos(), vm.OpLoadIndex, 0, flags)
+			emitter.Emit(a.Pos(), vm.OpStoreIndex, 0, 0)
 		} else {
-			emitSymbolPush(a.Pos(), ctx.Emitter(), a.ModuleMember)
+			ctx.Failf(a.Pos(), "cannot assign to module")
+			return
 		}
 	}
 }

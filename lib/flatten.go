@@ -1,13 +1,13 @@
 package lib
 
-import nitro "github.com/dcaiafa/bag3l"
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func flatten(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
+func flatten(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
 	if len(args) > 1 {
 		return nil, errTooManyArgs
 	}
 
-	inIter, err := getIterArg(vm, args, 0)
+	inIter, err := getIterArg(m, args, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -16,53 +16,53 @@ func flatten(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) 
 		first: inIter,
 	}
 
-	outIter := nitro.NewIterator(flattenIter.Next, flattenIter.Close, 1)
+	outIter := vm.NewIterator(flattenIter.Next, flattenIter.Close, 1)
 
-	return []nitro.Value{outIter}, nil
+	return []vm.Value{outIter}, nil
 }
 
 type flattenIter struct {
-	first  nitro.Iterator
-	second nitro.Iterator
+	first  vm.Iterator
+	second vm.Iterator
 }
 
-func (i *flattenIter) Next(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *flattenIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if i.second != nil {
-		v, err := vm.IterNext(i.second, 1)
+		v, err := m.IterNext(i.second, 1)
 		if err != nil {
-			i.Close(vm)
+			i.Close(m)
 			return nil, err
 		}
 		if v == nil {
 			i.second = nil
-			return i.Next(vm, args, nRet)
+			return i.Next(m, args, nRet)
 		}
 		return v, nil
 	}
 
-	v, err := vm.IterNext(i.first, 1)
+	v, err := m.IterNext(i.first, 1)
 	if err != nil {
-		i.Close(vm)
+		i.Close(m)
 		return nil, err
 	}
 
 	if v == nil {
-		i.Close(vm)
+		i.Close(m)
 		return nil, nil
 	}
 
-	i.second, err = nitro.MakeIterator(vm, v[0])
+	i.second, err = vm.MakeIterator(m, v[0])
 	if err != nil {
 		return v, nil
 	}
 
-	return i.Next(vm, args, nRet)
+	return i.Next(m, args, nRet)
 }
 
-func (i *flattenIter) Close(vm *nitro.VM) error {
-	vm.IterClose(i.first)
+func (i *flattenIter) Close(m *vm.VM) error {
+	m.IterClose(i.first)
 	if i.second != nil {
-		vm.IterClose(i.second)
+		m.IterClose(i.second)
 	}
 	return nil
 }

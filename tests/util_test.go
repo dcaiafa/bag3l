@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/compiler"
 	"github.com/dcaiafa/bag3l/internal/export"
 	"github.com/dcaiafa/bag3l/internal/fs"
@@ -14,14 +13,14 @@ import (
 	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 
-func harnessCall(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	callable := args[0].(nitro.Callable)
+func harnessCall(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	callable := args[0].(vm.Callable)
 	return m.Call(callable, args, nRet)
 }
 
-func isIterClosed(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
-	iter := args[0].(nitro.Iterator)
-	return []nitro.Value{nitro.NewBool(iter.IsClosed())}, nil
+func isIterClosed(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	iter := args[0].(vm.Iterator)
+	return []vm.Value{vm.NewBool(iter.IsClosed())}, nil
 }
 
 func compile(prog string) (*vm.Program, error) {
@@ -47,7 +46,7 @@ func compile(prog string) (*vm.Program, error) {
 	return program, nil
 }
 
-func run(prog string, params map[string]nitro.Value) (output string, err error) {
+func run(prog string, params map[string]vm.Value) (output string, err error) {
 	compiled, err := compile(prog)
 	if err != nil {
 		return "", err
@@ -55,7 +54,7 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 
 	outBuilder := &strings.Builder{}
 
-	vm := nitro.NewVM(compiled)
+	vm := vm.NewVM(compiled)
 	libio.SetStdout(vm, outBuilder)
 
 	for n, v := range params {
@@ -66,12 +65,8 @@ func run(prog string, params map[string]nitro.Value) (output string, err error) 
 	}
 
 	err = vm.Run(nil)
-	if err != nil {
-		return "", err
-	}
-
 	output = strings.Trim(outBuilder.String(), "\r\n\t ")
-	return output, nil
+	return output, err
 }
 
 func RunO(t *testing.T, prog string, expectedOutput string) {
@@ -135,6 +130,32 @@ func RunSubErr(t *testing.T, name string, prog string, expectedErr error) {
 	t.Run(name, func(t *testing.T) {
 		t.Helper()
 		RunErr(t, prog, expectedErr)
+	})
+}
+
+func RunErrO(t *testing.T, prog, expectedOutput string, expectedErr error) {
+	t.Helper()
+
+	expectedOutput = strings.Trim(expectedOutput, "\r\n\t ")
+
+	output, err := run(prog, nil)
+	if err == nil {
+		t.Fatalf("Error expected but operation succeeded")
+	}
+
+	if expectedErr != nil && !errors.Is(err, expectedErr) {
+		t.Fatalf("Expected error %v, but received %v", expectedErr, err)
+	}
+
+	if output != expectedOutput {
+		t.Fatalf("Expected output:\n%v\nActual:\n%v", expectedOutput, output)
+	}
+}
+
+func RunSubErrO(t *testing.T, name, prog, expectedOutput string, expectedErr error) {
+	t.Run(name, func(t *testing.T) {
+		t.Helper()
+		RunErrO(t, prog, expectedOutput, expectedErr)
 	})
 }
 

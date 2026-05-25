@@ -62,12 +62,10 @@ func (s *ForStmt) rewrite(ctx *Context) {
 		Type: token.String,
 		Str:  "$ok",
 	})
-	forRefs := make([]AST, len(forVars))
+	forRefs := make([]LValue, len(forVars))
 	for i, v := range forVars {
-		forRefs[i] = &LValue{
-			Expr: &SimpleRef{
-				ID: v,
-			},
+		forRefs[i] = &SimpleRefLValue{
+			ID: v,
 		}
 	}
 

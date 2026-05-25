@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
@@ -36,7 +36,7 @@ func newBuffer(data string) *Buffer {
 	return b
 }
 
-func getBufferArg(args []nitro.Value, ndx int) (*Buffer, error) {
+func getBufferArg(args []vm.Value, ndx int) (*Buffer, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
@@ -47,7 +47,7 @@ func getBufferArg(args []nitro.Value, ndx int) (*Buffer, error) {
 	return v, nil
 }
 
-func bufNew(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufNew(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	var err error
 	if err = expectArgCount(args, 0, 1); err != nil {
 		return nil, err
@@ -63,14 +63,14 @@ func bufNew(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	b := newBuffer(init)
 
-	return []nitro.Value{b}, nil
+	return []vm.Value{b}, nil
 }
 
-func bufRead(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufRead(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	return read(m, args, nRet)
 }
 
-func bufReadByte(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufReadByte(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -83,14 +83,14 @@ func bufReadByte(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 	b, err := buf.buf.ReadByte()
 	if err != nil {
 		if err == io.EOF {
-			return []nitro.Value{nil}, nil
+			return []vm.Value{nil}, nil
 		}
 	}
 
-	return []nitro.Value{nitro.NewInt(int64(b))}, nil
+	return []vm.Value{vm.NewInt(int64(b))}, nil
 }
 
-func bufReadRune(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufReadRune(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -103,14 +103,14 @@ func bufReadRune(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 	r, l, err := buf.buf.ReadRune()
 	if err != nil {
 		if err == io.EOF {
-			return []nitro.Value{nil}, nil
+			return []vm.Value{nil}, nil
 		}
 	}
 
-	return []nitro.Value{nitro.NewInt(int64(r)), nitro.NewInt(int64(l))}, nil
+	return []vm.Value{vm.NewInt(int64(r)), vm.NewInt(int64(l))}, nil
 }
 
-func bufReadFrom(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufReadFrom(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func bufReadFrom(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 	return nil, nil
 }
 
-func bufLen(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufLen(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -145,10 +145,10 @@ func bufLen(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	l := buf.Len()
 
-	return []nitro.Value{nitro.NewInt(int64(l))}, nil
+	return []vm.Value{vm.NewInt(int64(l))}, nil
 }
 
-func bufCap(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufCap(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
@@ -160,10 +160,10 @@ func bufCap(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	c := buf.buf.Cap()
 
-	return []nitro.Value{nitro.NewInt(int64(c))}, nil
+	return []vm.Value{vm.NewInt(int64(c))}, nil
 }
 
-func bufUnreadByte(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func bufUnreadByte(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}

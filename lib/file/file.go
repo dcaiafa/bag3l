@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 	"github.com/dcaiafa/bag3l/lib/time"
@@ -19,7 +18,7 @@ type File struct {
 	*os.File
 }
 
-var _ /* implements */ nitro.Callable = (*File)(nil)
+var _ /* implements */ vm.Callable = (*File)(nil)
 var _ /* implements */ core.NativeReader = (*File)(nil)
 var _ /* implements */ core.NativeWriter = (*File)(nil)
 
@@ -35,12 +34,12 @@ func (f *File) GetNativeWriter() io.Writer {
 	return f.File
 }
 
-func (f *File) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (f *File) Call(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, core.ErrWriterCallUsage
 	}
 
-	reader, err := nitro.MakeReader(m, args[0])
+	reader, err := vm.MakeReader(m, args[0])
 	if err != nil {
 		return nil, core.ErrWriterCallUsage
 	}
@@ -50,31 +49,31 @@ func (f *File) Call(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 		return nil, err
 	}
 
-	return []nitro.Value{nitro.NewInt(n)}, nil
+	return []vm.Value{vm.NewInt(n)}, nil
 }
 
-func (f *File) IndexRef(key nitro.Value) (nitro.ValueRef, error) {
-	return nitro.ValueRef{}, fmt.Errorf("file is not assignable")
+func (f *File) SetIndex(key, value vm.Value) error {
+	return fmt.Errorf("file is not assignable")
 }
 
-func create0(vm *vm.VM, name string) (*File, error) {
+func create0(m *vm.VM, name string) (*File, error) {
 	f, err := os.Create(name)
 	if err != nil {
 		return nil, err
 	}
 	file := &File{f}
-	vm.RegisterCloser(file)
+	m.RegisterCloser(file)
 	return file, nil
 }
 
-func open0(vm *vm.VM, name string, opts *OpenOptions) (*File, error) {
+func open0(m *vm.VM, name string, opts *OpenOptions) (*File, error) {
 	if opts == nil {
 		f, err := os.Open(name)
 		if err != nil {
 			return nil, err
 		}
 		file := &File{f}
-		vm.RegisterCloser(file)
+		m.RegisterCloser(file)
 		return file, nil
 	}
 
@@ -114,11 +113,11 @@ func open0(vm *vm.VM, name string, opts *OpenOptions) (*File, error) {
 		return nil, err
 	}
 	file := &File{f}
-	vm.RegisterCloser(file)
+	m.RegisterCloser(file)
 	return file, nil
 }
 
-func stat0(vm *vm.VM, f *File) (*vm.Map, error) {
+func stat0(m *vm.VM, f *File) (*vm.Map, error) {
 	fi, err := f.Stat()
 	if err != nil {
 		return nil, err
@@ -126,7 +125,7 @@ func stat0(vm *vm.VM, f *File) (*vm.Map, error) {
 	return fileInfoToMap(fi), nil
 }
 
-func stat1(vm *vm.VM, name string) (*vm.Map, error) {
+func stat1(m *vm.VM, name string) (*vm.Map, error) {
 	fi, err := os.Stat(name)
 	if err != nil {
 		return nil, err
@@ -143,7 +142,7 @@ func fileInfoToMap(fi os.FileInfo) *vm.Map {
 	return res
 }
 
-func seek0(vm *vm.VM, f *File, offset int64, whenceStr string) (int64, error) {
+func seek0(m *vm.VM, f *File, offset int64, whenceStr string) (int64, error) {
 	var whence int
 
 	switch whenceStr {
@@ -167,7 +166,7 @@ func seek0(vm *vm.VM, f *File, offset int64, whenceStr string) (int64, error) {
 	return newOffset, nil
 }
 
-func read_all0(vm *vm.VM, f *File) (string, error) {
+func read_all0(m *vm.VM, f *File) (string, error) {
 	// TODO: this should be an alias to io.read_all.
 	defer core.CloseReader(f)
 	data, err := ioutil.ReadAll(f)
@@ -177,7 +176,7 @@ func read_all0(vm *vm.VM, f *File) (string, error) {
 	return string(data), nil
 }
 
-func read_all1(vm *vm.VM, name string) (string, error) {
+func read_all1(m *vm.VM, name string) (string, error) {
 	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		return "", err
@@ -185,7 +184,7 @@ func read_all1(vm *vm.VM, name string) (string, error) {
 	return string(data), nil
 }
 
-func write_to0(vm *vm.VM, r vm.Reader, filename string) error {
+func write_to0(m *vm.VM, r vm.Reader, filename string) error {
 	defer core.CloseReader(r)
 
 	w, err := os.Create(filename)
@@ -207,7 +206,7 @@ func write_to0(vm *vm.VM, r vm.Reader, filename string) error {
 	return nil
 }
 
-func create_temp0(vm *vm.VM, pattern string, dir string) (*File, error) {
+func create_temp0(m *vm.VM, pattern string, dir string) (*File, error) {
 	f, err := ioutil.TempFile(dir, pattern)
 	if err != nil {
 		return nil, err
@@ -215,7 +214,7 @@ func create_temp0(vm *vm.VM, pattern string, dir string) (*File, error) {
 	return &File{f}, nil
 }
 
-func remove0(vm *vm.VM, f *File) (bool, error) {
+func remove0(m *vm.VM, f *File) (bool, error) {
 	f.Close()
 	err := os.Remove(f.Name())
 	if err != nil {
@@ -227,6 +226,6 @@ func remove0(vm *vm.VM, f *File) (bool, error) {
 	return true, nil
 }
 
-func name0(vm *vm.VM, f *File) (string, error) {
+func name0(m *vm.VM, f *File) (string, error) {
 	return f.Name(), nil
 }

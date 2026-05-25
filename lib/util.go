@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/file"
 	"github.com/dcaiafa/bag3l/lib/time"
@@ -29,7 +28,7 @@ func expectArgCount(args []vm.Value, min, max int) error {
 	}
 }
 
-func getValueArg(args []vm.Value, ndx int) (nitro.Value, error) {
+func getValueArg(args []vm.Value, ndx int) (vm.Value, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
@@ -82,7 +81,7 @@ func getStringArg(args []vm.Value, ndx int) (string, error) {
 	return v.String(), nil
 }
 
-func getListArg(args []vm.Value, ndx int) (*nitro.Array, error) {
+func getListArg(args []vm.Value, ndx int) (*vm.List, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
@@ -93,7 +92,7 @@ func getListArg(args []vm.Value, ndx int) (*nitro.Array, error) {
 	return v, nil
 }
 
-func getObjectArg(args []vm.Value, ndx int) (*nitro.Object, error) {
+func getObjectArg(args []vm.Value, ndx int) (*vm.Map, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
@@ -115,7 +114,7 @@ func getTimeArg(args []vm.Value, ndx int) (time.Time, error) {
 	return v, nil
 }
 
-func getRegexArg(args []vm.Value, ndx int) (*nitro.Regex, error) {
+func getRegexArg(args []vm.Value, ndx int) (*vm.Regex, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
@@ -171,12 +170,12 @@ func getWriterArg(args []vm.Value, ndx int) (io.Writer, error) {
 	}
 }
 
-func getIterArg(m *nitro.VM, args []vm.Value, ndx int) (nitro.Iterator, error) {
+func getIterArg(m *vm.VM, args []vm.Value, ndx int) (vm.Iterator, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
 	v := args[ndx]
-	it, err := nitro.MakeIterator(m, v)
+	it, err := vm.MakeIterator(m, v)
 	if err != nil {
 		return nil, errExpectedArg(ndx, args[ndx], "iter")
 	}
@@ -195,29 +194,29 @@ func getReaderArg(vmArg *vm.VM, args []vm.Value, ndx int) (vm.Reader, error) {
 	return reader, nil
 }
 
-func getCallableArg(args []nitro.Value, ndx int) (nitro.Callable, error) {
+func getCallableArg(args []vm.Value, ndx int) (vm.Callable, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs
 	}
-	callable, ok := args[ndx].(nitro.Callable)
+	callable, ok := args[ndx].(vm.Callable)
 	if !ok {
 		return nil, errExpectedArg(ndx, args[ndx], "callable")
 	}
 	return callable, nil
 }
 
-func ListFromIter(m *nitro.VM, v nitro.Value) (*nitro.Array, error) {
-	if arr, ok := v.(*nitro.Array); ok {
+func ListFromIter(m *vm.VM, v vm.Value) (*vm.List, error) {
+	if arr, ok := v.(*vm.List); ok {
 		return arr, nil
 	}
 
-	e, err := nitro.MakeIterator(m, v)
+	e, err := vm.MakeIterator(m, v)
 	if err != nil {
 		return nil, err
 	}
 	defer m.IterClose(e)
 
-	arr := nitro.NewArray()
+	arr := vm.NewList()
 	for {
 		v, err := m.IterNext(e, 1)
 		if err != nil {
@@ -232,9 +231,9 @@ func ListFromIter(m *nitro.VM, v nitro.Value) (*nitro.Array, error) {
 	return arr, nil
 }
 
-func errExpectedArg(ndx int, actual nitro.Value, expected ...string) error {
+func errExpectedArg(ndx int, actual vm.Value, expected ...string) error {
 	return vm.MakeNonRecoverableError(fmt.Errorf(
 		"expected argument #%v to be %v, but it was %v",
 		ndx+1, strings.Join(expected, " or "),
-		nitro.TypeName(actual)))
+		vm.TypeName(actual)))
 }

@@ -13,9 +13,9 @@ import (
 	"time"
 	_ "time/tzdata"
 
-	"github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/compiler"
 	"github.com/dcaiafa/bag3l/internal/fs"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib"
 	libio "github.com/dcaiafa/bag3l/lib/io"
 	libruntime "github.com/dcaiafa/bag3l/lib/runtime"
@@ -112,7 +112,7 @@ func main() {
 	var progName string
 	var scriptPath string
 	var scriptDir string
-	var compiled *bag3l.Program
+	var compiled *vm.Program
 
 	if *flagC.Value.(*string) != "" {
 		scriptDir, err = os.Getwd()
@@ -168,9 +168,9 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	vm := bag3l.NewVM(compiled)
-	libio.SetStdout(vm, os.Stdout)
-	libruntime.SetScriptDir(vm, scriptDir)
+	m := vm.NewVM(compiled)
+	libio.SetStdout(m, os.Stdout)
+	libruntime.SetScriptDir(m, scriptDir)
 
 	signalCh := make(chan os.Signal)
 	stopCh := make(chan struct{})
@@ -184,7 +184,7 @@ func main() {
 		for {
 			select {
 			case <-signalCh:
-				vm.SignalError(errors.New("SIGINT"))
+				m.SignalError(errors.New("SIGINT"))
 			case <-stopCh:
 				return
 			}
@@ -193,21 +193,21 @@ func main() {
 
 	nitroParams := progFlags.GetNitroValues()
 	for paramName, paramValue := range nitroParams {
-		err = vm.SetParam(paramName, paramValue)
+		err = m.SetParam(paramName, paramValue)
 		if err != nil {
 			fatal(err)
 		}
 	}
 
-	var programArgs []bag3l.Value
+	var programArgs []vm.Value
 	if len(args) != 0 {
-		programArgs = make([]bag3l.Value, len(args))
+		programArgs = make([]vm.Value, len(args))
 		for i, arg := range args {
-			programArgs[i] = bag3l.NewString(arg)
+			programArgs[i] = vm.NewString(arg)
 		}
 	}
 
-	err = vm.Run(programArgs)
+	err = m.Run(programArgs)
 	if err != nil {
 		// Error was already logged by error handler.
 		os.Exit(1)

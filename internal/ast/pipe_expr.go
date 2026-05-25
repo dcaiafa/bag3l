@@ -29,7 +29,6 @@ func (e *PipeExpr) rewrite(ctx *Context) {
 	if funcCall, ok := Unwrap(e.Right).(*FuncCallExpr); ok {
 		funcCall.SetPos(e.Pos())
 		funcCall.Args = append(Exprs{e.Left}, funcCall.Args...)
-		funcCall.Pipeline = true
 		e.rewritten = funcCall
 		e.Left = nil
 		e.Right = nil
@@ -37,10 +36,9 @@ func (e *PipeExpr) rewrite(ctx *Context) {
 	}
 
 	e.rewritten = &FuncCallExpr{
-		Target:   e.Right,
-		Args:     Exprs{e.Left},
-		RetN:     1,
-		Pipeline: true,
+		Target: e.Right,
+		Args:   Exprs{e.Left},
+		RetN:   1,
 	}
 	e.rewritten.SetPos(e.Pos())
 

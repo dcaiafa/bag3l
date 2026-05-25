@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,11 +26,11 @@ func TestErrorStack(t *testing.T) {
 	_, err := run(prog, nil)
 	require.Error(t, err)
 
-	var rerr *bag3l.RuntimeError
+	var rerr *vm.RuntimeError
 
 	require.True(t, errors.As(err, &rerr))
 
-	expectedStack := []bag3l.Frame{
+	expectedStack := []vm.FrameInfo{
 		{Filename: "main.b3", Line: 4, Func: "h"},
 		{Filename: "main.b3", Line: 7, Func: "g"},
 		{Filename: "main.b3", Line: 10, Func: "f"},

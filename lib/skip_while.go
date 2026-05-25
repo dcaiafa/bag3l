@@ -56,6 +56,6 @@ func (i *skipWhileIterator) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Valu
 	}
 }
 
-func (i *skipWhileIterator) Close(vm *vm.VM) error {
-	return vm.IterClose(i.inIter)
+func (i *skipWhileIterator) Close(m *vm.VM) error {
+	return m.IterClose(i.inIter)
 }

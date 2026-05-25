@@ -33,6 +33,11 @@ func (s *VarDeclStmt) RunPass(ctx *Context, pass Pass) {
 			scope := ctx.GetScope(scope.Package)
 			s.init.Syms = make([]symbol.Symbol, len(s.Vars))
 			for i, v := range s.Vars {
+				// The blank identifier declares nothing; its slot stays nil and
+				// its init value is discarded at emit time.
+				if v.Str == "_" {
+					continue
+				}
 				g := ctx.Package().NewGlobal()
 				g.SetName(v.Str)
 				g.SetPos(v.Pos)
@@ -68,6 +73,11 @@ func (s *VarDeclStmt) RunPass(ctx *Context, pass Pass) {
 			scope := ctx.GetScope(scope.Block)
 			s.init.Syms = make([]symbol.Symbol, len(s.Vars))
 			for i, v := range s.Vars {
+				// The blank identifier declares nothing; its slot stays nil and
+				// its init value is discarded at emit time.
+				if v.Str == "_" {
+					continue
+				}
 				l := parentFn.NewLocal()
 				l.SetName(v.Str)
 				l.SetPos(v.Pos)
@@ -92,22 +102,26 @@ func (v *VarDeclInit) RunPass(ctx *Context, pass Pass) {
 
 	if pass == Emit {
 		for _, sym := range v.Syms {
-			emitVariableInit(ctx, v.Pos(), sym)
-		}
-
-		if v.InitValues != nil {
-			for _, sym := range v.Syms {
-				emitSymbolRefPush(v.Pos(), emitter, sym)
+			// A nil slot is the blank identifier `_`; there is nothing to init.
+			if sym == nil {
+				continue
 			}
+			emitVariableInit(ctx, v.Pos(), sym)
 		}
 	}
 
 	ctx.RunPassChild(v, v.InitValues, pass)
 
-	if pass == Emit {
-		if v.InitValues != nil {
-			emitter := ctx.Emitter()
-			emitter.Emit(v.Pos(), vm.OpStore, uint32(len(v.Syms)), 0)
+	if pass == Emit && v.InitValues != nil {
+		// InitValues left v1..vN on the stack; store them into the symbols
+		// right-to-left so each value is popped off the top into its symbol.
+		// A nil slot is the blank identifier `_`: drop its value instead.
+		for i := len(v.Syms) - 1; i >= 0; i-- {
+			if v.Syms[i] == nil {
+				emitter.Emit(v.Pos(), vm.OpPop, 1, 0)
+				continue
+			}
+			emitSymbolStore(v.Pos(), emitter, v.Syms[i])
 		}
 	}
 }

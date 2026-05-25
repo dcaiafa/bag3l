@@ -1,8 +1,8 @@
 package lib
 
-import nitro "github.com/dcaiafa/bag3l"
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func in(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
+func in(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
 	if len(args) < 2 {
 		return nil, errNotEnoughArgs
 	}
@@ -17,5 +17,5 @@ func in(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
 		}
 	}
 
-	return []nitro.Value{nitro.NewBool(found)}, nil
+	return []vm.Value{vm.NewBool(found)}, nil
 }

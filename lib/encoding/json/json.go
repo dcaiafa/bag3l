@@ -7,14 +7,13 @@ import (
 	"io"
 	"strings"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
 //go:generate go run ../../../internal/stub/stubgen json.stubgen
 
-func decode0(vm *vm.VM, input string) (nitro.Value, error) {
+func decode0(m *vm.VM, input string) (vm.Value, error) {
 	v, err := ParseJSON(strings.NewReader(input))
 	if err != nil {
 		return nil, err
@@ -22,7 +21,7 @@ func decode0(vm *vm.VM, input string) (nitro.Value, error) {
 	return v, nil
 }
 
-func decode1(vm *vm.VM, input vm.Reader) (nitro.Value, error) {
+func decode1(m *vm.VM, input vm.Reader) (vm.Value, error) {
 	defer core.CloseReader(input)
 	v, err := ParseJSON(input)
 	if err != nil {
@@ -31,7 +30,7 @@ func decode1(vm *vm.VM, input vm.Reader) (nitro.Value, error) {
 	return v, nil
 }
 
-func encode0(vm *nitro.VM, v vm.Value, opts *EncodeOptions) (string, error) {
+func encode0(m *vm.VM, v vm.Value, opts *EncodeOptions) (string, error) {
 	indent := ""
 	prefix := ""
 
@@ -48,7 +47,7 @@ func encode0(vm *nitro.VM, v vm.Value, opts *EncodeOptions) (string, error) {
 	return string(jsonBytes), nil
 }
 
-func pretty0(vm *nitro.VM, v vm.Value) (string, error) {
+func pretty0(m *vm.VM, v vm.Value) (string, error) {
 	jsonBytes, err := ToJSON(v, "", "  ")
 	if err != nil {
 		return "", err
@@ -56,7 +55,7 @@ func pretty0(vm *nitro.VM, v vm.Value) (string, error) {
 	return string(jsonBytes), nil
 }
 
-func ParseJSON(r io.Reader) (nitro.Value, error) {
+func ParseJSON(r io.Reader) (vm.Value, error) {
 	parser := &jsonParser{
 		dec: json.NewDecoder(r),
 	}
@@ -73,7 +72,7 @@ type jsonParser struct {
 	tok json.Token
 }
 
-func (p *jsonParser) parseValue() (nitro.Value, error) {
+func (p *jsonParser) parseValue() (vm.Value, error) {
 	t, err := p.dec.Token()
 	if err != nil {
 		return nil, err
@@ -84,7 +83,7 @@ func (p *jsonParser) parseValue() (nitro.Value, error) {
 	switch t := t.(type) {
 	case json.Delim:
 		if t == '[' {
-			a := nitro.NewArray()
+			a := vm.NewList()
 			for p.dec.More() {
 				v, err := p.parseValue()
 				if err != nil {
@@ -98,7 +97,7 @@ func (p *jsonParser) parseValue() (nitro.Value, error) {
 			}
 			return a, nil
 		} else {
-			o := nitro.NewObject()
+			o := vm.NewMap()
 			for p.dec.More() {
 				k, err := p.parseValue()
 				if err != nil {
@@ -118,28 +117,28 @@ func (p *jsonParser) parseValue() (nitro.Value, error) {
 		}
 
 	case bool:
-		return nitro.NewBool(t), nil
+		return vm.NewBool(t), nil
 
 	case json.Number:
 		i, err := t.Int64()
 		if err == nil {
-			return nitro.NewInt(i), nil
+			return vm.NewInt(i), nil
 		}
 		f, err := t.Float64()
 		if err == nil {
-			return nitro.NewFloat(f), nil
+			return vm.NewFloat(f), nil
 		}
 		return nil, err
 
 	case string:
-		return nitro.NewString(t), nil
+		return vm.NewString(t), nil
 
 	default:
 		return nil, fmt.Errorf("unexpected token %q", t)
 	}
 }
 
-func ToJSON(v nitro.Value, prefix, indent string) ([]byte, error) {
+func ToJSON(v vm.Value, prefix, indent string) ([]byte, error) {
 	marshaler := jsonMarshaler{}
 	err := marshaler.marshal(v)
 	if err != nil {
@@ -164,33 +163,33 @@ type jsonMarshaler struct {
 	buf bytes.Buffer
 }
 
-func (m *jsonMarshaler) marshal(v nitro.Value) error {
+func (m *jsonMarshaler) marshal(v vm.Value) error {
 	if v == nil {
 		m.buf.WriteString("null")
 		return nil
 	}
 
 	switch v := v.(type) {
-	case nitro.Int:
+	case vm.Int:
 		b, err := json.Marshal(v.Int64())
 		if err != nil {
 			return err
 		}
 		m.buf.Write(b)
-	case nitro.Float:
+	case vm.Float:
 		b, err := json.Marshal(v.Float64())
 		if err != nil {
 			return err
 		}
 		m.buf.Write(b)
-	case nitro.Bool:
+	case vm.Bool:
 		b, err := json.Marshal(v.Bool())
 		if err != nil {
 			return err
 		}
 		m.buf.Write(b)
 
-	case *nitro.Array:
+	case *vm.List:
 		m.buf.WriteByte('[')
 		for i := 0; i < v.Len(); i++ {
 			if i != 0 {
@@ -203,11 +202,11 @@ func (m *jsonMarshaler) marshal(v nitro.Value) error {
 		}
 		m.buf.WriteByte(']')
 
-	case *nitro.Object:
+	case *vm.Map:
 		m.buf.WriteByte('{')
 		var err error
 		var i int
-		v.ForEach(func(k, v nitro.Value) bool {
+		v.ForEach(func(k, v vm.Value) bool {
 			if i != 0 {
 				m.buf.WriteByte(',')
 			}

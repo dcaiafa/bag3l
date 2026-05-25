@@ -36,6 +36,6 @@ func (i *enumIter) Next(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error)
 	return res, nil
 }
 
-func (i *enumIter) Close(vm *vm.VM) error {
-	return i.iter.Close(vm)
+func (i *enumIter) Close(m *vm.VM) error {
+	return i.iter.Close(m)
 }

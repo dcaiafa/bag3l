@@ -158,21 +158,46 @@ func (p *parser) on_expr_stmt(expr ast.Expr) ast.AST {
 	return &ast.ExprStmt{Expr: expr}
 }
 
-func (p *parser) on_assignment_stmt(lvalueExprs []ast.Expr, _ Token, rvalues []ast.Expr) ast.AST {
-	lvalues := make(ast.ASTs, len(lvalueExprs))
-	for i, lvalueExpr := range lvalueExprs {
-		lvalues[i] = p.lvalue(lvalueExpr)
-	}
-	return &ast.AssignStmt{
-		Lvalues: lvalues,
-		Rvalues: ast.Exprs(rvalues),
+func (p *parser) on_lvalue__simple_ref(id Token) ast.LValue {
+	return &ast.SimpleRefLValue{
+		ID: p.tokenToNitro(id),
 	}
 }
 
-func (p *parser) on_assignment_op_stmt(lvalueExpr ast.Expr, op Token, rvalue ast.Expr) ast.AST {
+func (p *parser) on_lvalue__member_access(target ast.Expr, _ Token, member Token) ast.LValue {
+	return &ast.MemberAccessLValue{
+		Target: target,
+		Member: p.tokenToNitro(member),
+	}
+}
+
+func (p *parser) on_lvalue__index(target ast.Expr, _ Token, index ast.Expr, _ Token) ast.LValue {
+	return &ast.IndexLValue{
+		Target: target,
+		Index:  index,
+	}
+}
+
+func (p *parser) on_assignment_stmt(lvalues []ast.LValue, op Token, rvalues []ast.Expr) ast.AST {
+	if op.Type == ASSIGN {
+		return &ast.AssignStmt{
+			Lvalues: lvalues,
+			Rvalues: ast.Exprs(rvalues),
+		}
+	}
+
+	// Compound-assignment operators (+=, -=, *=, /=) operate on a single
+	// target and value; multiple targets are only valid for plain '='.
+	if len(lvalues) != 1 || len(rvalues) != 1 {
+		p.errLogger.Failf(
+			p.tokenPos(op),
+			"Compound assignment requires a single target and value")
+		return nil
+	}
+
 	opAssign := &ast.AssignOpStmt{
-		LValue: p.lvalue(lvalueExpr),
-		RValue: rvalue,
+		LValue: lvalues[0],
+		RValue: rvalues[0],
 	}
 
 	switch op.Type {
@@ -278,6 +303,7 @@ func (p *parser) on_param_list(params []Token) []*ast.FuncParam {
 		fparams[i] = &ast.FuncParam{
 			Name: string(param.Str),
 		}
+		fparams[i].SetPos(p.tokenPos(param))
 	}
 	return fparams
 }
@@ -814,17 +840,21 @@ func (p *parser) tokens(ts []Token) []token.Token {
 	return tokens
 }
 
-func (p *parser) lvalue(expr ast.Expr) *ast.LValue {
-	switch expr.(type) {
+// lvalue converts an already-parsed expression into the corresponding lvalue
+// node. It is used by statements whose grammar accepts a full expression that
+// must be assignable, such as `expr '++'`.
+func (p *parser) lvalue(expr ast.Expr) ast.LValue {
+	var lv ast.LValue
+	switch e := expr.(type) {
 	case *ast.SimpleRef:
+		lv = &ast.SimpleRefLValue{ID: e.ID}
 	case *ast.MemberAccess:
+		lv = &ast.MemberAccessLValue{Target: e.Target, Member: e.Member}
 	case *ast.IndexExpr:
+		lv = &ast.IndexLValue{Target: e.Target, Index: e.Index}
 	default:
 		p.errLogger.Failf(expr.Pos(), "Expression is not lvalue")
 		return nil
-	}
-	lv := &ast.LValue{
-		Expr: expr,
 	}
 	lv.SetPos(expr.Pos())
 	return lv

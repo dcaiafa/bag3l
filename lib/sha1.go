@@ -5,18 +5,18 @@ import (
 	"errors"
 	"io"
 
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
 var errSha1Usage = errors.New(
 	`invalid usage. Expected sha1(reader)`)
 
-func sha1(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func sha1(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, errSha1Usage
 	}
 
-	input, err := nitro.MakeReader(vm, args[0])
+	input, err := vm.MakeReader(m, args[0])
 	if err != nil {
 		return nil, errSha1Usage
 	}
@@ -27,5 +27,5 @@ func sha1(vm *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		return nil, err
 	}
 
-	return []nitro.Value{nitro.NewString(string(h.Sum(nil)))}, nil
+	return []vm.Value{vm.NewString(string(h.Sum(nil)))}, nil
 }

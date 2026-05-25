@@ -1,10 +1,8 @@
 package lib
 
-import (
-	nitro "github.com/dcaiafa/bag3l"
-)
+import "github.com/dcaiafa/bag3l/internal/vm"
 
-func imap(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func imap(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 2, 2); err != nil {
 		return nil, err
 	}
@@ -22,16 +20,16 @@ func imap(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		fn:     fn,
 	}
 
-	outIter := nitro.NewIterator(mapIter.Next, mapIter.Close, 1)
-	return []nitro.Value{outIter}, nil
+	outIter := vm.NewIterator(mapIter.Next, mapIter.Close, 1)
+	return []vm.Value{outIter}, nil
 }
 
 type mapIter struct {
-	inIter nitro.Iterator
-	fn     nitro.Value
+	inIter vm.Iterator
+	fn     vm.Value
 }
 
-func (i *mapIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func (i *mapIter) Next(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	v, err := m.IterNext(i.inIter, i.inIter.IterNRet())
 	if err != nil {
 		i.Close(m)
@@ -47,10 +45,10 @@ func (i *mapIter) Next(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value
 		return nil, err
 	}
 
-	return []nitro.Value{res[0]}, nil
+	return []vm.Value{res[0]}, nil
 }
 
-func (i *mapIter) Close(m *nitro.VM) error {
+func (i *mapIter) Close(m *vm.VM) error {
 	m.IterClose(i.inIter)
 	return nil
 }

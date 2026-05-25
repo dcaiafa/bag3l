@@ -26,7 +26,6 @@ stmt_list  = @list(stmt, ';') ';'?
 
 stmt = expr_stmt
      | assignment_stmt
-     | assignment_op_stmt
      | var_decl_stmt
      | for_stmt
      | while_stmt
@@ -41,12 +40,14 @@ stmt = expr_stmt
      | continue_stmt
      | inc_dec_stmt
 
+lvalue = ID
+       | primary_expr '.' ID
+       | primary_expr '[' expr ']'
+
 expr_stmt = expr
 
-assignment_stmt = @list(expr, ',') '=' @list(expr, ',')
-
-assignment_op_stmt = expr assign_op expr
-assign_op = '+=' | '-=' | '*=' | '/='
+assignment_stmt = @list(lvalue, ',') assign_op @list(expr, ',')
+assign_op = '=' | '+=' | '-=' | '*=' | '/='
 
 var_decl_stmt = 'var' @list(ID, ',') var_decl_init?
 var_decl_init = '=' @list(expr, ',') 

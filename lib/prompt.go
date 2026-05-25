@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	nitro "github.com/dcaiafa/bag3l"
+	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
 )
 
@@ -49,20 +49,20 @@ var errPromptUsage = errors.New(
 	`invalid usage. Expected prompt(string?)`)
 
 type promptOptions struct {
-	Type          string      `nitro:"type"`
-	Message       string      `nitro:"message"`
-	Default       string      `nitro:"default"`
-	Help          string      `nitro:"help"`
-	Options       []string    `nitro:"options"`
-	PageSize      int         `nitro:"pagesize"`
-	FilterMessage string      `nitro:"filtermessage"`
-	Validate      nitro.Value `nitro:"validate"`
-	VimMode       bool        `nitro:"vimmode"`
+	Type          string   `nitro:"type"`
+	Message       string   `nitro:"message"`
+	Default       string   `nitro:"default"`
+	Help          string   `nitro:"help"`
+	Options       []string `nitro:"options"`
+	PageSize      int      `nitro:"pagesize"`
+	FilterMessage string   `nitro:"filtermessage"`
+	Validate      vm.Value `nitro:"validate"`
+	VimMode       bool     `nitro:"vimmode"`
 }
 
 var promptOptionsConv core.Value2Structer
 
-func prompt(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func prompt(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) != 1 {
 		return nil, errPromptUsage
 	}
@@ -76,7 +76,7 @@ func prompt(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 
 	var opt promptOptions
 	var p survey.Prompt
-	if arg, ok := args[0].(nitro.String); ok {
+	if arg, ok := args[0].(vm.String); ok {
 		opt.Message = arg.String()
 	} else {
 		err := promptOptionsConv.Convert(args[0], &opt)
@@ -111,7 +111,7 @@ func prompt(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 			return nil, err
 		}
 
-		return []nitro.Value{nitro.NewString(resp)}, nil
+		return []vm.Value{vm.NewString(resp)}, nil
 
 	case "select":
 		if len(opt.Options) == 0 {
@@ -139,11 +139,11 @@ func prompt(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 		}
 
 		if selIndex < 0 {
-			return []nitro.Value{nil, nil}, nil
+			return []vm.Value{nil, nil}, nil
 		}
 
-		return []nitro.Value{
-			nitro.NewInt(int64(selIndex))}, nil
+		return []vm.Value{
+			vm.NewInt(int64(selIndex))}, nil
 
 	case "multi-select":
 		if len(opt.Options) == 0 {
@@ -170,28 +170,28 @@ func prompt(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
 			return nil, err
 		}
 
-		res := make([]nitro.Value, len(sels))
+		res := make([]vm.Value, len(sels))
 		for i, sel := range sels {
-			res[i] = nitro.NewInt(int64(sel))
+			res[i] = vm.NewInt(int64(sel))
 		}
 
-		return []nitro.Value{nitro.NewArrayFromSlice(res)}, nil
+		return []vm.Value{vm.NewListWithSlice(res)}, nil
 
 	default:
 		return nil, fmt.Errorf("invalid type %q", opt.Type)
 	}
 }
 
-func wrapSurveyValidator(vm *nitro.VM, fn nitro.Value) (survey.Validator, error) {
-	call, ok := fn.(nitro.Callable)
+func wrapSurveyValidator(m *vm.VM, fn vm.Value) (survey.Validator, error) {
+	call, ok := fn.(vm.Callable)
 	if !ok {
-		return nil, fmt.Errorf("value type %v is not callable", nitro.TypeName(fn))
+		return nil, fmt.Errorf("value type %v is not callable", vm.TypeName(fn))
 	}
 	return func(ans interface{}) error {
 		ansStr := ans.(string)
-		_, err := vm.Call(call, []nitro.Value{nitro.NewString(ansStr)}, 0)
+		_, err := m.Call(call, []vm.Value{vm.NewString(ansStr)}, 0)
 		if err != nil {
-			var rerr *nitro.RuntimeError
+			var rerr *vm.RuntimeError
 			if errors.As(err, &rerr) {
 				err = fmt.Errorf("%v", rerr.Message())
 			}

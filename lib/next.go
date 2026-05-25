@@ -1,16 +1,16 @@
 package lib
 
 import (
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/stub"
+	"github.com/dcaiafa/bag3l/internal/vm"
 )
 
-func next(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
+func next(m *vm.VM, args []vm.Value, nret int) ([]vm.Value, error) {
 	if err := expectArgCount(args, 1, 1); err != nil {
 		return nil, err
 	}
 
-	iter, ok := args[0].(nitro.Iterator)
+	iter, ok := args[0].(vm.Iterator)
 	if !ok {
 		return nil, stub.InvalidArg(args, 0)
 	}
@@ -29,17 +29,17 @@ func next(vm *nitro.VM, args []nitro.Value, nret int) ([]nitro.Value, error) {
 		nret = 1
 	}
 
-	res, err := vm.IterNext(iter, nret-1)
+	res, err := m.IterNext(iter, nret-1)
 	if err != nil {
 		return nil, err
 	}
 
 	if res == nil {
-		vm.IterClose(iter)
-		res = make([]nitro.Value, nret)
-		res[len(res)-1] = nitro.False
+		m.IterClose(iter)
+		res = make([]vm.Value, nret)
+		res[len(res)-1] = vm.False
 	} else {
-		res = append(res, nitro.True)
+		res = append(res, vm.True)
 	}
 
 	return res, nil

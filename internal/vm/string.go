@@ -42,8 +42,8 @@ func (s String) Index(key Value) (Value, bool, error) {
 	}
 }
 
-func (s String) IndexRef(key Value) (ValueRef, error) {
-	return NewValueRef(nil), fmt.Errorf("cannot modify str")
+func (s String) SetIndex(key, value Value) error {
+	return fmt.Errorf("cannot modify str")
 }
 
 func (s String) Slice(b, e Value) (Value, error) {

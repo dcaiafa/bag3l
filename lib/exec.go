@@ -11,7 +11,6 @@ import (
 	osexec "os/exec"
 	"sync"
 
-	nitro "github.com/dcaiafa/bag3l"
 	"github.com/dcaiafa/bag3l/internal/ioqueue"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	"github.com/dcaiafa/bag3l/lib/core"
@@ -25,8 +24,8 @@ const minOutBufferReady = 0
 const minInBufferReady = 0
 
 type process struct {
-	vm         *nitro.VM
-	crumb      nitro.FrameCrumb
+	vm         *vm.VM
+	crumb      vm.FrameCrumb
 	cmd        *osexec.Cmd
 	closed     bool
 	started    bool
@@ -52,7 +51,7 @@ type process struct {
 
 var _ io.Reader = (*process)(nil)
 
-func newProcess(m *nitro.VM, cmd *osexec.Cmd, stdin io.Reader) *process {
+func newProcess(m *vm.VM, cmd *osexec.Cmd, stdin io.Reader) *process {
 	p := &process{
 		vm:          m,
 		cmd:         cmd,
@@ -423,7 +422,7 @@ func (p *process) Read(b []byte) (written int, err error) {
 	return written, nil
 }
 
-func execExec(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func execExec(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	var err error
 	var stdin io.Reader
 	var cmd *osexec.Cmd
@@ -470,10 +469,10 @@ func execExec(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) 
 	p.crumb = m.GetFrameCrumb(1)
 	m.RegisterCloser(p)
 
-	return []nitro.Value{p}, nil
+	return []vm.Value{p}, nil
 }
 
-func execWithStderr(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func execWithStderr(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	if len(args) > 2 {
 		return nil, errTooManyArgs
 	}
@@ -493,10 +492,10 @@ func execWithStderr(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, e
 		return nil, err
 	}
 
-	return []nitro.Value{p}, nil
+	return []vm.Value{p}, nil
 }
 
-func execWithEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func execWithEnv(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	p, err := getProcessArg(args, 0)
 	if err != nil {
 		return nil, err
@@ -506,7 +505,7 @@ func execWithEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 
 	envSlice := make([]string, 0, len(args))
 	for _, arg := range args {
-		envVarStr, ok := arg.(nitro.String)
+		envVarStr, ok := arg.(vm.String)
 		if !ok {
 			return nil, fmt.Errorf("environment list contains non-string values")
 		}
@@ -515,10 +514,10 @@ func execWithEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 
 	p.SetEnv(envSlice)
 
-	return []nitro.Value{p}, nil
+	return []vm.Value{p}, nil
 }
 
-func execWithPartialEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func execWithPartialEnv(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	p, err := getProcessArg(args, 0)
 	if err != nil {
 		return nil, err
@@ -532,7 +531,7 @@ func execWithPartialEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Valu
 	envSlice = append(envSlice, processEnv...)
 
 	for _, arg := range args {
-		envVarStr, ok := arg.(nitro.String)
+		envVarStr, ok := arg.(vm.String)
 		if !ok {
 			return nil, fmt.Errorf("environment list contains non-string values")
 		}
@@ -541,10 +540,10 @@ func execWithPartialEnv(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Valu
 
 	p.SetEnv(envSlice)
 
-	return []nitro.Value{p}, nil
+	return []vm.Value{p}, nil
 }
 
-func execWithDir(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, error) {
+func execWithDir(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	p, err := getProcessArg(args, 0)
 	if err != nil {
 		return nil, err
@@ -560,5 +559,5 @@ func execWithDir(m *nitro.VM, args []nitro.Value, nRet int) ([]nitro.Value, erro
 		return nil, err
 	}
 
-	return []nitro.Value{p}, nil
+	return []vm.Value{p}, nil
 }

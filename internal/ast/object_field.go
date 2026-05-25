@@ -66,6 +66,6 @@ func (s *ObjectField) RunPass(ctx *Context, pass Pass) {
 
 	switch pass {
 	case Emit:
-		ctx.Emitter().Emit(s.Pos(), vm.OpObjectPutNoPop, 0, 0)
+		ctx.Emitter().Emit(s.Pos(), vm.OpMapPutNoPop, 0, 0)
 	}
 }

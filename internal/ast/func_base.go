@@ -87,7 +87,7 @@ func (f *Func) RunPass(ctx *Context, pass Pass) {
 
 		if f.IsClosure {
 			for _, capture := range f.captures {
-				emitSymbolRefPush(f.Pos(), emitter, capture.Capture)
+				emitCaptureBoxPush(f.Pos(), emitter, capture.Capture)
 			}
 			op := vm.OpNewClosure
 			operand1 := uint32(f.idxFunc)
