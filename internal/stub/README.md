@@ -90,7 +90,10 @@ func parse(v Str, layout Str = `"2006-01-02T15:04:05Z07:00"`) Time
 - **Required**: `name Type`
 - **Optional with default**: `name Type = \`default_expr\``
 - **Variadic**: `name ...Type` (accepts zero or more arguments)
-- **Nullable**: `name Type?` (the `?` allows nil values)
+- **Nullable**: `name Type?` (the `?` also accepts nil; the implementation
+  receives the Go zero value, e.g. a nil interface or pointer. Not allowed on
+  `Str`, `Int`, `Float`, `Bool` or varargs, and at most one overload may accept
+  nil at the same argument position)
 
 #### Return Types
 

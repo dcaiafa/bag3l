@@ -39,4 +39,11 @@ func TestCsvEncode(t *testing.T) {
 a,b,c
 1,2,3
 `)
+
+	btesting.RunSubO(t, "nil_out", `
+		[["a", "b"], ["1", "2"]] | csv.encode(nil)
+	`, `
+a,b
+1,2
+`)
 }

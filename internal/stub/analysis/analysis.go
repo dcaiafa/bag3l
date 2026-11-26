@@ -331,8 +331,14 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 					// We should check expressions before emit.
 					panic(err)
 				}
+				// A nilable param's switch variable is a vm.Value (see
+				// emitTypeCase), so declare its default the same way.
+				defType := a.goTypeVM(param.Type.GoType)
+				if param.Type.Nilable {
+					defType = a.goType(valueGoType)
+				}
 				fmt.Fprintf(w, "var _a%d %s = %v\n",
-					i, a.goTypeVM(param.Type.GoType),
+					i, defType,
 					a.fromConvenienceType(def, param.Type))
 			}
 
@@ -344,7 +350,7 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 					fmt.Fprintf(w, "var _ta%d %s\n", i, a.goType(param.Type.GoType))
 					fmt.Fprintf(w, "if _a%d != nil {\n", i)
 					fmt.Fprintf(w, "_ta%d = new(%v)\n", i, a.goType(param.Type.GoType.NoRef()))
-					fmt.Fprintf(w, "err = _ta%d.FromMap(_a%d)\n", i, i)
+					fmt.Fprintf(w, "err = _ta%d.FromMap(%s)\n", i, a.nilableArg(i, param.Type))
 					fmt.Fprintf(w, "if err != nil {\n")
 					fmt.Fprintf(w, "  return nil, %s.InvalidArgErr(args, %d, err)\n",
 						stubAlias, argIdx)
@@ -359,6 +365,12 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 					fmt.Fprintf(w, "default:\n")
 					fmt.Fprintf(w, "  return nil, %s.InvalidArg(args, %d)\n", stubAlias, i)
 					fmt.Fprintf(w, "}\n")
+					fmt.Fprintf(w, "}\n")
+				} else if param.Type.Nilable {
+					fmt.Fprintf(w, "var _ta%d %s\n", i, a.goType(a.getConvenienceType(param.Type)))
+					fmt.Fprintf(w, "if _a%d != nil {\n", i)
+					fmt.Fprintf(w, "  _ta%d = %v\n",
+						i, a.toConvenienceType(a.nilableArg(i, param.Type), param.Type))
 					fmt.Fprintf(w, "}\n")
 				} else {
 					fmt.Fprintf(w, "_ta%d := %v\n",
@@ -426,6 +438,17 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 				return transitions[i].Type.Name < transitions[j].Type.Name
 			})
 
+			nilable := 0
+			for _, t := range transitions {
+				if t.Type.Nilable {
+					nilable++
+				}
+			}
+			if nilable > 1 {
+				panic(fmt.Sprintf(
+					"%s: argument %d: more than one overload accepts nil", fn.Name, argIdx))
+			}
+
 			varArgParam := transitions[0].ToState.NFAStates[0].Data.(*FuncNFAData).Param
 			isVarArg := varArgParam.VarArg
 			if isVarArg {
@@ -465,21 +488,39 @@ func isWideType(name string) bool {
 	return name == "Reader" || name == "Iter"
 }
 
+// emitTypeCase emits the type-switch case for typ. A nilable type also matches
+// nil, which makes the switch variable a vm.Value (see nilableArg).
 func (a *Analysis) emitTypeCase(w *bytes.Buffer, typ Type) {
+	nilCase := ""
+	if typ.Nilable {
+		nilCase = "nil,"
+	}
 	switch typ.Name {
 	case "Reader":
-		fmt.Fprintf(w, "case %s,%s:\n",
+		fmt.Fprintf(w, "case %s%s,%s:\n",
+			nilCase,
 			a.goType(readerGoType),
 			a.goType(readableGoType),
 		)
 	case "Iter":
-		fmt.Fprintf(w, "case %s,%s:\n",
+		fmt.Fprintf(w, "case %s%s,%s:\n",
+			nilCase,
 			a.goType(iterableGoType),
 			a.goType(iteratorGoType),
 		)
 	default:
-		fmt.Fprintf(w, "case %s:\n", a.goTypeVM(typ.GoType))
+		fmt.Fprintf(w, "case %s%s:\n", nilCase, a.goTypeVM(typ.GoType))
 	}
+}
+
+// nilableArg returns the expression for argument i as its VM type. For a
+// nilable param the switch variable is a vm.Value, so it needs a type
+// assertion; wide types are converted from vm.Value directly.
+func (a *Analysis) nilableArg(i int, typ Type) string {
+	if !typ.Nilable || isWideType(typ.Name) || typ.Name == "Any" {
+		return fmt.Sprintf("_a%d", i)
+	}
+	return fmt.Sprintf("_a%d.(%s)", i, a.goTypeVM(typ.GoType))
 }
 
 func (a *Analysis) getConvenienceType(typ Type) GoType {

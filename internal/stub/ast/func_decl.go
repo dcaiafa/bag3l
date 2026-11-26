@@ -37,6 +37,17 @@ func (d *FuncDecl) RunPass(ctx *Context, pass Pass) {
 				}
 				param.VarArg = true
 			}
+			if param.Type.Nilable {
+				if param.VarArg {
+					ctx.Failf(token.Pos{}, "Vararg parameter %q cannot be nilable", param.Name)
+					return
+				}
+				switch param.Type.Name {
+				case "Str", "Int", "Float", "Bool":
+					ctx.Failf(token.Pos{}, "Parameter %q of type %v cannot be nilable", param.Name, param.Type.Name)
+					return
+				}
+			}
 			sig.Params = append(sig.Params, param)
 		}
 		for _, retAST := range d.Rets {
