@@ -1,0 +1,11 @@
+package "exec"
+
+type Process *Process
+
+func exec(cmd List) Process
+func exec(stdin Reader, cmd List) Process
+func with_combined_output(p Process) Process
+func with_dir(p Process, dir Str) Process
+func with_env(p Process, env ...Str) Process
+func with_partial_env(p Process, env ...Str) Process
+func with_stderr(p Process, w Writer) Process

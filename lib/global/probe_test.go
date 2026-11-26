@@ -4,9 +4,12 @@ import (
 	"testing"
 
 	"github.com/dcaiafa/bag3l/internal/btesting"
+	"github.com/dcaiafa/bag3l/internal/stub"
 )
 
 func TestProbe(t *testing.T) {
+	btesting.RunSubErr(t, "no_args", `probe()`, stub.ErrInsufficientArgs)
+
 	btesting.RunSubO(t, "passthrough_value", `
 		var x = probe(42)
 		print(x)

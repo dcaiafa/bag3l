@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/dcaiafa/bag3l/internal/stub"
+	"github.com/dcaiafa/bag3l/lib/exec"
 )
 
 func TestExec(t *testing.T) {
@@ -228,6 +231,33 @@ exit status 3
 			print(e.error)
 		}
 	`, `with_stderr and with_combined_output are mutually exclusive`)
+
+	RunSubO(t, `with_partial_env`, `
+		exec.exec(["go", "run", "./testexec/testexec.go", "-print-env", "BAG3L_TEST_VAR"]) |
+			exec.with_partial_env("BAG3L_TEST_VAR=hello") |
+			io.out
+	`, `hello`)
+
+	RunSubO(t, `with_env_no_vars`, `
+		exec.exec(["go", "run", "./testexec/testexec.go", "-print-env", "BAG3L_TEST_VAR"]) |
+			exec.with_env() |
+			exec.with_partial_env("BAG3L_TEST_VAR=hello") |
+			io.out
+	`, `hello`)
+
+	RunSubErr(t, `with_env_non_string`, `
+		exec.exec(["go", "run", "./testexec/testexec.go"]) |
+			exec.with_env(1) |
+			read()
+	`, nil)
+
+	RunSubErr(t, `no_args`, `exec.exec()`, stub.ErrInsufficientArgs)
+
+	RunSubErr(t, `stdin_without_command`, `"input" | exec.exec()`, stub.ErrInsufficientArgs)
+
+	RunSubErr(t, `empty_command`, `exec.exec([]) | read()`, exec.ErrEmptyCommand)
+
+	RunSubErr(t, `nil_only_command`, "e`{nil}` | read()", exec.ErrEmptyCommand)
 
 	RunSubO(t, `executable_not_found`, `
 	try {

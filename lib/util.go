@@ -136,17 +136,6 @@ func getDurationArg(args []vm.Value, ndx int) (time.Duration, error) {
 	return v, nil
 }
 
-func getProcessArg(args []vm.Value, ndx int) (*process, error) {
-	if ndx >= len(args) {
-		return nil, errNotEnoughArgs
-	}
-	v, ok := args[ndx].(*process)
-	if !ok {
-		return nil, errExpectedArg(ndx, args[ndx], "process")
-	}
-	return v, nil
-}
-
 func getFileArg(args []vm.Value, ndx int) (*file.File, error) {
 	if ndx >= len(args) {
 		return nil, errNotEnoughArgs

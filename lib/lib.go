@@ -13,6 +13,7 @@ import (
 	libcsv "github.com/dcaiafa/bag3l/lib/encoding/csv"
 	libhex "github.com/dcaiafa/bag3l/lib/encoding/hex"
 	"github.com/dcaiafa/bag3l/lib/encoding/json"
+	"github.com/dcaiafa/bag3l/lib/exec"
 	"github.com/dcaiafa/bag3l/lib/file"
 	"github.com/dcaiafa/bag3l/lib/float"
 	"github.com/dcaiafa/bag3l/lib/global"
@@ -30,7 +31,7 @@ import (
 var GlobalPackage = export.Exports{
 	{N: "$close_iter", T: export.Func, F: close_iter},
 	{N: "$concat", T: export.Func, F: concat},
-	{N: "$exec", T: export.Func, F: execExec},
+	{N: "$exec", T: export.Func, F: exec.Exec},
 	{N: "$format", T: export.Func, F: format},
 	{N: "$home", T: export.Func, F: internalHomeDir},
 	{N: "avg", T: export.Func, F: avg},
@@ -87,15 +88,6 @@ var CoPackage = export.Exports{
 	{N: "start", T: export.Func, F: start},
 }
 
-var ExecPackage = export.Exports{
-	{N: "exec", T: export.Func, F: execExec},
-	{N: "with_combined_output", T: export.Func, F: execWithCombinedOutput},
-	{N: "with_dir", T: export.Func, F: execWithDir},
-	{N: "with_env", T: export.Func, F: execWithEnv},
-	{N: "with_partial_env", T: export.Func, F: execWithPartialEnv},
-	{N: "with_stderr", T: export.Func, F: execWithStderr},
-}
-
 var MathPackage = export.Exports{
 	{N: "trunc", T: export.Func, F: mathTrunc},
 }
@@ -119,7 +111,7 @@ func RegisterAll(registry BuiltinRegistry) {
 	registry.RegisterBuiltins("encoding/csv", libcsv.Exports)
 	registry.RegisterBuiltins("encoding/hex", libhex.Exports)
 	registry.RegisterBuiltins("encoding/json", json.Exports)
-	registry.RegisterBuiltins("exec", ExecPackage)
+	registry.RegisterBuiltins("exec", exec.Exports)
 	registry.RegisterBuiltins("file", file.Exports)
 	registry.RegisterBuiltins("float", float.Exports)
 	registry.RegisterBuiltins("int", libint.Exports)

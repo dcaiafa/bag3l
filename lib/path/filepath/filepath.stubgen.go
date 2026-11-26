@@ -237,9 +237,6 @@ func _is_dir(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 func _join(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
-	if len(args) < 1 {
-		return nil, _p1.ErrInsufficientArgs
-	}
 	var _a0 []_p2.Value = args[0:]
 	{
 		_ta0 := make([]string, len(_a0))
