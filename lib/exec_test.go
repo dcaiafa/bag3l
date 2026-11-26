@@ -189,6 +189,46 @@ exit status 128
         print()
    `, `100000`)
 
+	RunSubO(t, `combined_output`, `
+		range(11) |
+			map(str.into) |
+			stream |
+			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-range", "11", "-range-stdout"]) |
+			exec.with_combined_output() |
+			str.lines() |
+			map(&l -> int.parse(l)) |
+			reduce(sum) |
+			print()
+	`, `110`)
+
+	RunSubO(t, `combined_output_nonzero_exit`, `
+		var out = buf.new()
+		try {
+			"this goes to the reader\n" |
+				exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-exit-code=3"]) |
+				exec.with_combined_output() |
+				out
+		} catch e {
+			print(e.error)
+		}
+		print(read(out))
+	`, `
+exit status 1
+this goes to the reader
+exit status 3
+`)
+
+	RunSubO(t, `combined_output_conflicts_with_stderr`, `
+		try {
+			exec.exec(["go", "run", "./testexec/testexec.go"]) |
+				exec.with_stderr(buf.new()) |
+				exec.with_combined_output() |
+				read()
+		} catch e {
+			print(e.error)
+		}
+	`, `with_stderr and with_combined_output are mutually exclusive`)
+
 	RunSubO(t, `executable_not_found`, `
 	try {
 		exec.exec(["./foo_bar_doesnt_exist"]) | read()
