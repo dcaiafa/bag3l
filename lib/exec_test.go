@@ -160,6 +160,14 @@ exit status 128
 			print()
 	`, `45`)
 
+	RunSubO(t, `nil_stdin`, `
+		nil |
+			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
+			read() |
+			len() |
+			print()
+	`, `0`)
+
 	RunSubO(t, `stdin_is_file`, `
 		var tmp = file.create_temp()
 		defer file.remove(tmp)

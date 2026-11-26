@@ -23,7 +23,7 @@ func _exec(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 			}
 			return []_p2.Value{_r0}, nil
 		}
-	case _p2.Reader, _p2.Readable:
+	case nil, _p2.Reader, _p2.Readable:
 		if len(args) <= 1 {
 			return nil, _p1.ErrInsufficientArgs
 		}
@@ -33,7 +33,10 @@ func _exec(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 				return nil, _p1.ErrTooManyArgs
 			}
 			{
-				_ta0 := _p1.MustMakeReader(vm, _a0)
+				var _ta0 _p2.Reader
+				if _a0 != nil {
+					_ta0 = _p1.MustMakeReader(vm, _a0)
+				}
 				_ta1 := _a1
 				_r0, err := exec1(vm, _ta0, _ta1)
 				if err != nil {
