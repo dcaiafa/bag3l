@@ -1,11 +1,15 @@
 package global
 
 import (
+	"github.com/dcaiafa/bag3l/internal/stub"
 	"github.com/dcaiafa/bag3l/internal/vm"
 	libio "github.com/dcaiafa/bag3l/lib/io"
 )
 
 func probe0(m *vm.VM, args []vm.Value) (vm.Value, error) {
+	if len(args) == 0 {
+		return nil, stub.ErrInsufficientArgs
+	}
 	probeValue := args[0]
 	otherArgs := make([]vm.Value, len(args)-1)
 	copy(otherArgs, args[1:])

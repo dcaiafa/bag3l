@@ -7,7 +7,7 @@ import _p2 "github.com/dcaiafa/bag3l/internal/vm"
 func _append(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return nil, _p1.ErrInsufficientArgs
 	}
 	switch _a0 := args[0].(type) {

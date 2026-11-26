@@ -435,6 +435,13 @@ func (a *Analysis) emitFunc(w *bytes.Buffer, fn *Func) {
 				fmt.Fprintf(w, "var _a%d []%s.Value = args[%d:]\n", argIdx, vmAlias, argIdx)
 				emitDFA(argIdx+1, transitions[0].ToState)
 			} else {
+				// args[argIdx] is only guaranteed to exist below MinArgs. Accepting
+				// states have already returned if len(args) == argIdx.
+				if !fromState.Accept && argIdx >= dfa.MinArgs {
+					fmt.Fprintf(w, "if len(args) <= %d {\n", argIdx)
+					fmt.Fprintf(w, "  return nil, %v.ErrInsufficientArgs\n", stubAlias)
+					fmt.Fprintf(w, "}\n")
+				}
 				fmt.Fprintf(w, "switch _a%d := args[%d].(type) {\n", argIdx, argIdx)
 				for _, t := range transitions {
 					a.emitTypeCase(w, t.Type)

@@ -67,24 +67,24 @@ func (s *Func) DFA() *FuncDFA {
 		from.Accept = true
 	}
 
-	var calcMinArgs func(min, cur int, s *nfadfa.DFAState) int
-	calcMinArgs = func(min, cur int, s *nfadfa.DFAState) int {
-		if cur > 0 {
-			hasDefault := s.NFAStates[0].Data.(*FuncNFAData).Param.HasDefault
-			for _, nfaState := range s.NFAStates {
-				if nfaState.Data.(*FuncNFAData).Param.HasDefault != hasDefault {
-					panic("default should be consistent in all nfa states")
-				}
-			}
-			if hasDefault {
-				return min
-			}
+	// calcMinArgs returns the length of the shortest path from s to an
+	// accepting state, i.e. the fewest arguments any signature accepts. A
+	// variadic parameter accepts zero arguments, so it doesn't count.
+	var calcMinArgs func(cur int, s *nfadfa.DFAState) int
+	calcMinArgs = func(cur int, s *nfadfa.DFAState) int {
+		if s.Accept {
+			return cur
 		}
-		if cur > min {
-			min = cur
-		}
+		min := -1
 		for _, toState := range s.Transitions {
-			min = calcMinArgs(min, cur+1, toState)
+			next := cur + 1
+			if toState.NFAStates[0].Data.(*FuncNFAData).Param.VarArg {
+				next = cur
+			}
+			n := calcMinArgs(next, toState)
+			if min == -1 || n < min {
+				min = n
+			}
 		}
 		return min
 	}
@@ -92,7 +92,7 @@ func (s *Func) DFA() *FuncDFA {
 	dfa := &FuncDFA{
 		DFA: nfa.DFA(),
 	}
-	dfa.MinArgs = calcMinArgs(0, 0, dfa.Start)
+	dfa.MinArgs = calcMinArgs(0, dfa.Start)
 
 	return dfa
 }

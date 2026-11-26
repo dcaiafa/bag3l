@@ -320,9 +320,6 @@ func _filter(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 func _log(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
-	if len(args) < 1 {
-		return nil, _p1.ErrInsufficientArgs
-	}
 	var _a0 []_p2.Value = args[0:]
 	{
 		_ta0 := _a0
@@ -336,9 +333,6 @@ func _log(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 func _print(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
-	if len(args) < 1 {
-		return nil, _p1.ErrInsufficientArgs
-	}
 	var _a0 []_p2.Value = args[0:]
 	{
 		_ta0 := _a0
@@ -407,9 +401,6 @@ func _print_table(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 func _probe(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
-	if len(args) < 1 {
-		return nil, _p1.ErrInsufficientArgs
-	}
 	var _a0 []_p2.Value = args[0:]
 	{
 		_ta0 := _a0
