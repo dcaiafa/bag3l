@@ -89,6 +89,7 @@ var CoPackage = export.Exports{
 
 var ExecPackage = export.Exports{
 	{N: "exec", T: export.Func, F: execExec},
+	{N: "with_combined_output", T: export.Func, F: execWithCombinedOutput},
 	{N: "with_dir", T: export.Func, F: execWithDir},
 	{N: "with_env", T: export.Func, F: execWithEnv},
 	{N: "with_partial_env", T: export.Func, F: execWithPartialEnv},

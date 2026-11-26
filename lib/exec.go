@@ -19,6 +19,8 @@ import (
 
 var ErrAborted = errors.New("aborted")
 var ErrProcessAlreadyStarted = errors.New("process already started")
+var ErrCombinedOutputConflict = errors.New(
+	"with_stderr and with_combined_output are mutually exclusive")
 
 const minOutBufferReady = 0
 const minInBufferReady = 0
@@ -29,6 +31,7 @@ type process struct {
 	cmd        *osexec.Cmd
 	closed     bool
 	started    bool
+	combined   bool
 	stdin      io.Reader
 	stderr     io.Writer
 	errSaver   *prefixSuffixSaver
@@ -72,7 +75,23 @@ func (p *process) SetStderr(w io.Writer) error {
 	if p.started {
 		return ErrProcessAlreadyStarted
 	}
+	if p.combined {
+		return ErrCombinedOutputConflict
+	}
 	p.stderr = w
+	return nil
+}
+
+// SetCombinedOutput configures the process so that both its stdout and stderr
+// are streamed through the process reader.
+func (p *process) SetCombinedOutput() error {
+	if p.started {
+		return ErrProcessAlreadyStarted
+	}
+	if p.stderr != nil {
+		return ErrCombinedOutputConflict
+	}
+	p.combined = true
 	return nil
 }
 
@@ -116,26 +135,37 @@ func (p *process) start() error {
 		p.stdinQueue.Close()
 	}
 
-	if p.stderr == nil {
-		p.errSaver = &prefixSuffixSaver{N: 512}
-		p.stderr = p.errSaver
-	}
-
-	if nativeWriter, ok := p.stderr.(core.NativeWriter); ok {
-		p.cmd.Stderr = nativeWriter.GetNativeWriter()
+	if p.combined {
+		// stderr shares stdout's pipe (see below).
 		p.stderrQueue.Close()
 	} else {
-		p.stderrPipe, err = p.cmd.StderrPipe()
-		if err != nil {
-			return err
+		if p.stderr == nil {
+			p.errSaver = &prefixSuffixSaver{N: 512}
+			p.stderr = p.errSaver
 		}
-		p.wg.Add(1)
-		go p.errLoop()
+
+		if nativeWriter, ok := p.stderr.(core.NativeWriter); ok {
+			p.cmd.Stderr = nativeWriter.GetNativeWriter()
+			p.stderrQueue.Close()
+		} else {
+			p.stderrPipe, err = p.cmd.StderrPipe()
+			if err != nil {
+				return err
+			}
+			p.wg.Add(1)
+			go p.errLoop()
+		}
 	}
 
 	p.stdoutPipe, err = p.cmd.StdoutPipe()
 	if err != nil {
 		return err
+	}
+	if p.combined {
+		// StdoutPipe sets cmd.Stdout to the pipe's write end (an *os.File).
+		// Sharing it with stderr makes the child write both streams to the same
+		// file descriptor.
+		p.cmd.Stderr = p.cmd.Stdout
 	}
 	p.wg.Add(1)
 	go p.outputLoop()
@@ -488,6 +518,24 @@ func execWithStderr(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 	}
 
 	err = p.SetStderr(w)
+	if err != nil {
+		return nil, err
+	}
+
+	return []vm.Value{p}, nil
+}
+
+func execWithCombinedOutput(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
+	if len(args) > 1 {
+		return nil, errTooManyArgs
+	}
+
+	p, err := getProcessArg(args, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.SetCombinedOutput()
 	if err != nil {
 		return nil, err
 	}
