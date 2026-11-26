@@ -17,6 +17,7 @@ func main() {
 		flagRangeStderr  = flag.Bool("range-stderr", false, "")
 		flagRangeAlt     = flag.Bool("range-alt", false, "")
 		flagExitCode     = flag.Int("exit-code", 0, "")
+		flagPrintEnv     = flag.String("print-env", "", "")
 	)
 
 	if len(os.Args) > 1 && os.Args[1] == "-print-args" {
@@ -27,6 +28,10 @@ func main() {
 	}
 
 	flag.Parse()
+
+	if *flagPrintEnv != "" {
+		fmt.Println(os.Getenv(*flagPrintEnv))
+	}
 
 	if *flagEchoToStdout {
 		_, err := io.Copy(os.Stdout, os.Stdin)

@@ -1,4 +1,6 @@
-package lib
+package exec
+
+//go:generate go run ../../internal/stub/stubgen exec.stubgen
 
 import (
 	"context"
@@ -21,11 +23,12 @@ var ErrAborted = errors.New("aborted")
 var ErrProcessAlreadyStarted = errors.New("process already started")
 var ErrCombinedOutputConflict = errors.New(
 	"with_stderr and with_combined_output are mutually exclusive")
+var ErrEmptyCommand = errors.New("empty command")
 
 const minOutBufferReady = 0
 const minInBufferReady = 0
 
-type process struct {
+type Process struct {
 	vm         *vm.VM
 	crumb      vm.FrameCrumb
 	cmd        *osexec.Cmd
@@ -52,10 +55,10 @@ type process struct {
 	err error
 }
 
-var _ io.Reader = (*process)(nil)
+var _ io.Reader = (*Process)(nil)
 
-func newProcess(m *vm.VM, cmd *osexec.Cmd, stdin io.Reader) *process {
-	p := &process{
+func newProcess(m *vm.VM, cmd *osexec.Cmd, stdin io.Reader) *Process {
+	p := &Process{
 		vm:          m,
 		cmd:         cmd,
 		stdin:       stdin,
@@ -67,11 +70,11 @@ func newProcess(m *vm.VM, cmd *osexec.Cmd, stdin io.Reader) *process {
 	return p
 }
 
-func (p *process) String() string    { return "Process " + p.cmd.Path }
-func (p *process) Type() string      { return "Process" }
-func (p *process) Traits() vm.Traits { return vm.TraitNone }
+func (p *Process) String() string    { return "Process " + p.cmd.Path }
+func (p *Process) Type() string      { return "Process" }
+func (p *Process) Traits() vm.Traits { return vm.TraitNone }
 
-func (p *process) SetStderr(w io.Writer) error {
+func (p *Process) SetStderr(w io.Writer) error {
 	if p.started {
 		return ErrProcessAlreadyStarted
 	}
@@ -84,7 +87,7 @@ func (p *process) SetStderr(w io.Writer) error {
 
 // SetCombinedOutput configures the process so that both its stdout and stderr
 // are streamed through the process reader.
-func (p *process) SetCombinedOutput() error {
+func (p *Process) SetCombinedOutput() error {
 	if p.started {
 		return ErrProcessAlreadyStarted
 	}
@@ -95,7 +98,7 @@ func (p *process) SetCombinedOutput() error {
 	return nil
 }
 
-func (p *process) SetEnv(env []string) error {
+func (p *Process) SetEnv(env []string) error {
 	if p.started {
 		return ErrProcessAlreadyStarted
 	}
@@ -103,7 +106,7 @@ func (p *process) SetEnv(env []string) error {
 	return nil
 }
 
-func (p *process) SetDir(dir string) error {
+func (p *Process) SetDir(dir string) error {
 	if p.started {
 		return ErrProcessAlreadyStarted
 	}
@@ -111,7 +114,7 @@ func (p *process) SetDir(dir string) error {
 	return nil
 }
 
-func (p *process) start() error {
+func (p *Process) start() error {
 	var err error
 
 	if p.started {
@@ -184,7 +187,7 @@ func (p *process) start() error {
 // stdin (via p.stdinPipe). So it goes like this:
 // 1. Read() reads from p.stdin, sends to p.stdinQueue
 // 2. inputLoop() receives from p.stdinQueue, writes to p.stdinPipe.
-func (p *process) inputLoop() {
+func (p *Process) inputLoop() {
 	defer p.wg.Done()
 	defer p.stdinPipe.Close()
 	defer p.stdinQueue.SignalWantsClose()
@@ -211,7 +214,7 @@ func (p *process) inputLoop() {
 	}
 }
 
-func (p *process) outputLoop() {
+func (p *Process) outputLoop() {
 	defer p.wg.Done()
 
 	for {
@@ -233,7 +236,7 @@ func (p *process) outputLoop() {
 	}
 }
 
-func (p *process) errLoop() {
+func (p *Process) errLoop() {
 	defer p.wg.Done()
 
 	for {
@@ -256,13 +259,13 @@ func (p *process) errLoop() {
 	}
 }
 
-func (p *process) getError() error {
+func (p *Process) getError() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return p.err
 }
 
-func (p *process) setError(err error) {
+func (p *Process) setError(err error) {
 	p.mu.Lock()
 	if p.err == nil {
 		p.err = err
@@ -271,7 +274,7 @@ func (p *process) setError(err error) {
 	p.errorQueue.Close()
 }
 
-func (p *process) Close() error {
+func (p *Process) Close() error {
 	if p.closed {
 		return nil
 	}
@@ -321,7 +324,7 @@ func (p *process) Close() error {
 	return nil
 }
 
-func (p *process) Read(b []byte) (written int, err error) {
+func (p *Process) Read(b []byte) (written int, err error) {
 	defer func() {
 		if err != nil {
 			p.setError(err)
@@ -452,33 +455,19 @@ func (p *process) Read(b []byte) (written int, err error) {
 	return written, nil
 }
 
-func execExec(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	var err error
-	var stdin io.Reader
-	var cmd *osexec.Cmd
+// Exec is the implementation of the `$exec` global function, which backs
+// exec literals (e.g. e`ls -l`).
+var Exec = _exec
 
-	if len(args) > 2 {
-		return nil, errTooManyArgs
-	}
+func exec0(m *vm.VM, cmd *vm.List) (*Process, error) {
+	return exec1(m, nil, cmd)
+}
 
-	cmdArgsIndex := 0
-	if len(args) == 2 {
-		stdin, err = getReaderArg(m, args, 0)
-		if err != nil {
-			return nil, err
-		}
-		cmdArgsIndex = 1
-	}
+func exec1(m *vm.VM, stdin vm.Reader, cmd *vm.List) (*Process, error) {
+	cmdArgs := make([]string, 0, cmd.Len())
 
-	cmdArgsList, err := getListArg(args, cmdArgsIndex)
-	if err != nil {
-		return nil, err
-	}
-
-	cmdArgs := make([]string, 0, cmdArgsList.Len())
-
-	for i := 0; i < cmdArgsList.Len(); i++ {
-		v := cmdArgsList.Get(i)
+	for i := 0; i < cmd.Len(); i++ {
+		v := cmd.Get(i)
 		if v == nil {
 			continue
 		}
@@ -493,119 +482,53 @@ func execExec(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
 		}
 	}
 
-	cmd = osexec.Command(cmdArgs[0], cmdArgs[1:]...)
+	if len(cmdArgs) == 0 {
+		return nil, ErrEmptyCommand
+	}
 
-	p := newProcess(m, cmd, stdin)
+	p := newProcess(m, osexec.Command(cmdArgs[0], cmdArgs[1:]...), stdin)
 	p.crumb = m.GetFrameCrumb(1)
 	m.RegisterCloser(p)
 
-	return []vm.Value{p}, nil
+	return p, nil
 }
 
-func execWithStderr(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	if len(args) > 2 {
-		return nil, errTooManyArgs
-	}
-
-	p, err := getProcessArg(args, 0)
+func with_stderr0(m *vm.VM, p *Process, w vm.Writer) (*Process, error) {
+	err := p.SetStderr(w)
 	if err != nil {
 		return nil, err
 	}
-
-	w, err := getWriterArg(args, 1)
-	if err != nil {
-		return nil, err
-	}
-
-	err = p.SetStderr(w)
-	if err != nil {
-		return nil, err
-	}
-
-	return []vm.Value{p}, nil
+	return p, nil
 }
 
-func execWithCombinedOutput(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	if len(args) > 1 {
-		return nil, errTooManyArgs
-	}
-
-	p, err := getProcessArg(args, 0)
+func with_combined_output0(m *vm.VM, p *Process) (*Process, error) {
+	err := p.SetCombinedOutput()
 	if err != nil {
 		return nil, err
 	}
-
-	err = p.SetCombinedOutput()
-	if err != nil {
-		return nil, err
-	}
-
-	return []vm.Value{p}, nil
+	return p, nil
 }
 
-func execWithEnv(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	p, err := getProcessArg(args, 0)
+func with_env0(m *vm.VM, p *Process, env []string) (*Process, error) {
+	err := p.SetEnv(env)
 	if err != nil {
 		return nil, err
 	}
-
-	args = args[1:]
-
-	envSlice := make([]string, 0, len(args))
-	for _, arg := range args {
-		envVarStr, ok := arg.(vm.String)
-		if !ok {
-			return nil, fmt.Errorf("environment list contains non-string values")
-		}
-		envSlice = append(envSlice, envVarStr.String())
-	}
-
-	p.SetEnv(envSlice)
-
-	return []vm.Value{p}, nil
+	return p, nil
 }
 
-func execWithPartialEnv(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	p, err := getProcessArg(args, 0)
+func with_partial_env0(m *vm.VM, p *Process, env []string) (*Process, error) {
+	err := p.SetEnv(slices.Concat(os.Environ(), env))
 	if err != nil {
 		return nil, err
 	}
-
-	args = args[1:]
-
-	processEnv := os.Environ()
-
-	envSlice := make([]string, 0, len(args)+len(processEnv))
-	envSlice = append(envSlice, processEnv...)
-
-	for _, arg := range args {
-		envVarStr, ok := arg.(vm.String)
-		if !ok {
-			return nil, fmt.Errorf("environment list contains non-string values")
-		}
-		envSlice = append(envSlice, envVarStr.String())
-	}
-
-	p.SetEnv(envSlice)
-
-	return []vm.Value{p}, nil
+	return p, nil
 }
 
-func execWithDir(m *vm.VM, args []vm.Value, nRet int) ([]vm.Value, error) {
-	p, err := getProcessArg(args, 0)
+func with_dir0(m *vm.VM, p *Process, dir string) (*Process, error) {
+	err := p.SetDir(dir)
 	if err != nil {
 		return nil, err
 	}
-
-	dir, err := getStringArg(args, 1)
-	if err != nil {
-		return nil, err
-	}
-
-	err = p.SetDir(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	return []vm.Value{p}, nil
+	return p, nil
 }
