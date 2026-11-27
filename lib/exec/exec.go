@@ -34,6 +34,7 @@ type Process struct {
 	cmd        *osexec.Cmd
 	closed     bool
 	started    bool
+	killed     bool
 	combined   bool
 	stdin      io.Reader
 	stderr     io.Writer
@@ -296,6 +297,7 @@ func (p *Process) Close() error {
 
 	if p.cmd != nil && p.cmd.Process != nil {
 		if err := p.getError(); err != io.EOF {
+			p.killed = true
 			p.cmd.Process.Kill()
 		}
 
@@ -455,6 +457,23 @@ func (p *Process) Read(b []byte) (written int, err error) {
 	return written, nil
 }
 
+// ReadAll reads the process output until EOF and returns it along with the
+// process exit code. Unlike Read, a process exiting with a non-zero code is not
+// an error.
+func (p *Process) ReadAll() ([]byte, int, error) {
+	defer p.Close()
+
+	data, err := io.ReadAll(p)
+	if err != nil {
+		var exitErr *osexec.ExitError
+		if !p.killed && errors.As(err, &exitErr) && exitErr.Exited() {
+			return data, exitErr.ExitCode(), nil
+		}
+		return nil, 0, err
+	}
+	return data, 0, nil
+}
+
 // Exec is the implementation of the `$exec` global function, which backs
 // exec literals (e.g. e`ls -l`).
 var Exec = _exec
@@ -531,4 +550,12 @@ func with_dir0(m *vm.VM, p *Process, dir string) (*Process, error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+func read_all0(m *vm.VM, p *Process) (string, int64, error) {
+	data, exitCode, err := p.ReadAll()
+	if err != nil {
+		return "", 0, err
+	}
+	return string(data), int64(exitCode), nil
 }
