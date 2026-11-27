@@ -140,6 +140,9 @@ and replaces `co.stack`. Consequences worth knowing:
   happens there. `call` and `iterNext` store `co.stack` back into the
   iterator before switching to the caller's stack.
 - Stacks never shrink.
+- Slots above `sp` are not cleared when values are popped, so a stack that
+  was once deep keeps those values reachable by the GC until the slots are
+  overwritten.
 
 Two limits turn runaway programs into `ErrStackOverflow`:
 
@@ -372,7 +375,9 @@ type Iterator interface {
 
 Created by `OpNewIter` from an `Fn` whose body uses `yield`. The iterator
 owns its own private operand stack (allocated lazily, see "Stack overflow and
-growth") plus the resume state:
+growth") plus the resume state. Everything the iterator's body calls also
+runs on that stack, not on the stack of whoever is consuming the iterator —
+which is why iterator stacks have to be able to grow.
 
 ```go
 type ILIterator struct {
@@ -452,6 +457,34 @@ panic-equivalent: a bug or invariant violation that leaves the program in
 an undefined state, so `try`/`catch` deliberately cannot catch them.
 Missing-data conditions that are *not* bugs have their own non-throwing
 syntax (`?.`, `?[]`) so users do not reach for `try` as a substitute.
+
+**The rule: runtime errors are never catchable.** That covers stack
+overflow, dereferencing or indexing nil, divide by zero, and every other
+fault the runtime detects. How it is enforced today depends on where the
+error comes from:
+
+- An error returned by an instruction in the interpreter loop is wrapped
+  with `Recoverable: false` by `resume`. New VM-level errors get the right
+  behavior by just returning a plain `error`.
+- An error returned by a **native function** is wrapped with
+  `Recoverable: true` by `callExtFn` (and by `iterNext` for native
+  iterators), so it *is* catchable unless the function wraps it with
+  `MakeNonRecoverableError`. An error the VM hands to native code (e.g.
+  `ErrStackOverflow` from `VM.Call`) must therefore be a
+  `NonRecoverableError` to stay uncatchable on its way back out.
+
+> **TODO (audit pending).** The rule also applies to native functions: a
+> builtin that reports a runtime fault must not be catchable. This is a new
+> rule and `lib/` has not been audited against it, so today most such errors
+> are catchable by default. Which native errors count as runtime faults, and
+> how to enforce it (per call site with `MakeNonRecoverableError`, or by
+> flipping the default in `callExtFn`), is still to be decided.
+
+**`try` assumes an empty operand stack.** Entering the catch block resets
+`sp` to `bp + nLocals + 1`, discarding any temporaries the frame had pushed
+when the error occurred. That is correct only because `try` is a statement
+and statements start with nothing above the locals; nothing enforces it.
+`computeMaxStack` makes the same assumption (handlers start at depth 1).
 
 Defers run on the panic path as well: when a non-recoverable runtime error
 escapes a frame, the frame's `defers` are invoked LIFO before propagation
@@ -600,7 +633,32 @@ candidates for fixing rather than as contracts to rely on.
   `(nil, false, nil)`. That means `err?.unknown` (optional access) still
   throws, defeating the point of the optional-index flag for this type.
 
+### Unconfirmed
+
+Noticed while reading the code; none of these has been reproduced or ruled
+out. Verify before relying on or fixing them.
+
+- **`call` and `iterNext` set up iterator frames differently.** `iterNext`
+  restores `f.bp` from the iterator; the `*ILIterator` branch of `call`
+  leaves it at 0. This works because `bp` is always 0 on an iterator's own
+  stack (it starts empty and takes no arguments), which is an accident of
+  layout rather than something the code states.
+
+- **Re-entrant iterators are unguarded.** Nothing stops an iterator's body
+  from resuming the iterator it belongs to while it is already running. Both
+  activations would share `iter.stack`, `iter.sp` and `iter.ip`.
+
+- **`GetCallerArgs` indexes the current operand stack with another frame's
+  `bp`.** Frames on `callStack` can live on different operand stacks (each
+  running `ILIterator` switches `co.stack`), so the result is only right when
+  the caller's frame is on the current one.
+
 ### Things that are not obvious from the code
+
+- `OpIterYield`'s `op1` (the number of yielded values) is ignored by the
+  interpreter, which derives the count from `sp`. It is read only by
+  `computeMaxStack`, so emitting a wrong count would not fail at run time —
+  it would silently skew the function's stack bound.
 
 - The exact contract between `runDefers` and the frame error path: defers
   run on `OpRet`, on propagation regardless of recoverability, and at

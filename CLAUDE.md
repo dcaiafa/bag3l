@@ -79,9 +79,29 @@ are marked `// REVISIT`).
   and running snippets, with helpers in `internal/btesting`.
 - `lib/**/*_test.go` covers individual builtin functions; many use the
   `lib/testexec` helpers.
+- Test output is noisy by design: a test that expects a runtime error still
+  prints the error and its stack trace to stderr, so a passing run contains
+  lines like "divide by zero". Judge a run by `FAIL` / `ok` lines, not by
+  error text.
+- There are no benchmarks. To back a performance claim about the VM, build
+  the CLI before and after the change and time the same `.b3` script with
+  both binaries (a call-heavy one such as recursive `fib`, and one that
+  exercises the feature being changed).
 
 ## Conventions
 
+- Adding or changing an opcode touches three places in `internal/vm`: the
+  `OpCode` enum in `instr.go`, the interpreter loop in `vm.go`, and the
+  stack-effect switch in `computeMaxStack` (`stack_depth.go`). The last one
+  panics at compile time on an unknown opcode. Run `make test` afterwards —
+  its `bag3ldebug` pass checks the computed stack bound on every instruction.
+- Runtime errors are never catchable by `try`/`catch` (stack overflow, nil
+  dereference, divide by zero, etc.); only values thrown with `throw` are.
+  A new VM-level error should be returned as a plain `error` from the
+  interpreter loop, or wrapped with `vm.MakeNonRecoverableError` if it can
+  pass through native code. Applying this rule to errors returned by native
+  functions in `lib/` is new and not yet audited — see the TODO under
+  "Try / catch / throw" in `docs/vm.md`.
 - After modifying any `*.lox` grammar or `*.stubgen` spec, run
   `go generate ./...` and commit the regenerated `*.gen.go` / `*.stubgen.go`
   files alongside the source.
