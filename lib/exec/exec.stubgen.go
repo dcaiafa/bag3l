@@ -51,6 +51,29 @@ func _exec(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 		return nil, _p1.InvalidArg(args, 0)
 	}
 }
+func _read_all(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
+	var err error
+	_ = err
+	if len(args) < 1 {
+		return nil, _p1.ErrInsufficientArgs
+	}
+	switch _a0 := args[0].(type) {
+	case *Process:
+		if len(args) > 1 {
+			return nil, _p1.ErrTooManyArgs
+		}
+		{
+			_ta0 := _a0
+			_r0, _r1, err := read_all0(vm, _ta0)
+			if err != nil {
+				return nil, err
+			}
+			return []_p2.Value{_p2.NewString(_r0), _p2.NewInt(_r1)}, nil
+		}
+	default:
+		return nil, _p1.InvalidArg(args, 0)
+	}
+}
 func _with_combined_output(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 	var err error
 	_ = err
@@ -195,6 +218,7 @@ func _with_stderr(vm *_p2.VM, args []_p2.Value, nret int) ([]_p2.Value, error) {
 
 var Exports = _p0.Exports{
 	{N: "exec", T: _p0.Func, F: _exec},
+	{N: "read_all", T: _p0.Func, F: _read_all},
 	{N: "with_combined_output", T: _p0.Func, F: _with_combined_output},
 	{N: "with_dir", T: _p0.Func, F: _with_dir},
 	{N: "with_env", T: _p0.Func, F: _with_env},

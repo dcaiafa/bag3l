@@ -240,6 +240,37 @@ exit status 3
 		}
 	`, `with_stderr and with_combined_output are mutually exclusive`)
 
+	RunSubO(t, `read_all`, `
+		var out, code = range(5) |
+			map(str.into) |
+			stream |
+			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stdout"]) |
+			exec.read_all()
+		print(out | str.lines() | count(), code)
+	`, `5 0`)
+
+	RunSubO(t, `read_all_nonzero_exit`, `
+		// go run exits with 1 when the program exits with non-zero.
+		var out, code = "this goes to the reader\n" |
+			exec.exec(["go", "run", "./testexec/testexec.go", "-echo-to-stderr", "-exit-code=3"]) |
+			exec.with_combined_output() |
+			exec.read_all()
+		print(code)
+		print(out)
+	`, `
+1
+this goes to the reader
+exit status 3
+`)
+
+	RunSubO(t, `read_all_executable_not_found`, `
+	try {
+		exec.exec(["./foo_bar_doesnt_exist"]) | exec.read_all()
+	} catch {
+		print("failed as expected")
+	}
+`, `failed as expected`)
+
 	RunSubO(t, `with_partial_env`, `
 		exec.exec(["go", "run", "./testexec/testexec.go", "-print-env", "BAG3L_TEST_VAR"]) |
 			exec.with_partial_env("BAG3L_TEST_VAR=hello") |

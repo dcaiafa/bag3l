@@ -9,3 +9,4 @@ func with_dir(p Process, dir Str) Process
 func with_env(p Process, env ...Str) Process
 func with_partial_env(p Process, env ...Str) Process
 func with_stderr(p Process, w Writer) Process
+func read_all(p Process) (Str, Int)
