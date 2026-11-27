@@ -446,7 +446,15 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 // If the body yields, the nret yielded values are pushed onto the current
 // stack and the result is true. If the body finishes, or fails, the current
 // stack is left as it was.
+//
+// Resuming an iterator whose body is already running fails with
+// ErrIteratorRunning: a second activation would start from the state saved at
+// the last yield and run on the same stack slots as the first.
 func (m *VM) resumeILIterator(iter *ILIterator, nret int) (bool, error) {
+	if iter.running {
+		return false, ErrIteratorRunning
+	}
+
 	rsp := m.co.sp
 	rstack := m.co.stack
 
@@ -464,7 +472,9 @@ func (m *VM) resumeILIterator(iter *ILIterator, nret int) (bool, error) {
 	m.co.stack = iter.stack
 	m.co.sp = iter.sp
 
+	iter.running = true
 	err := m.runFrame(f)
+	iter.running = false
 	if err != nil {
 		m.co.stack = rstack
 		m.co.sp = rsp

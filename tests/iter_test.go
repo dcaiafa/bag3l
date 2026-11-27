@@ -193,3 +193,120 @@ boom
 false
 `)
 }
+
+// An iterator cannot be resumed or closed while its body is running. The
+// error is not catchable, and it ends the activation that was running.
+func TestIterReentrant(t *testing.T) {
+	RunSubErrO(t, "next_before_first_yield", `
+		var it
+		func gen() {
+			print("enter")
+			next(it)
+			yield 1
+		}
+		it = gen()
+		next(it)
+`, `
+enter
+`, vm.ErrIteratorRunning)
+
+	RunSubErrO(t, "direct_call_after_yield", `
+		var it
+		func gen() {
+			var a = "A"
+			yield 1
+			print("resumed", a)
+			it()
+			print("not reached")
+			yield 2
+		}
+		it = gen()
+		print(it())
+		print(it())
+`, `
+1
+resumed A
+`, vm.ErrIteratorRunning)
+
+	RunSubErrO(t, "for_over_self", `
+		var it
+		func gen() {
+			defer print("deferred")
+			yield 1
+			for v in it {
+				print("not reached")
+			}
+			yield 2
+		}
+		it = gen()
+		for v in it {
+			print(v)
+		}
+`, `
+1
+deferred
+`, vm.ErrIteratorRunning)
+
+	RunSubErrO(t, "close_self", `
+		var it
+		func gen() {
+			defer print("deferred")
+			yield 1
+			close(it)
+			print("not reached")
+			yield 2
+		}
+		it = gen()
+		for v in it {
+			print(v)
+		}
+`, `
+1
+deferred
+`, vm.ErrIteratorRunning)
+
+	RunSubErrO(t, "not_catchable", `
+		var it
+		func gen() {
+			yield 1
+			try {
+				it()
+			} catch e {
+				print("not reached")
+			}
+			yield 2
+		}
+		it = gen()
+		print(it())
+		print(it())
+`, `
+1
+`, vm.ErrIteratorRunning)
+
+	// The failed resume ends the coroutine that attempted it, and with it the
+	// run. The activation that was already running carries on undisturbed.
+	RunSubErrO(t, "from_another_coroutine", `
+		import "co"
+		var it
+		func gen() {
+			defer print("deferred")
+			var a = "A"
+			yield 1
+			co.start(func() {
+				next(it)
+				print("not reached")
+			})
+			print("body continues", a)
+			yield 2
+		}
+		it = gen()
+		for v in it {
+			print(v)
+		}
+`, `
+1
+body continues A
+2
+deferred
+`, vm.ErrIteratorRunning)
+}

@@ -54,6 +54,11 @@ type ILIterator struct {
 	sp         int
 	bp         int
 	closed     bool
+
+	// running is true while the body is executing, i.e. between a resume and
+	// the yield, return or error that ends it. The saved ip/sp/bp are stale
+	// for that whole time, so the iterator must not be resumed or closed.
+	running bool
 }
 
 var _ Iterator = (*ILIterator)(nil)
@@ -68,6 +73,9 @@ func (i *ILIterator) IsClosed() bool { return i.closed }
 func (i *ILIterator) Close(vm *VM) error {
 	if i.closed {
 		return nil
+	}
+	if i.running {
+		return ErrIteratorRunning
 	}
 	i.closed = true
 	i.ip = -1

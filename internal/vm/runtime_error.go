@@ -122,3 +122,8 @@ var ErrDivideByZero = errors.New("divide by zero")
 // ErrStackOverflow is returned when a coroutine exhausts its operand stack or
 // exceeds the maximum call depth. It cannot be caught by try/catch.
 var ErrStackOverflow = MakeNonRecoverableError(errors.New("stack overflow"))
+
+// ErrIteratorRunning is returned when an iterator is resumed or closed while
+// its body is running: from inside that body, or from another coroutine while
+// the body is blocked. It cannot be caught by try/catch.
+var ErrIteratorRunning = MakeNonRecoverableError(errors.New("iterator is already running"))

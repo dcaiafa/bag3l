@@ -392,6 +392,7 @@ type ILIterator struct {
     sp         int
     bp         int                 // base pointer, carried across yields
     closed     bool
+    running    bool                // body is executing; see below
 }
 ```
 
@@ -420,6 +421,16 @@ The saved `bp` is in practice always 0: the compiler wraps every yielding
 function so that the iterator body itself takes no parameters (see
 `Func.RunPass` in `internal/ast/func_base.go`), and it starts on an empty
 stack.
+
+An `ILIterator` is not re-entrant. Its saved `ip`/`sp`/`bp` are only
+written at a yield, so they are stale for as long as the body runs, and a
+second activation started from them would run on the same stack slots as the
+first. `resumeILIterator` therefore sets `running` around `runFrame`, and
+both it and `Close` fail with `ErrIteratorRunning` (not catchable) when the
+flag is set. This is reachable two ways: the body resumes or closes its own
+iterator, or the body blocks (`sleep`, I/O, `co.start`) and another coroutine
+advances the same iterator. Sharing one generator between coroutines is
+therefore an error unless the consumers never overlap.
 
 `Close` marks the iterator closed and runs any pending `defer`s registered
 in the iterator body in LIFO order. It is idempotent — calling `Close` again
@@ -641,10 +652,6 @@ candidates for fixing rather than as contracts to rely on.
 
 Noticed while reading the code; none of these has been reproduced or ruled
 out. Verify before relying on or fixing them.
-
-- **Re-entrant iterators are unguarded.** Nothing stops an iterator's body
-  from resuming the iterator it belongs to while it is already running. Both
-  activations would share `iter.stack`, `iter.sp` and `iter.ip`.
 
 - **`GetCallerArgs` indexes the current operand stack with another frame's
   `bp`.** Frames on `callStack` can live on different operand stacks (each
