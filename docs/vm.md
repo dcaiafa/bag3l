@@ -602,14 +602,6 @@ This section catalogues current rough edges discovered while documenting the
 VM. They are observable behaviors, not design decisions; treat them as
 candidates for fixing rather than as contracts to rely on.
 
-### Confirmed bugs
-
-- **Two divide-by-zero sentinel errors exist.** `int.go` defines
-  `ErrDivByZero` (used by `lib/time` and its tests); `runtime_error.go`
-  defines `ErrDivideByZero` (used by `int.go` and `float.go` for the
-  division operator). `errors.Is(err, vm.ErrDivByZero)` will not match
-  integer division-by-zero errors.
-
 ### Sub-optimal / fragile patterns
 
 - **`getLocation` does a linear scan** of `fn.locations` on every

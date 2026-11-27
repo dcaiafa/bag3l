@@ -187,7 +187,7 @@ func (d Duration) EvalOp(op vm.Op, operand vm.Value) (vm.Value, error) {
 			return vm.NewBool(d == operand), nil
 		case vm.OpMod:
 			if otherDur == 0 {
-				return nil, vm.ErrDivByZero
+				return nil, vm.ErrDivideByZero
 			}
 			return Duration{d.dur % otherDur}, nil
 		}
@@ -203,13 +203,13 @@ func (d Duration) EvalOp(op vm.Op, operand vm.Value) (vm.Value, error) {
 		switch operand := operand.(type) {
 		case Duration:
 			if operand.dur == 0 {
-				return nil, vm.ErrDivByZero
+				return nil, vm.ErrDivideByZero
 			}
 			return vm.NewInt(int64(d.dur / operand.dur)), nil
 
 		case vm.Int:
 			if operand.Int64() == 0 {
-				return nil, vm.ErrDivByZero
+				return nil, vm.ErrDivideByZero
 			}
 			return Duration{d.dur / time.Duration(operand.Int64())}, nil
 
