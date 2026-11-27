@@ -648,15 +648,20 @@ candidates for fixing rather than as contracts to rely on.
   `(nil, false, nil)`. That means `err?.unknown` (optional access) still
   throws, defeating the point of the optional-index flag for this type.
 
-### Unconfirmed
+- **`args()` and `narg()` report nothing inside iterator bodies and `defer`
+  statements.** Both are compiled as closures: an iterator function becomes
+  an outer function that returns the iterator, and a `defer` wraps its
+  statement. The parameters are reached as captures, so the frame that
+  `GetCallerArgs`/`GetCallerNArg` inspect has `nArg == 0` and
+  `func it(a, b) { print(args()); yield a }` prints `[]`. Likewise, when a
+  native function calls `args` as a callback, the frame inspected is the
+  native's own.
 
-Noticed while reading the code; none of these has been reproduced or ruled
-out. Verify before relying on or fixing them.
-
-- **`GetCallerArgs` indexes the current operand stack with another frame's
-  `bp`.** Frames on `callStack` can live on different operand stacks (each
-  running `ILIterator` switches `co.stack`), so the result is only right when
-  the caller's frame is on the current one.
+  `GetCallerArgs` itself is sound: it indexes `co.stack` with the `bp` of the
+  frame below the native one, and that frame is always on the current operand
+  stack. Native frames are pushed without switching stacks, and
+  `resumeILIterator` switches `co.stack` only together with pushing the
+  iterator's frame.
 
 ### Things that are not obvious from the code
 
