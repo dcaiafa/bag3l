@@ -66,7 +66,7 @@ A `Fn` holds:
   stack slot (see "Calling convention" below).
 - `maxStack` — the peak operand-stack depth above the frame's locals,
   computed by `computeMaxStack` when the emitter finishes the function
-  (`Emitter.PopFn`). See "Stack overflow" below.
+  (`Emitter.PopFn`). See "Stack overflow and growth" below.
 
 A `Closure` is just `{fn, caps}` — an `Fn` plus a list of `ValueRef` captures.
 
@@ -85,7 +85,6 @@ type coroutine struct {
     instrs        []Instr             // current frame's bytecode
     sp            int                 // operand stack pointer
     ip            int                 // instruction pointer
-    preAllocStack [stackSize]Value    // 1000-slot inline backing array
     framePool     []*frame            // freelist for frame structs
     pendingErr    error               // error injected by SignalError
     contextStack  []context.Context
@@ -95,15 +94,17 @@ type coroutine struct {
 The operand stack is unified: arguments, locals, captures, and
 temporaries all live on it. No instruction takes a pointer *into* the operand
 stack; assignment writes into stack slots by index (see the store opcodes
-below), so the backing array could in principle be grown/reallocated without
-invalidating live references. The hot fields (`frame`, `pkg`, `globals`,
-`instrs`) are cached out of `frame.fn.pkg` and `frame.fn.instrs` whenever a
+below), which is what lets the backing array be reallocated when the stack
+grows (see "Stack overflow and growth"). The hot fields (`frame`, `pkg`,
+`globals`, `instrs`) are cached out of `frame.fn.pkg` and `frame.fn.instrs` whenever a
 frame becomes current, so the interpreter loop only touches `co.*` and not
 deeper pointer chains.
 
-`preAllocStack` is `stackSize = 1000`.
+### Stack overflow and growth
 
-### Stack overflow
+A coroutine's stack starts at `initialStackSize` (256) slots. An
+`ILIterator`'s stack starts out `nil` and is allocated on its first call,
+sized to exactly what its frame needs. Both grow on demand.
 
 Push opcodes store to `stack[sp]` without checking for room. That is safe
 because each frame reserves everything it can need up front:
@@ -117,19 +118,37 @@ because each frame reserves everything it can need up front:
   paths join with different depths the larger one wins. The pass panics on
   operand underflow or an unknown opcode, both of which are compiler bugs —
   **a new opcode must be added to its switch.**
-- **Prologue check.** `OpInitCallFrame` verifies
-  `sp + padding + nLocals + fn.maxStack <= len(stack)` and
-  `len(callStack) <= maxCallDepth` before touching the stack, and returns
-  `ErrStackOverflow` otherwise. This is one comparison per call and nothing
-  per instruction.
+- **Prologue reservation.** `OpInitCallFrame` calls
+  `co.Reserve(padding + nLocals + fn.maxStack)` before touching the stack.
+  In the common case that is one comparison per call and nothing per
+  instruction.
 - **Dynamic pushes.** The few pushes whose size is only known at run time
-  call `VM.checkStack(n)`: argument expansion in `OpCall` (`f(list...)`),
-  `VM.Call` (native code pushing arguments), `iterNext`, and `Run`.
+  call `co.Reserve(n)` themselves: argument expansion in `OpCall`
+  (`f(list...)`), `VM.Call` (native code pushing arguments), `iterNext`, and
+  `Run`.
 
-`maxCallDepth` (1000) exists because the slot bound alone does not bound
-recursion: every Bag3l call also recurses on the Go stack, and each
-`ILIterator` runs on its own fresh operand stack, so a recursive generator
-would otherwise never run out of slots.
+When `Reserve` finds too little room it allocates a new backing array (at
+least double, capped at `maxStackSize`), copies the live slots `[0, sp)`
+and replaces `co.stack`. Consequences worth knowing:
+
+- Nothing may keep writing through a slice of the stack across a call that
+  can reach `Reserve`. The interpreter loop always goes through
+  `m.co.stack`. The `args` slice handed to a native function may end up
+  aliasing the old array if that function calls back into the VM; it stays
+  readable and holds the right values, but it is no longer the live stack.
+- While an `ILIterator` runs, `co.stack` *is* the iterator's stack, so growth
+  happens there. `call` and `iterNext` store `co.stack` back into the
+  iterator before switching to the caller's stack.
+- Stacks never shrink.
+
+Two limits turn runaway programs into `ErrStackOverflow`:
+
+- `maxStackSize` (2^20 slots, 16 MB) per operand stack.
+- `maxCallDepth` (10000 frames) per coroutine, checked in
+  `OpInitCallFrame`. The slot limit alone does not bound recursion: every
+  Bag3l call also recurses on the Go stack, and each `ILIterator` runs on
+  its own operand stack, so a recursive generator would otherwise never run
+  out of slots.
 
 `ErrStackOverflow` is a `NonRecoverableError`: it cannot be caught by
 `try`/`catch`.
@@ -352,7 +371,8 @@ type Iterator interface {
 ### `*ILIterator` — bytecode-defined generators
 
 Created by `OpNewIter` from an `Fn` whose body uses `yield`. The iterator
-owns its own private operand stack (`preAllocStack`) plus the resume state:
+owns its own private operand stack (allocated lazily, see "Stack overflow and
+growth") plus the resume state:
 
 ```go
 type ILIterator struct {
@@ -367,8 +387,6 @@ type ILIterator struct {
     sp         int
     bp         int                 // base pointer, carried across yields
     closed     bool
-
-    preAllocStack [stackSize]Value
 }
 ```
 
@@ -560,12 +578,6 @@ candidates for fixing rather than as contracts to rely on.
   integer division-by-zero errors.
 
 ### Sub-optimal / fragile patterns
-
-- **Operand stacks are fixed-size.** Every coroutine and every `ILIterator`
-  embeds a `[stackSize]Value` (1000 slots, 16 KB), zeroed on creation.
-  Overflow is detected (see "Stack overflow"), but the limit is arbitrary and
-  iterators pay for far more stack than they use. Now that `fn.maxStack` is
-  known, stacks could start small and grow on demand.
 
 - **`getLocation` does a linear scan** of `fn.locations` on every
   stack-trace synthesis. Locations are stored sorted by `ip` and should

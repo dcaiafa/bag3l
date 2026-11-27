@@ -13,12 +13,19 @@ import (
 
 var ErrIteratorClosed = errors.New("iterator is closed")
 
-const stackSize = 1000
+const (
+	// initialStackSize is the number of operand-stack slots a coroutine
+	// starts with. Stacks grow on demand; see coroutine.Reserve.
+	initialStackSize = 256
 
-// maxCallDepth limits the number of nested frames in a coroutine. Every
-// bag3l call recurses on the Go stack, and an iterator brings its own operand
-// stack, so the operand-stack bound alone does not bound recursion.
-const maxCallDepth = 1000
+	// maxStackSize is the largest a single operand stack may grow to.
+	maxStackSize = 1 << 20
+
+	// maxCallDepth limits the number of nested frames in a coroutine. Every
+	// bag3l call recurses on the Go stack, and an iterator brings its own
+	// operand stack, so maxStackSize alone does not bound recursion.
+	maxCallDepth = 10000
+)
 
 type Op byte
 
@@ -134,8 +141,9 @@ func (m *VM) Run(args []Value) error {
 
 	co := m.newCoroutine()
 	co.PushContext(context.Background())
-	if len(args) > len(co.stack) {
-		return ErrStackOverflow
+	err := co.Reserve(len(args))
+	if err != nil {
+		return err
 	}
 	copy(co.stack, args)
 	co.sp = len(args)
@@ -166,7 +174,7 @@ func (m *VM) newCoroutine() *coroutine {
 		}
 	})
 	co.fiber.Data = co
-	co.stack = co.preAllocStack[:]
+	co.stack = make([]Value, initialStackSize)
 	return co
 }
 
@@ -218,7 +226,7 @@ func (m *VM) Block(f func(ctx context.Context)) {
 }
 
 func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
-	err := m.checkStack(len(args) + nret)
+	err := m.co.Reserve(len(args) + nret)
 	if err != nil {
 		return nil, err
 	}
@@ -236,16 +244,6 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 	copy(ret, m.co.stack[m.co.sp-nret:])
 	m.co.sp = sp
 	return ret, nil
-}
-
-// checkStack reports ErrStackOverflow unless the current operand stack has
-// room for n more values. Bytecode pushes are covered by the check in
-// OpInitCallFrame; this is for pushes whose size is only known at run time.
-func (m *VM) checkStack(n int) error {
-	if m.co.sp+n > len(m.co.stack) {
-		return ErrStackOverflow
-	}
-	return nil
 }
 
 func (m *VM) RegisterCloser(c Closer) {
@@ -353,6 +351,7 @@ func (m *VM) call(callable Value, narg int, nret int) error {
 
 		copy(rstack[rsp:], m.co.stack[m.co.sp-nret:m.co.sp])
 		callable.sp = m.co.sp - nret
+		callable.stack = m.co.stack // It may have grown.
 		m.co.stack = rstack
 		m.co.sp = rsp + nret
 		return nil
@@ -404,7 +403,7 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 		return false, ErrIteratorClosed
 	}
 
-	err := m.checkStack(nret)
+	err := m.co.Reserve(nret)
 	if err != nil {
 		return false, err
 	}
@@ -482,6 +481,7 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 
 		copy(rstack[rsp:], m.co.stack[m.co.sp-nret:m.co.sp])
 		iter.sp = m.co.sp - nret
+		iter.stack = m.co.stack // It may have grown.
 		m.co.stack = rstack
 		m.co.sp = rsp + nret
 		return true, nil
@@ -646,7 +646,7 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 					}
 					// The expanded arguments are not part of the frame's
 					// statically computed bound.
-					err = m.checkStack(len(arr.list) + nret)
+					err = m.co.Reserve(len(arr.list) + nret)
 					if err != nil {
 						return err
 					}
@@ -714,7 +714,6 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 				captures: caps,
 				iterNRet: iterNRet,
 			}
-			iter.stack = iter.preAllocStack[:]
 
 			m.co.stack[m.co.sp] = iter
 			m.co.sp++
@@ -908,9 +907,12 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			fn := m.co.frame.fn
 			nLocals := int(instr.op1)
 			padding := max(fn.minArgs-m.co.frame.argSlots, 0)
-			if m.co.sp+padding+nLocals+fn.maxStack > len(m.co.stack) ||
-				len(m.co.callStack) > maxCallDepth {
+			if len(m.co.callStack) > maxCallDepth {
 				return ErrStackOverflow
+			}
+			err = m.co.Reserve(padding + nLocals + fn.maxStack)
+			if err != nil {
+				return err
 			}
 			for nParams := fn.minArgs; m.co.frame.argSlots < nParams; m.co.frame.argSlots++ {
 				m.co.stack[m.co.sp] = nil

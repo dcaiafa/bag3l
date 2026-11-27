@@ -17,6 +17,61 @@ func TestStackOverflow(t *testing.T) {
 		print(f(100))
 `, `100`)
 
+	// Deep enough to grow the operand stack several times.
+	RunSubO(t, "deeper_recursion_ok", `
+		func f(n) {
+			var a = n
+			var b = a + 1
+			if n == 0 {
+				return 0
+			}
+			return b - a + f(n - 1)
+		}
+		print(f(5000))
+`, `5000`)
+
+	// Calls made from an iterator's body run on the iterator's own stack,
+	// which must keep its locals intact as it grows between yields.
+	RunSubO(t, "iterator_stack_growth", `
+		func depth(n) {
+			if n == 0 {
+				return 0
+			}
+			return 1 + depth(n - 1)
+		}
+		func gen() {
+			var a = "a"
+			yield a, depth(10)
+			var b = "b"
+			yield a + b, depth(200)
+			yield a + b, depth(2000)
+		}
+		for s, d in gen() {
+			print(s, d)
+		}
+`, `
+a 10
+ab 200
+ab 2000
+`)
+
+	RunSubO(t, "coroutine_stack_growth", `
+		import "co"
+		func f(n) {
+			if n == 0 {
+				return 0
+			}
+			return 1 + f(n - 1)
+		}
+		co.start(func() {
+			print(f(3000))
+		})
+		print(f(4000))
+`, `
+3000
+4000
+`)
+
 	RunSubErr(t, "infinite_recursion", `
 		func f(n) {
 			return 1 + f(n + 1)
@@ -57,14 +112,10 @@ func TestStackOverflow(t *testing.T) {
 `, vm.ErrStackOverflow)
 
 	RunSubErr(t, "arg_expansion", `
-		import "list"
 		func f() {
 			return narg()
 		}
-		var l = []
-		for i in range(5000) {
-			list.append(l, i)
-		}
+		var l = [range(1100000)...]
 		print(f(l...))
 `, vm.ErrStackOverflow)
 
@@ -85,9 +136,9 @@ func TestStackOverflow(t *testing.T) {
 			return narg()
 		}
 		var l = []
-		for i in range(100) {
+		for i in range(5000) {
 			list.append(l, i)
 		}
 		print(f(l...))
-`, `100`)
+`, `5000`)
 }

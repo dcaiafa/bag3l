@@ -7,19 +7,47 @@ import (
 )
 
 type coroutine struct {
-	fiber         *fiber.Fiber
-	callStack     []*frame
-	frame         *frame
-	pkg           *CompiledPackage
-	stack         []Value
-	globals       []Value
-	instrs        []Instr
-	sp            int
-	ip            int
-	preAllocStack [stackSize]Value
-	framePool     []*frame
-	pendingErr    error
-	contextStack  []context.Context
+	fiber        *fiber.Fiber
+	callStack    []*frame
+	frame        *frame
+	pkg          *CompiledPackage
+	stack        []Value
+	globals      []Value
+	instrs       []Instr
+	sp           int
+	ip           int
+	framePool    []*frame
+	pendingErr   error
+	contextStack []context.Context
+}
+
+// Reserve makes sure the current operand stack has room for n more values
+// above sp, growing it if necessary. It returns ErrStackOverflow if that
+// would take the stack past maxStackSize.
+//
+// Bytecode pushes are covered by the single Reserve in OpInitCallFrame; other
+// callers are pushes whose size is only known at run time.
+//
+// Growing replaces co.stack, so a slice of the stack taken before a call that
+// can reach Reserve must not be written through afterwards.
+func (co *coroutine) Reserve(n int) error {
+	if co.sp+n <= len(co.stack) {
+		return nil
+	}
+	return co.growStack(co.sp + n)
+}
+
+func (co *coroutine) growStack(need int) error {
+	if need > maxStackSize {
+		return ErrStackOverflow
+	}
+	// An iterator's stack starts out nil, so its first frame gets exactly what
+	// it needs. After that, double.
+	size := min(max(need, 2*len(co.stack)), maxStackSize)
+	stack := make([]Value, size)
+	copy(stack, co.stack[:co.sp])
+	co.stack = stack
+	return nil
 }
 
 func (co *coroutine) TopContext() context.Context {

@@ -54,8 +54,6 @@ type ILIterator struct {
 	sp         int
 	bp         int
 	closed     bool
-
-	preAllocStack [stackSize]Value
 }
 
 var _ Iterator = (*ILIterator)(nil)
