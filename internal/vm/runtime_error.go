@@ -95,7 +95,15 @@ func (e *RuntimeError) Error() string {
 	str := strings.Builder{}
 	str.WriteString(e.Message())
 
-	for _, f := range e.Stack {
+	// Elide the middle of very deep stacks (e.g. runaway recursion).
+	const maxShown = 20
+	for i, f := range e.Stack {
+		if len(e.Stack) > maxShown && i == maxShown/2 {
+			fmt.Fprintf(&str, "\n ... %v frames omitted ...", len(e.Stack)-maxShown)
+		}
+		if len(e.Stack) > maxShown && i >= maxShown/2 && i < len(e.Stack)-maxShown/2 {
+			continue
+		}
 		fmt.Fprintf(&str, "\n %v", f.String())
 	}
 
@@ -110,3 +118,7 @@ var ErrCannotCallNil = errors.New("cannot evaluate function call because target 
 var ErrIsNotIterable = errors.New("is not iterable")
 var ErrIsNotReadable = errors.New("is not readable")
 var ErrDivideByZero = errors.New("divide by zero")
+
+// ErrStackOverflow is returned when a coroutine exhausts its operand stack or
+// exceeds the maximum call depth. It cannot be caught by try/catch.
+var ErrStackOverflow = MakeNonRecoverableError(errors.New("stack overflow"))

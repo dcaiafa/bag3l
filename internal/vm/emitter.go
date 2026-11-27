@@ -59,6 +59,8 @@ func (e *Emitter) PushFn(fn int) {
 }
 
 func (e *Emitter) PopFn() {
+	fn := e.curFn()
+	fn.maxStack = computeMaxStack(fn)
 	e.fnStack = e.fnStack[:len(e.fnStack)-1]
 }
 

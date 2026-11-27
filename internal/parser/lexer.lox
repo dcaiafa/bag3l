@@ -72,7 +72,7 @@ CHAR    = '\'' (('\\' [nrt'\\]) | ~['\r\n\\]+) '\''
 
 SHEBANG = '#!' ~[\n]* '\n'
 
-FORMAT = '%' [ +-#.0-9]* [bcdeEfFgGoOqstUvxX]
+FORMAT = '%' [ +\-#.0-9]* [bcdeEfFgGoOqstUvxX]
 
 @frag ('//' | '#') ~[\n]* @discard
 @frag [ \r\t]+   @discard

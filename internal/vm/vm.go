@@ -15,6 +15,11 @@ var ErrIteratorClosed = errors.New("iterator is closed")
 
 const stackSize = 1000
 
+// maxCallDepth limits the number of nested frames in a coroutine. Every
+// bag3l call recurses on the Go stack, and an iterator brings its own operand
+// stack, so the operand-stack bound alone does not bound recursion.
+const maxCallDepth = 1000
+
 type Op byte
 
 const (
@@ -129,6 +134,9 @@ func (m *VM) Run(args []Value) error {
 
 	co := m.newCoroutine()
 	co.PushContext(context.Background())
+	if len(args) > len(co.stack) {
+		return ErrStackOverflow
+	}
 	copy(co.stack, args)
 	co.sp = len(args)
 
@@ -210,10 +218,14 @@ func (m *VM) Block(f func(ctx context.Context)) {
 }
 
 func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
+	err := m.checkStack(len(args) + nret)
+	if err != nil {
+		return nil, err
+	}
 	sp := m.co.sp
 	copy(m.co.stack[m.co.sp:], args)
 	m.co.sp += len(args)
-	err := m.call(callable, len(args), nret)
+	err = m.call(callable, len(args), nret)
 	if err != nil {
 		return nil, err
 	}
@@ -224,6 +236,16 @@ func (m *VM) Call(callable Value, args []Value, nret int) ([]Value, error) {
 	copy(ret, m.co.stack[m.co.sp-nret:])
 	m.co.sp = sp
 	return ret, nil
+}
+
+// checkStack reports ErrStackOverflow unless the current operand stack has
+// room for n more values. Bytecode pushes are covered by the check in
+// OpInitCallFrame; this is for pushes whose size is only known at run time.
+func (m *VM) checkStack(n int) error {
+	if m.co.sp+n > len(m.co.stack) {
+		return ErrStackOverflow
+	}
+	return nil
 }
 
 func (m *VM) RegisterCloser(c Closer) {
@@ -380,6 +402,11 @@ func (m *VM) ShuttingDown() bool {
 func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 	if iter.IsClosed() {
 		return false, ErrIteratorClosed
+	}
+
+	err := m.checkStack(nret)
+	if err != nil {
+		return false, err
 	}
 
 	switch iter := iter.(type) {
@@ -616,6 +643,12 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 					arr, ok := lastArg.(*List)
 					if !ok {
 						return fmt.Errorf("cannot expand %v argument", TypeName(lastArg))
+					}
+					// The expanded arguments are not part of the frame's
+					// statically computed bound.
+					err = m.checkStack(len(arr.list) + nret)
+					if err != nil {
+						return err
 					}
 					copy(m.co.stack[m.co.sp-1:], arr.list)
 					m.co.sp += len(arr.list) - 1
@@ -868,11 +901,22 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 			// defaults to nil and can be assigned freely. nArg keeps the
 			// caller-provided count (reported by narg()/args()); argSlots is
 			// the padded width used to address parameters relative to bp.
-			for nParams := m.co.frame.fn.minArgs; m.co.frame.argSlots < nParams; m.co.frame.argSlots++ {
+			//
+			// This is also the only place bytecode pushes are checked for
+			// overflow: the frame's whole operand-stack need is known up
+			// front (see computeMaxStack).
+			fn := m.co.frame.fn
+			nLocals := int(instr.op1)
+			padding := max(fn.minArgs-m.co.frame.argSlots, 0)
+			if m.co.sp+padding+nLocals+fn.maxStack > len(m.co.stack) ||
+				len(m.co.callStack) > maxCallDepth {
+				return ErrStackOverflow
+			}
+			for nParams := fn.minArgs; m.co.frame.argSlots < nParams; m.co.frame.argSlots++ {
 				m.co.stack[m.co.sp] = nil
 				m.co.sp++
 			}
-			m.co.frame.nLocals = int(instr.op1)
+			m.co.frame.nLocals = nLocals
 			m.co.frame.bp = m.co.sp
 			m.co.sp += m.co.frame.nLocals
 			for i := m.co.frame.bp; i < m.co.sp; i++ {
@@ -991,6 +1035,15 @@ func (m *VM) resumeWithoutRecovery() (err error) {
 
 		default:
 			panic("invalid instruction")
+		}
+
+		if debugStackCheck {
+			f := m.co.frame
+			if f.fn != nil && m.co.sp > f.bp+f.nLocals+f.fn.maxStack {
+				panic(fmt.Sprintf(
+					"assert: operand stack exceeds computed bound after %v at ip %v",
+					instr.opc, m.co.ip))
+			}
 		}
 
 		m.co.ip++

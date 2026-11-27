@@ -6,6 +6,8 @@ type Fn struct {
 	locations []Location
 	instrs    []Instr
 	minArgs   int
+	// maxStack is the peak operand-stack depth above the frame's locals.
+	maxStack int
 }
 
 func (f *Fn) Type() string   { return "Func" }

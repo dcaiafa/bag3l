@@ -16,6 +16,8 @@ calling convention, the instruction set, and how the moving parts fit together.
 | `coroutine.go` | Per-coroutine state: stack, call stack, frame pool, IP |
 | `instr.go` | `Instr` struct and the `OpCode` enum |
 | `emitter.go` | `Emitter` used by the compiler to produce bytecode |
+| `stack_depth.go` | `computeMaxStack` — static operand-stack bound per `Fn` |
+| `stack_debug_on.go` / `stack_debug_off.go` | `debugStackCheck` build-tag switch |
 | `program.go` | `Program` and `CompiledPackage` containers |
 | `fn.go` | `Fn` — a compiled Bag3l function (bytecode + literals + metadata) |
 | `closure.go` | `Closure` — `Fn` bound to a captured environment |
@@ -62,6 +64,9 @@ A `Fn` holds:
 - `minArgs` — the declared parameter count. `OpInitCallFrame` uses it to pad
   any parameters the caller omitted with `nil` so every parameter owns a
   stack slot (see "Calling convention" below).
+- `maxStack` — the peak operand-stack depth above the frame's locals,
+  computed by `computeMaxStack` when the emitter finishes the function
+  (`Emitter.PopFn`). See "Stack overflow" below.
 
 A `Closure` is just `{fn, caps}` — an `Fn` plus a list of `ValueRef` captures.
 
@@ -96,9 +101,43 @@ invalidating live references. The hot fields (`frame`, `pkg`, `globals`,
 frame becomes current, so the interpreter loop only touches `co.*` and not
 deeper pointer chains.
 
-`preAllocStack` is `stackSize = 1000`. **There is no overflow check** on stack
-pushes — running past the end of the inline array panics with an
-out-of-bounds index.
+`preAllocStack` is `stackSize = 1000`.
+
+### Stack overflow
+
+Push opcodes store to `stack[sp]` without checking for room. That is safe
+because each frame reserves everything it can need up front:
+
+- **Static bound.** `computeMaxStack` (`stack_depth.go`) walks a function's
+  bytecode once at compile time, following every branch, and records the peak
+  operand depth above the locals in `fn.maxStack`. Each opcode has a fixed
+  pop/push effect; `OpCall` additionally counts a transient peak of `nret`
+  slots because results are written before being moved down over the
+  callable. Catch handlers are entered at depth 1 (the error value). Where
+  paths join with different depths the larger one wins. The pass panics on
+  operand underflow or an unknown opcode, both of which are compiler bugs —
+  **a new opcode must be added to its switch.**
+- **Prologue check.** `OpInitCallFrame` verifies
+  `sp + padding + nLocals + fn.maxStack <= len(stack)` and
+  `len(callStack) <= maxCallDepth` before touching the stack, and returns
+  `ErrStackOverflow` otherwise. This is one comparison per call and nothing
+  per instruction.
+- **Dynamic pushes.** The few pushes whose size is only known at run time
+  call `VM.checkStack(n)`: argument expansion in `OpCall` (`f(list...)`),
+  `VM.Call` (native code pushing arguments), `iterNext`, and `Run`.
+
+`maxCallDepth` (1000) exists because the slot bound alone does not bound
+recursion: every Bag3l call also recurses on the Go stack, and each
+`ILIterator` runs on its own fresh operand stack, so a recursive generator
+would otherwise never run out of slots.
+
+`ErrStackOverflow` is a `NonRecoverableError`: it cannot be caught by
+`try`/`catch`.
+
+Building with `-tags bag3ldebug` turns on `debugStackCheck`, which asserts
+after every instruction that `sp` is within the frame's computed bound. Run
+the test suite that way after changing opcodes or `computeMaxStack`;
+`make test` runs it both with and without the tag.
 
 ### Frames
 
@@ -478,6 +517,10 @@ with `ip <= currentIp`. `wrapRuntimeError` captures a stack trace the first
 time a runtime error is wrapped and reuses it on every re-wrap so the trace
 reflects the throw site, not propagation sites.
 
+`RuntimeError.Error()` prints at most 20 frames; for deeper stacks (runaway
+recursion) it keeps the innermost and outermost 10 and reports how many were
+omitted.
+
 ## Compilation entry points
 
 The compiler talks to the runtime only through `Emitter`:
@@ -518,10 +561,11 @@ candidates for fixing rather than as contracts to rely on.
 
 ### Sub-optimal / fragile patterns
 
-- **No operand-stack overflow check.** `preAllocStack` is a fixed
-  `[stackSize]Value` (1000 slots). Push opcodes (`OpDup`, `OpLoad*`, etc.)
-  blindly index `stack[sp]`, so deep recursion or pathological local counts
-  panic with an out-of-bounds index rather than producing a runtime error.
+- **Operand stacks are fixed-size.** Every coroutine and every `ILIterator`
+  embeds a `[stackSize]Value` (1000 slots, 16 KB), zeroed on creation.
+  Overflow is detected (see "Stack overflow"), but the limit is arbitrary and
+  iterators pay for far more stack than they use. Now that `fn.maxStack` is
+  known, stacks could start small and grow on demand.
 
 - **`getLocation` does a linear scan** of `fn.locations` on every
   stack-trace synthesis. Locations are stored sorted by `ip` and should

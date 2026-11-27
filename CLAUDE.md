@@ -14,7 +14,8 @@ under `lib/` and is largely generated from `.stubgen` specs.
 - Run a script: `go run ./cmd/bag3l path/to/program.b3`
 - Run an inline command: `go run ./cmd/bag3l -c "<bag3l code>"`
 - CPU profile a run: `go run ./cmd/bag3l -p cpu.prof program.b3`
-- All tests: `go test ./...`
+- All tests: `make test` (runs `go test ./...` normally and again with
+  `-tags bag3ldebug`, which enables per-instruction VM assertions)
 - Tests for one package: `go test ./tests` or `go test ./lib`
 - Single test: `go test ./tests -run TestForLoop`
 - Regenerate parser/lexer and stub code: `go generate ./...`
