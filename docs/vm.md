@@ -406,8 +406,20 @@ On every `Next()`, the VM:
 
 `OpIterYield` saves `ip`, `bp`, `tryCatches`, `defers`, `nlocals` back onto
 the `ILIterator` and returns `nil` from the inner interpreter loop. `OpIterRet`
-sets `ip = -1` to mark the generator finished. Calling a finished iterator
-returns `False` plus nils for the remaining slots.
+sets `ip = -1` to mark the generator finished.
+
+Both ways of advancing an `ILIterator` — `iterNext` (used by `next`, `for`
+and native code) and the `*ILIterator` branch of `call` (a direct `it()`) —
+go through `resumeILIterator`, which does the steps above and reports
+whether the body yielded. They differ only in how they report the end:
+`iterNext` returns `false`, while `call` pushes `False` plus nils for the
+remaining slots, whether the iterator was already finished or finished
+during that call. Arguments passed to a direct call are ignored.
+
+The saved `bp` is in practice always 0: the compiler wraps every yielding
+function so that the iterator body itself takes no parameters (see
+`Func.RunPass` in `internal/ast/func_base.go`), and it starts on an empty
+stack.
 
 `Close` marks the iterator closed and runs any pending `defer`s registered
 in the iterator body in LIFO order. It is idempotent — calling `Close` again
@@ -629,12 +641,6 @@ candidates for fixing rather than as contracts to rely on.
 
 Noticed while reading the code; none of these has been reproduced or ruled
 out. Verify before relying on or fixing them.
-
-- **`call` and `iterNext` set up iterator frames differently.** `iterNext`
-  restores `f.bp` from the iterator; the `*ILIterator` branch of `call`
-  leaves it at 0. This works because `bp` is always 0 on an iterator's own
-  stack (it starts empty and takes no arguments), which is an accident of
-  layout rather than something the code states.
 
 - **Re-entrant iterators are unguarded.** Nothing stops an iterator's body
   from resuming the iterator it belongs to while it is already running. Both

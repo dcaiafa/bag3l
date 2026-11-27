@@ -114,5 +114,82 @@ range(4) | pass | sum | print
 `, `
 6
 `)
+}
 
+// Calling an iterator value directly (instead of through next or a for loop)
+// yields one value per call, and false once the body has finished.
+func TestIterDirectCall(t *testing.T) {
+	RunSubO(t, "no_locals", `
+		func it() {
+			yield 1
+			yield 2
+		}
+		var i = it()
+		print(i())
+		print(i())
+		print(i())
+		print(i())
+`, `
+1
+2
+false
+false
+`)
+
+	RunSubO(t, "with_locals", `
+		func it() {
+			var a = 10
+			var b = 20
+			yield a
+			yield b
+		}
+		var i = it()
+		print(i())
+		print(i())
+		print(i())
+		print(i())
+`, `
+10
+20
+false
+false
+`)
+
+	RunSubO(t, "multiple_values", `
+		func it() {
+			var a = 1
+			yield a, "x"
+		}
+		var i = it()
+		var p, q = i()
+		print(p, q)
+		p, q = i()
+		print(p, q)
+`, `
+1 x
+false <nil>
+`)
+
+	RunSubO(t, "finishes_in_catch", `
+		func it() {
+			var a = 5
+			try {
+				yield 1
+				throw "boom"
+			} catch e {
+				yield a
+				yield e.error
+			}
+		}
+		var i = it()
+		print(i())
+		print(i())
+		print(i())
+		print(i())
+`, `
+1
+5
+boom
+false
+`)
 }

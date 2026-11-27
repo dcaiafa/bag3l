@@ -317,43 +317,24 @@ func (m *VM) call(callable Value, narg int, nret int) error {
 		return m.callExtFn(callable.extFn, nil, narg, nret)
 
 	case *ILIterator:
-		if callable.ip == -1 {
-			m.co.stack[m.co.sp] = False
-			for i := 1; i < nret; i++ {
-				m.co.stack[m.co.sp+i] = nil
+		ok := false
+		if callable.ip != -1 {
+			var err error
+			ok, err = m.resumeILIterator(callable, nret)
+			if err != nil {
+				return err
+			}
+		}
+		if !ok {
+			// Finished, either before this call or during it.
+			if nret > 0 {
+				m.co.stack[m.co.sp] = False
+				for i := 1; i < nret; i++ {
+					m.co.stack[m.co.sp+i] = nil
+				}
 			}
 			m.co.sp += nret
-			return nil
 		}
-
-		rsp := m.co.sp
-		rstack := m.co.stack
-
-		f := m.co.NewFrame()
-		f.fn = callable.fn
-		f.iter = callable
-		f.caps = callable.captures
-		f.tryCatches = callable.tryCatches
-		f.defers = callable.defers
-		f.nRet = nret
-		f.nLocals = callable.nlocals
-		f.ip = callable.ip
-
-		m.co.stack = callable.stack
-		m.co.sp = callable.sp
-
-		err := m.runFrame(f)
-		if err != nil {
-			m.co.stack = rstack
-			m.co.sp = rsp
-			return err
-		}
-
-		copy(rstack[rsp:], m.co.stack[m.co.sp-nret:m.co.sp])
-		callable.sp = m.co.sp - nret
-		callable.stack = m.co.stack // It may have grown.
-		m.co.stack = rstack
-		m.co.sp = rsp + nret
 		return nil
 
 	case *Fn:
@@ -448,43 +429,7 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 		if iter.ip == -1 {
 			return false, nil
 		}
-
-		rsp := m.co.sp
-		rstack := m.co.stack
-
-		f := m.co.NewFrame()
-		f.fn = iter.fn
-		f.iter = iter
-		f.caps = iter.captures
-		f.tryCatches = iter.tryCatches
-		f.defers = iter.defers
-		f.nRet = nret
-		f.nLocals = iter.nlocals
-		f.ip = iter.ip
-		f.bp = iter.bp
-
-		m.co.stack = iter.stack
-		m.co.sp = iter.sp
-
-		err := m.runFrame(f)
-		if err != nil {
-			m.co.stack = rstack
-			m.co.sp = rsp
-			return false, err
-		}
-
-		if iter.ip == -1 {
-			m.co.stack = rstack
-			m.co.sp = rsp
-			return false, nil
-		}
-
-		copy(rstack[rsp:], m.co.stack[m.co.sp-nret:m.co.sp])
-		iter.sp = m.co.sp - nret
-		iter.stack = m.co.stack // It may have grown.
-		m.co.stack = rstack
-		m.co.sp = rsp + nret
-		return true, nil
+		return m.resumeILIterator(iter, nret)
 
 	default:
 		if iter == nil {
@@ -492,6 +437,52 @@ func (m *VM) iterNext(iter Iterator, nret int) (bool, error) {
 		}
 		return false, fmt.Errorf("cannot call %q", TypeName(iter))
 	}
+}
+
+// resumeILIterator runs iter's body on the iterator's own operand stack until
+// it yields or finishes. iter must not be finished (iter.ip != -1) and the
+// current stack must have room for nret values.
+//
+// If the body yields, the nret yielded values are pushed onto the current
+// stack and the result is true. If the body finishes, or fails, the current
+// stack is left as it was.
+func (m *VM) resumeILIterator(iter *ILIterator, nret int) (bool, error) {
+	rsp := m.co.sp
+	rstack := m.co.stack
+
+	f := m.co.NewFrame()
+	f.fn = iter.fn
+	f.iter = iter
+	f.caps = iter.captures
+	f.tryCatches = iter.tryCatches
+	f.defers = iter.defers
+	f.nRet = nret
+	f.nLocals = iter.nlocals
+	f.ip = iter.ip
+	f.bp = iter.bp
+
+	m.co.stack = iter.stack
+	m.co.sp = iter.sp
+
+	err := m.runFrame(f)
+	if err != nil {
+		m.co.stack = rstack
+		m.co.sp = rsp
+		return false, err
+	}
+
+	if iter.ip == -1 {
+		m.co.stack = rstack
+		m.co.sp = rsp
+		return false, nil
+	}
+
+	copy(rstack[rsp:], m.co.stack[m.co.sp-nret:m.co.sp])
+	iter.sp = m.co.sp - nret
+	iter.stack = m.co.stack // It may have grown.
+	m.co.stack = rstack
+	m.co.sp = rsp + nret
+	return true, nil
 }
 
 func (m *VM) runFrame(frame *frame) error {
